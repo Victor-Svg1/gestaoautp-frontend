@@ -4195,7 +4195,7 @@ function renderNFePreview(d){
     <div class="nfe-step done"><i class="ti ti-credit-card" style="color:var(--green);font-size:18px"></i><div><strong>Pagamento: ${d.dups.length} duplicata(s)</strong> — R$ ${(d.vNF||0).toFixed(2).replace('.',',')} vencendo em ${d.dups[0]?.dVenc||'—'}</div></div>
   `;
   // Header NF-e
-  const hdr=document.getElementById('nfe-header-info');
+  const hdr=document.getElementById('nfe-info-grid');
   if(hdr)hdr.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:8px">
       <div><div class="label-xs">EMITENTE</div><div class="fw6">${d.emitNome||'—'}</div><div style="font-size:11px;color:var(--text3)">${d.emitFant||''}</div></div>
@@ -4211,7 +4211,7 @@ function renderNFePreview(d){
   // Items table
   renderNFeItemsTable(d.items);
   // Totals
-  const tots=document.getElementById('nfe-totals');
+  const tots=document.getElementById('nfe-totals-grid');
   if(tots)tots.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">
       ${[['Produtos',d.vProd],['ICMS',d.vICMS],['IPI',d.vIPI],['PIS',d.vPIS],['COFINS',d.vCOFINS],['Frete',d.vFrete]].map(([l,v])=>`<div style="padding:8px;background:var(--bg3);border-radius:6px"><div style="font-size:10px;color:var(--text3)">${l}</div><div class="fw6">R$ ${(v||0).toFixed(2).replace('.',',')}</div></div>`).join('')}
@@ -4221,69 +4221,61 @@ function renderNFePreview(d){
 }
 
 function renderNFeItemsTable(items){
-  const container=document.getElementById('nfe-items-table-container');
-  if(!container)return;
+  // Update match summary header
   const matched=items.filter(i=>i.matched).length;
-  container.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <strong>Itens da Nota</strong>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span style="font-size:12px;color:var(--text3)">${items.length} produto(s)</span>
-        <span class="badge bg2" style="font-size:11px">${matched} vinculados</span>
-        <span class="badge ba" style="font-size:11px">${items.length-matched} não encontrados</span>
-        ${items.length-matched>0?'<button class="btn-sm" onclick="cadastrarTodosNovos()" style="background:var(--green);color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">📦 Cadastrar todos novos</button>':''}
-      </div>
-    </div>
-    <div style="overflow-x:auto;overflow-y:auto;max-height:420px;border:1px solid var(--border);border-radius:8px">
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead style="position:sticky;top:0;background:var(--bg2);z-index:1">
-          <tr>
-            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3);white-space:nowrap">#</th>
-            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3);white-space:nowrap">CÓDIGO / EAN</th>
-            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3)">DESCRIÇÃO (NF-e)</th>
-            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3);white-space:nowrap">NCM</th>
-            <th style="padding:8px 10px;text-align:right;font-size:11px;color:var(--text3);white-space:nowrap">QTD</th>
-            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3);white-space:nowrap">UN.</th>
-            <th style="padding:8px 10px;text-align:right;font-size:11px;color:var(--text3);white-space:nowrap">VL. UNIT.</th>
-            <th style="padding:8px 10px;text-align:right;font-size:11px;color:var(--text3);white-space:nowrap">VL. TOTAL</th>
-            <th style="padding:8px 10px;text-align:center;font-size:11px;color:var(--text3);white-space:nowrap">MATCH NO SISTEMA</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${items.map((item,idx)=>{
-            const isMatched=!!item.matched;
-            const prod=item.matched?.prod;
-            return `<tr style="border-top:1px solid var(--border);background:${idx%2===0?'transparent':'rgba(255,255,255,.02)'}">
-              <td style="padding:8px 10px;color:var(--text3)">${item.nItem||idx+1}</td>
-              <td style="padding:8px 10px;white-space:nowrap">
-                <div class="fw6">${item.cProd||'—'}</div>
-                <div style="font-size:10px;color:var(--text3)">${item.cEAN&&item.cEAN!=='SEM GTIN'?item.cEAN:''}</div>
-              </td>
-              <td style="padding:8px 10px;max-width:220px">${item.xProd||'—'}</td>
-              <td style="padding:8px 10px;font-size:11px;color:var(--text3)">${item.NCM||'—'}</td>
-              <td style="padding:8px 10px;text-align:right;font-weight:600">${item.qCom||0}</td>
-              <td style="padding:8px 10px;font-size:11px">${item.uCom||'—'}</td>
-              <td style="padding:8px 10px;text-align:right">R$ ${(item.vUnCom||0).toFixed(2).replace('.',',')}</td>
-              <td style="padding:8px 10px;text-align:right;font-weight:600;color:var(--amber)">R$ ${(item.vProdItem||0).toFixed(2).replace('.',',')}</td>
-              <td style="padding:8px 10px;text-align:center">
-                ${isMatched
-                  ? `<span style="color:var(--green);font-size:11px">✅ ${item.matched.label}: ${prod?.nome||prod?.n||''}</span>`
-                  : `<span style="color:var(--amber);font-size:11px">⚠️ Não encontrado</span>
-                     <button onclick="cadastrarItemNfe(${idx})" style="margin-left:6px;background:var(--blue);color:#fff;border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px">Cadastrar</button>`
-                }
-              </td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-    <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
-      <button onclick="resetNFe()" style="padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--text1);border-radius:8px;cursor:pointer">✕ Descartar</button>
-      <button onclick="confirmarEntradaNFe()" style="padding:8px 22px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px">✅ Confirmar Entrada (${matched} itens)</button>
-    </div>
-  `;
-}
+  const notMatched=items.length-matched;
+  const matchSummary=document.getElementById('nfe-match-summary');
+  if(matchSummary){
+    matchSummary.innerHTML=`
+      <span style="color:var(--green);font-size:12px">✅ ${matched} vinculados</span>
+      <span style="color:var(--amber);font-size:12px;margin-left:8px">⚠️ ${notMatched} não encontrados</span>
+      ${notMatched>0?`<button onclick="cadastrarTodosNovos()" style="margin-left:10px;background:var(--green);color:#fff;border:none;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px">📦 Cadastrar todos novos</button>`:''}
+    `;
+  }
+  const itemsCount=document.getElementById('nfe-items-count');
+  if(itemsCount)itemsCount.textContent=items.length+' produto(s)';
 
+  // Render rows into existing tbody
+  const tbody=document.getElementById('nfe-items-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=items.map((item,idx)=>{
+    const isMatched=!!item.matched;
+    const prod=item.matched?.prod;
+    return `<tr style="border-top:1px solid var(--border)">
+      <td style="padding:7px 10px;color:var(--text3);font-size:12px">${item.nItem||idx+1}</td>
+      <td style="padding:7px 10px;white-space:nowrap">
+        <div class="fw6" style="font-size:12px">${item.cProd||'—'}</div>
+        <div style="font-size:10px;color:var(--text3)">${item.cEAN&&item.cEAN!=='SEM GTIN'?item.cEAN:''}</div>
+      </td>
+      <td style="padding:7px 10px;font-size:12px;max-width:200px">${item.xProd||'—'}</td>
+      <td style="padding:7px 10px;font-size:11px;color:var(--text3)">${item.NCM||'—'}</td>
+      <td style="padding:7px 10px;text-align:right;font-weight:600;font-size:12px">${item.qCom||0}</td>
+      <td style="padding:7px 10px;font-size:11px">${item.uCom||'—'}</td>
+      <td style="padding:7px 10px;text-align:right;font-size:12px">R$ ${(item.vUnCom||0).toFixed(2).replace('.',',')}</td>
+      <td style="padding:7px 10px;text-align:right;font-weight:600;color:var(--amber);font-size:12px">R$ ${(item.vProdItem||0).toFixed(2).replace('.',',')}</td>
+      <td style="padding:7px 10px;font-size:11px;color:var(--text3)">${item.pICMS?item.pICMS+'%':'—'}</td>
+      <td style="padding:7px 10px;text-align:center">
+        ${isMatched
+          ?`<span style="color:var(--green);font-size:11px">✅ ${item.matched.label}</span><div style="font-size:10px;color:var(--text3)">${prod?.nome||prod?.n||''}</div>`
+          :`<span style="color:var(--amber);font-size:11px">⚠️ Não encontrado</span><br><button onclick="cadastrarItemNfe(${idx})" style="margin-top:2px;background:var(--blue);color:#fff;border:none;padding:2px 7px;border-radius:4px;cursor:pointer;font-size:10px">Cadastrar</button>`
+        }
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Update confirm button
+  const confirmBtn=document.getElementById('nfe-confirm-btn');
+  if(confirmBtn){
+    confirmBtn.textContent='✅ Confirmar Entrada ('+items.length+' itens)';
+    confirmBtn.onclick=confirmarEntradaNFe;
+  }
+  const confirmDesc=document.getElementById('nfe-confirm-desc');
+  if(confirmDesc){
+    confirmDesc.innerHTML=matched>0
+      ?`<strong>${matched}</strong> itens terão estoque atualizado · <strong>${notMatched}</strong> serão cadastrados automaticamente`
+      :`<strong>${notMatched}</strong> produtos novos serão cadastrados no sistema`;
+  }
+}
 function cadastrarItemNfe(idx){
   if(!parsedNFe||!parsedNFe.items[idx])return;
   const item=parsedNFe.items[idx];
