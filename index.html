@@ -2194,7 +2194,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     <div style="font-family:var(--font-head);font-size:16px;font-weight:700;margin-bottom:6px">Autorização Necessária</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:16px" id="auth-msg">Desconto acima de 10% requer autorização do supervisor.</div>
     <input type="password" id="auth-code" placeholder="Código do supervisor" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text1);font-size:15px;text-align:center;font-family:monospace;outline:none;letter-spacing:4px;margin-bottom:12px" onkeydown="if(event.key==='Enter')checkDiscAuth()">
-    
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Código padrão: <strong>1234</strong></div>
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn bg" onclick="cancelDiscAuth()">Cancelar</button>
       <button class="btn bp" onclick="checkDiscAuth()"><i class="ti ti-check"></i>Autorizar</button>
@@ -3227,69 +3227,19 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
 <script>
 // ======= DATA =======
-const FORNECEDORES_DATA=[
-  {id:'F001',nome:'Bosch do Brasil',fantasia:'Bosch',cnpj:'59.104.422/0001-88',cat:'Motor/Elétrica',rep:'Marcos Ferreira',tel:'(11) 94521-0088',rating:5,pedidos:28,volume:84200,prazo:'28 dias',ult:'10/05/2025',status:'ativo',av:'BS',bg:'linear-gradient(135deg,#EF4444,#B91C1C)',cats:['Motor','Elétrica','Filtros'],hist:[{dt:'10/05',v:'R$ 4.820',st:'Recebido'},{dt:'12/04',v:'R$ 6.240',st:'Recebido'},{dt:'15/03',v:'R$ 3.960',st:'Recebido'}]},
-  {id:'F002',nome:'Fras-le S.A.',fantasia:'Fras-le',cnpj:'88.611.835/0001-77',cat:'Freios',rep:'Carla Andrade',tel:'(54) 98844-2211',rating:5,pedidos:34,volume:52800,prazo:'30 dias',ult:'08/05/2025',status:'ativo',av:'FL',bg:'linear-gradient(135deg,#F59E0B,#D97706)',cats:['Freios','Embreagem'],hist:[{dt:'08/05',v:'R$ 3.240',st:'Recebido'},{dt:'01/04',v:'R$ 4.180',st:'Recebido'}]},
-  {id:'F003',nome:'Monroe Shock Absorbers',fantasia:'Monroe',cnpj:'61.182.474/0001-44',cat:'Suspensão',rep:'Eduardo Lima',tel:'(11) 97733-5566',rating:4,pedidos:18,volume:38400,prazo:'30/60',ult:'05/05/2025',status:'ativo',av:'MN',bg:'linear-gradient(135deg,#3B82F6,#2563EB)',cats:['Suspensão','Amortecedores'],hist:[{dt:'05/05',v:'R$ 5.760',st:'Recebido'},{dt:'28/03',v:'R$ 4.320',st:'Recebido'}]},
-  {id:'F004',nome:'NGK do Brasil',fantasia:'NGK',cnpj:'48.912.023/0001-99',cat:'Motor',rep:'Fernanda Costa',tel:'(11) 96622-4433',rating:5,pedidos:42,volume:24600,prazo:'28 dias',ult:'12/05/2025',status:'ativo',av:'NG',bg:'linear-gradient(135deg,#8B5CF6,#7C3AED)',cats:['Velas','Motor','Elétrica'],hist:[{dt:'12/05',v:'R$ 1.980',st:'Em trânsito'},{dt:'10/04',v:'R$ 2.340',st:'Recebido'}]},
-  {id:'F005',nome:'Dayco do Brasil',fantasia:'Dayco',cnpj:'72.344.521/0001-23',cat:'Motor',rep:'Ricardo Souza',tel:'(11) 95511-8877',rating:4,pedidos:14,volume:18900,prazo:'30 dias',ult:'02/05/2025',status:'ativo',av:'DC',bg:'linear-gradient(135deg,#10B981,#059669)',cats:['Correias','Motor'],hist:[{dt:'02/05',v:'R$ 2.100',st:'Recebido'}]},
-  {id:'F006',nome:'Distribuidora Central',fantasia:'DistCentral',cnpj:'33.211.887/0001-55',cat:'Multi',rep:'Lúcia Pereira',tel:'(82) 98833-7744',rating:3,pedidos:8,volume:12400,prazo:'À vista',ult:'20/04/2025',status:'inativo',av:'DC',bg:'linear-gradient(135deg,#64748B,#475569)',cats:['Freios','Filtros','Lubrificantes'],hist:[{dt:'20/04',v:'R$ 1.840',st:'Recebido'}]},
-];
+const FORNECEDORES_DATA=[];
 const ORC_DATA=[];
 const WAPP_CONTACTS=[];
-const WAPP_MSGS=[
-  {dir:'in',txt:'Bom dia! Meu carro ficou pronto?',time:'08h30'},
-  {dir:'out',txt:'Bom dia, Sr. José! Sim, sua OS #2847 foi concluída com sucesso! 🎉',time:'08h35'},
-  {dir:'out',txt:'Realizamos a troca das pastilhas de freio e abastecemos o fluido DOT4. Tudo conferido!',time:'08h35'},
-  {dir:'in',txt:'Ótimo! Quanto ficou no total?',time:'08h40'},
-  {dir:'out',txt:'O valor total ficou em R$ 420,00. Pode pagar via PIX ou cartão na retirada! 💳',time:'08h42'},
-  {dir:'in',txt:'Perfeito! Passo buscar às 18h então',time:'08h50'},
-  {dir:'out',txt:'Perfeito! Estaremos aguardando. Até logo! 🚗',time:'08h51'},
-  {dir:'in',txt:'Tem NF também?',time:'09h10'},
-  {dir:'out',txt:'Sim! A NF-e será enviada por email assim que confirmar a retirada. ✅',time:'09h12'},
-];
+const WAPP_MSGS=[];
 let selectedWappContact=0;
 const PRODS=[];
 
 // Log de vendas do mês (gerado automaticamente baseado em produtos + OS)
-const VENDAS_MES=[
-  {prodId:1, n:'Pastilha de Freio Dianteira', sku:'PFD-001', cat:'Freios',    qtd:47, receita:4225.30, prev:38},
-  {prodId:3, n:'Vela de Ignição',             sku:'VIG-112', cat:'Motor',     qtd:43, receita:1070.70, prev:35},
-  {prodId:4, n:'Filtro de Óleo',              sku:'FOL-078', cat:'Filtros',   qtd:39, receita:1556.10, prev:41},
-  {prodId:13,n:'Filtro de Ar do Motor',       sku:'FAR-031', cat:'Filtros',   qtd:36, receita:1616.40, prev:29},
-  {prodId:10,n:'Filtro de Combustível',       sku:'FCB-041', cat:'Filtros',   qtd:31, receita:1515.90, prev:28},
-  {prodId:15,n:'Bucha Bandeja Dianteira',     sku:'BBD-091', cat:'Suspensão', qtd:28, receita:896.00,  prev:22},
-  {prodId:12,n:'Pastilha de Freio Traseira',  sku:'PFT-022', cat:'Freios',    qtd:26, receita:1794.00, prev:24},
-  {prodId:11,n:'Pivô de Suspensão Dianteiro', sku:'PSD-055', cat:'Suspensão', qtd:21, receita:1785.00, prev:18},
-  {prodId:14,n:'Cabo de Vela',               sku:'CAV-018', cat:'Elétrica',  qtd:19, receita:1102.00, prev:17},
-  {prodId:8, n:'Rolamento Roda Traseira',     sku:'RRT-067', cat:'Suspensão', qtd:16, receita:3024.00, prev:14},
-  {prodId:5, n:'Disco de Freio Ventilado',    sku:'DFV-045', cat:'Freios',    qtd:14, receita:2086.00, prev:12},
-  {prodId:6, n:'Correia Dentada Kit',         sku:'CDK-088', cat:'Motor',     qtd:12, receita:3360.00, prev:10},
-  {prodId:2, n:'Amortecedor Dianteiro',       sku:'AMD-024', cat:'Suspensão', qtd:11, receita:3520.00, prev:9},
-  {prodId:9, n:'Sensor de Temperatura',       sku:'STM-099', cat:'Elétrica',  qtd:9,  receita:711.00,  prev:8},
-  {prodId:7, n:'Bomba D\'água',              sku:'BDA-033', cat:'Motor',     qtd:7,  receita:903.00,  prev:6},
-];
+const VENDAS_MES=[];
 const OS_DATA=[];
-const VEICULOS=[
-  {placa:'NEQ-1A23',model:'VW Gol G5',ano:'2010/2011',motor:'1.0 Flex',cor:'Prata',chassi:'9BWZZZ377VT004251',cli:'José Alves Santos',km:45280,os:7,serv:['Freios','Óleo','Alinhamento'],ult:'12/05/2025'},
-  {placa:'PMC-2B34',model:'Fiat Palio 1.4',ano:'2015/2015',motor:'1.4 Flex',cor:'Branco',chassi:'9BD15822AB3234567',cli:'Maria Oliveira',km:78400,os:4,serv:['Óleo','Suspensão'],ult:'14/05/2025'},
-  {placa:'QNR-3C45',model:'Toyota Corolla',ano:'2018/2018',motor:'2.0 Flex',cor:'Preto',chassi:'9BFBZ3BEXJ3007123',cli:'Auto Center Top',km:112800,os:12,serv:['Freios','Amortecedor','Revisão'],ult:'14/05/2025'},
-  {placa:'RTS-4D56',model:'Chevrolet Onix',ano:'2020/2020',motor:'1.0 Turbo',cor:'Vermelho',chassi:'9BGEJ69P0JG289000',cli:'Carlos Eduardo',km:32100,os:2,serv:['Elétrica'],ult:'14/05/2025'},
-];
-const GARANTIAS=[
-  {id:'G-001',cli:'José Alves Santos',vei:'VW Gol G5',svc:'Pastilha de Freio Fras-le',tipo:'Peça',inicio:'10/03/2025',venc:'08/06/2025',diasR:25,st:'ativa'},
-  {id:'G-002',cli:'Maria Oliveira',vei:'Fiat Palio 1.4',svc:'Troca de Amortecedor Monroe',tipo:'Mão de Obra',inicio:'14/04/2025',venc:'13/07/2025',diasR:60,st:'ativa'},
-  {id:'G-003',cli:'Auto Center Top',vei:'Toyota Corolla',svc:'Kit Correia Dayco',tipo:'Peça',inicio:'01/02/2025',venc:'01/05/2025',diasR:-13,st:'vencida'},
-  {id:'G-004',cli:'Carlos Eduardo',vei:'Chevrolet Onix',svc:'Filtro de Ar Bosch',tipo:'Peça',inicio:'14/05/2025',venc:'12/08/2025',diasR:89,st:'ativa'},
-  {id:'G-005',cli:'Distribuidora Norte',vei:'Ford Ka',svc:'Diagnóstico Elétrico',tipo:'Serviço',inicio:'01/05/2025',venc:'30/05/2025',diasR:7,st:'vencendo'},
-];
-const NOTIFS=[
-  {t:'Garantia vencendo',d:'G-005 — Diagnóstico Elétrico — Ford Ka — 7 dias',ic:'ti-shield-check',bg:'rgba(245,158,11,.15)',fc:'var(--amber)',ti:'Agora',unr:true},
-  {t:'OS Aguardando Aprovação',d:'OS #2845 — Auto Center Top — Amortecedor — R$ 890',ic:'ti-clipboard-list',bg:'rgba(239,68,68,.15)',fc:'var(--red)',ti:'14h32',unr:true},
-  {t:'Estoque crítico',d:'Disco de freio Onix: 2 un. (mín: 5)',ic:'ti-alert-triangle',bg:'rgba(239,68,68,.15)',fc:'var(--red)',ti:'13h50',unr:true},
-  {t:'Novo agendamento',d:'Carlos Eduardo — Diagnóstico — 15/05 às 09:00',ic:'ti-calendar-event',bg:'rgba(59,130,246,.15)',fc:'var(--blue)',ti:'12h00',unr:false},
-  {t:'Caixa aberto',d:'Abertura: R$ 500,00 · Operador: Administrador',ic:'ti-cash-register',bg:'rgba(16,185,129,.15)',fc:'var(--green)',ti:'08h00',unr:false},
-];
+const VEICULOS=[];
+const GARANTIAS=[];
+const NOTIFS=[];
 const CAL_EVENTS={
   10:[{t:'OS #2842 — Honda Civic',c:'ce-os',h:'08:00'}],
   12:[{t:'OS #2847 — Gol G5',c:'ce-os',h:'09:00'},{t:'Revisão — Corolla',c:'ce-rev',h:'14:00'}],
@@ -3299,27 +3249,9 @@ const CAL_EVENTS={
   17:[{t:'Agendamento — Ana R.',c:'ce-os',h:'09:00'}],
   20:[{t:'OS #2848',c:'ce-os',h:'08:30'},{t:'Entrega — Vectra',c:'ce-ent',h:'14:00'}],
 };
-const MOVS_CAIXA=[
-  {desc:'Venda PDV — João Carlos',dt:'14h32',val:420,tp:'e',pay:'PIX'},
-  {desc:'OS #2846 — Maria Oliveira',dt:'13h15',val:180,tp:'e',pay:'Cartão'},
-  {desc:'Sangria — Depósito bancário',dt:'12h00',val:2300,tp:'s',pay:''},
-  {desc:'OS #2845 — Auto Center Top',dt:'11h40',val:890,tp:'e',pay:'PIX'},
-  {desc:'Venda PDV — Ana Paula',dt:'10h22',val:340,tp:'e',pay:'Dinheiro'},
-  {desc:'PDV — Carlos Mendes',dt:'09h45',val:280,tp:'e',pay:'Cartão'},
-  {desc:'Venda PDV — João Carlos',dt:'09h20',val:149,tp:'e',pay:'PIX'},
-  {desc:'Suprimento inicial',dt:'08h00',val:500,tp:'e',pay:''},
-];
-const SELLERS=[
-  {n:'João Carlos Silva',meta:30000,real:34820,vend:101,ticket:342,comm:3,pago:750,av:'JC',bg:'linear-gradient(135deg,#10B981,#14B8A6)'},
-  {n:'Ana Paula Ferreira',meta:25000,real:28100,vend:87,ticket:320,comm:3,pago:610,av:'AP',bg:'linear-gradient(135deg,#3B82F6,#8B5CF6)'},
-  {n:'Roberto Mendes',meta:25000,real:22400,vend:75,ticket:298,comm:3,pago:0,av:'RM',bg:'linear-gradient(135deg,#F59E0B,#F97316)'},
-  {n:'Carla Souza',meta:20000,real:19200,vend:72,ticket:265,comm:3,pago:0,av:'CS',bg:'linear-gradient(135deg,#8B5CF6,#3B82F6)'},
-];
-const MECHS=[
-  {n:'Roberto Oliveira',os:28,horas:184,fat:18420,comm:8,pago:840,av:'RO',bg:'linear-gradient(135deg,#F59E0B,#F97316)'},
-  {n:'Carlos Mendes',os:24,horas:156,fat:15600,comm:8,pago:710,av:'CM',bg:'linear-gradient(135deg,#3B82F6,#14B8A6)'},
-  {n:'Paulo Silva',os:19,horas:128,fat:12400,comm:8,pago:0,av:'PS',bg:'linear-gradient(135deg,#10B981,#3B82F6)'},
-];
+const MOVS_CAIXA=[];
+const SELLERS=[];
+const MECHS=[];
 
 // ======= CART STATE =======
 let cart=[];
@@ -3729,7 +3661,7 @@ function finalizeSale(){
 }
 function renderPDVClients(){
   const c=document.getElementById('pdv-cli-list');if(!c)return;
-  const cls=[{n:'José Alves Santos',d:'123.456.789-00'},{n:'Maria das Graças',d:'987.654.321-00'},{n:'Auto Center Top',d:'12.345.678/0001-90'}];
+  const cls=[];
   c.innerHTML=cls.map(cl=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-sm);cursor:pointer;transition:background var(--tr)" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="document.getElementById('cart-cli').textContent='${cl.n}';closeModal('modal-pdv-client');toast('Cliente vinculado!','success')">
     <div class="av">${cl.n.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
     <div><div class="td-n">${cl.n}</div><div class="td-s">${cl.d}</div></div>
@@ -4081,7 +4013,7 @@ function exportCSV(tipo){
 
 function renderMov(){
   const t=document.getElementById('mov-tbl');if(!t)return;
-  const movs=[{p:'Pastilha Fras-le',tp:'Saída (Venda)',q:'-2',u:'João Carlos',d:'14/05 14:32'},{p:'Filtro Óleo Bosch',tp:'Entrada (NF 3421)',q:'+20',u:'Admin',d:'14/05 10:14'},{p:'Amortecedor Monroe',tp:'Saída (OS #2845)',q:'-1',u:'Roberto O.',d:'14/05 09:28'}];
+  const movs=[];
   t.innerHTML=movs.map(m=>`<tr><td class="td-n">${m.p}</td><td class="ts tm">${m.tp}</td><td class="fw6 ${m.q.startsWith('+')?'tg':'tr'}">${m.q}</td><td>${m.u}</td><td class="ts tm">${m.d}</td></tr>`).join('');
 }
 function renderCompras(){
@@ -4380,7 +4312,7 @@ function renderCli(){
 }
 function renderNFe(){
   const t=document.getElementById('nfe-tbl');if(!t)return;
-  const nfes=[{n:'NF-e 000.342',d:'Auto Center Top',dt:'14/05/2025',v:'R$ 890,00',st:'autorizada'},{n:'NF-e 000.341',d:'José Alves',dt:'14/05/2025',v:'R$ 420,00',st:'autorizada'},{n:'NF-e 000.340',d:'Distribuidora Norte',dt:'13/05/2025',v:'R$ 2.840,00',st:'autorizada'},{n:'NF-e 000.339',d:'Maria Oliveira',dt:'12/05/2025',v:'R$ 180,00',st:'cancelada'}];
+  const nfes=[];
   const sc={autorizada:'bg2',cancelada:'br',pendente:'ba'};
   t.innerHTML=nfes.map(n=>`<tr><td class="fw6 ta">${n.n}</td><td>${n.d}</td><td class="tm ts">${n.dt}</td><td class="fw6">${n.v}</td><td><span class="badge ${sc[n.st]}">${n.st}</span></td><td><div class="flx g2b"><button class="btn bg btn-sm" onclick="toast('Baixando XML…','info')"><i class="ti ti-download"></i></button><button class="btn bg btn-sm" onclick="toast('Gerando DANFE…','info')"><i class="ti ti-file-text"></i></button></div></td></tr>`).join('');
 }
@@ -4823,11 +4755,7 @@ function sendTemplate(txt){
 
 // ======= RELATÓRIOS =======
 let activeReport='vendas';
-const REP_DATA={
-  vendas:{title:'Faturamento por Mês — 2025',type:'bar',labels:['Jan','Fev','Mar','Abr','Mai'],data:[138,145,162,158,184.7],color:'#F59E0B',tbl:[['Jan','R$ 138.000','328','+4,2%'],['Fev','R$ 145.000','351','+5,1%'],['Mar','R$ 162.000','389','+11,7%'],['Abr','R$ 158.000','374','-2,5%'],['Mai','R$ 184.700','428','+16,9%']]},
-  os:{title:'OS por Status — 2025',type:'doughnut',labels:['Concluída','Em Andamento','Em Aberto','Aguard.'],data:[312,47,28,9],color:'#3B82F6',tbl:[['Concluídas','312','R$ 218.400','Histórico'],['Em Andamento','47','R$ 48.200','Ativas'],['Em Aberto','28','R$ 19.800','Pendentes'],['Aguardando','9','R$ 8.100','Aprovação']]},
-  estoque:{title:'Valor em Estoque por Categoria',type:'bar',labels:['Freios','Motor','Suspensão','Filtros','Elétrica'],data:[84200,72400,65800,42100,28600],color:'#10B981',tbl:[['Freios','R$ 84.200','187 itens','A'],['Motor','R$ 72.400','243 itens','A'],['Suspensão','R$ 65.800','156 itens','B'],['Filtros','R$ 42.100','312 itens','B'],['Elétrica','R$ 28.600','98 itens','C']]},
-};
+const REP_DATA={vendas:{labels:[],valores:[],tbl:[]},servicos:{labels:[],valores:[]},produtos:{labels:[],valores:[]}};
 function selectReport(type,el){
   activeReport=type;
   document.querySelectorAll('.rep-type-card').forEach(c=>c.classList.remove('active'));
@@ -7630,7 +7558,7 @@ window.addEventListener('DOMContentLoaded',async ()=>{
       onkeydown="if(event.key==='Enter')doLogin()">
     <div id="login-erro" style="font-size:11px;color:var(--red);margin-bottom:10px;display:none"><i class="ti ti-alert-triangle"></i> Senha incorreta</div>
     <button class="btn bp" onclick="doLogin()" style="width:100%;padding:11px;font-size:14px"><i class="ti ti-login"></i> Entrar</button>
-    
+    <div style="font-size:10px;color:var(--text3);margin-top:14px">Login: <strong>admin@autopecas.com.br</strong> / Senha: <strong>1234</strong></div>
   </div>
 </div>
 
