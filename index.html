@@ -2194,7 +2194,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     <div style="font-family:var(--font-head);font-size:16px;font-weight:700;margin-bottom:6px">Autorização Necessária</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:16px" id="auth-msg">Desconto acima de 10% requer autorização do supervisor.</div>
     <input type="password" id="auth-code" placeholder="Código do supervisor" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text1);font-size:15px;text-align:center;font-family:monospace;outline:none;letter-spacing:4px;margin-bottom:12px" onkeydown="if(event.key==='Enter')checkDiscAuth()">
-    <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Código padrão: <strong>1234</strong></div>
+    
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn bg" onclick="cancelDiscAuth()">Cancelar</button>
       <button class="btn bp" onclick="checkDiscAuth()"><i class="ti ti-check"></i>Autorizar</button>
@@ -3235,24 +3235,8 @@ const FORNECEDORES_DATA=[
   {id:'F005',nome:'Dayco do Brasil',fantasia:'Dayco',cnpj:'72.344.521/0001-23',cat:'Motor',rep:'Ricardo Souza',tel:'(11) 95511-8877',rating:4,pedidos:14,volume:18900,prazo:'30 dias',ult:'02/05/2025',status:'ativo',av:'DC',bg:'linear-gradient(135deg,#10B981,#059669)',cats:['Correias','Motor'],hist:[{dt:'02/05',v:'R$ 2.100',st:'Recebido'}]},
   {id:'F006',nome:'Distribuidora Central',fantasia:'DistCentral',cnpj:'33.211.887/0001-55',cat:'Multi',rep:'Lúcia Pereira',tel:'(82) 98833-7744',rating:3,pedidos:8,volume:12400,prazo:'À vista',ult:'20/04/2025',status:'inativo',av:'DC',bg:'linear-gradient(135deg,#64748B,#475569)',cats:['Freios','Filtros','Lubrificantes'],hist:[{dt:'20/04',v:'R$ 1.840',st:'Recebido'}]},
 ];
-const ORC_DATA=[
-  {id:'ORC-028',cli:'José Alves Santos',vei:'VW Gol G5',val:420,desc:'Troca de pastilha + fluido DOT4',dt:'12/05/2025',val_dt:'19/05/2025',st:'aprovado'},
-  {id:'ORC-029',cli:'Maria Oliveira',vei:'Fiat Palio 1.4',val:1240,desc:'Amortecedor dianteiro par + alinhamento',dt:'12/05/2025',val_dt:'19/05/2025',st:'enviado'},
-  {id:'ORC-030',cli:'Auto Center Top',vei:'Toyota Corolla',val:2890,desc:'Revisão 100.000 km completa',dt:'11/05/2025',val_dt:'18/05/2025',st:'enviado'},
-  {id:'ORC-031',cli:'Carlos Eduardo',vei:'Chevrolet Onix',val:380,desc:'Diagnóstico eletrônico + scanner',dt:'10/05/2025',val_dt:'17/05/2025',st:'rascunho'},
-  {id:'ORC-032',cli:'Distribuidora Norte',vei:'Ford Ka 2019',val:680,desc:'Kit correia + bomba d\'água',dt:'10/05/2025',val_dt:'17/05/2025',st:'convertido'},
-  {id:'ORC-025',cli:'Ana Rodrigues',vei:'Honda Civic 2016',val:320,desc:'Troca de velas + scanner',dt:'05/05/2025',val_dt:'12/05/2025',st:'perdido'},
-  {id:'ORC-027',cli:'Posto Vitória',vei:'VW Saveiro',val:1480,desc:'Freio completo + pastilha + disco',dt:'09/05/2025',val_dt:'16/05/2025',st:'aprovado'},
-  {id:'ORC-026',cli:'Transportes JM',vei:'Ford Transit',val:3200,desc:'Revisão completa + pneus',dt:'08/05/2025',val_dt:'15/05/2025',st:'rascunho'},
-];
-const WAPP_CONTACTS=[
-  {av:'JA',bg:'linear-gradient(135deg,var(--blue),var(--purple))',nome:'José Alves Santos',last:'Seu veículo está pronto! 🚗',time:'Agora',unread:2,online:true},
-  {av:'MO',bg:'linear-gradient(135deg,var(--green),var(--teal))',nome:'Maria Oliveira',last:'Ok, obrigada! Vou buscar.',time:'14h22',unread:0,online:false},
-  {av:'AT',bg:'linear-gradient(135deg,var(--red),#B91C1C)',nome:'Auto Center Top',last:'Aprovado o orçamento sim!',time:'13h55',unread:1,online:true},
-  {av:'CE',bg:'linear-gradient(135deg,var(--amber),var(--orange))',nome:'Carlos Eduardo',last:'Qual o prazo? Preciso do carro.',time:'12h30',unread:1,online:false},
-  {av:'DN',bg:'linear-gradient(135deg,var(--purple),var(--blue))',nome:'Distribuidora Norte',last:'Pode fazer o pedido de 50 peças',time:'10h15',unread:0,online:true},
-  {av:'AR',bg:'linear-gradient(135deg,var(--teal),var(--green))',nome:'Ana Rodrigues',last:'Obrigada, ótimo serviço!',time:'09h40',unread:0,online:false},
-];
+const ORC_DATA=[];
+const WAPP_CONTACTS=[];
 const WAPP_MSGS=[
   {dir:'in',txt:'Bom dia! Meu carro ficou pronto?',time:'08h30'},
   {dir:'out',txt:'Bom dia, Sr. José! Sim, sua OS #2847 foi concluída com sucesso! 🎉',time:'08h35'},
@@ -3265,23 +3249,7 @@ const WAPP_MSGS=[
   {dir:'out',txt:'Sim! A NF-e será enviada por email assim que confirmar a retirada. ✅',time:'09h12'},
 ];
 let selectedWappContact=0;
-const PRODS=[
-  {id:1,n:'Pastilha de Freio Dianteira',pop:'Pastilha Gol G5',sku:'PFD-001',ean:'7891234100018',ncm:'8708.30.19',oem:'7H0698151B',refcross:'Bosch: 0986461723, Nakata: NKF-9501',marca:'Fras-le',cat:'Freios',subcat:'Pastilhas',compat:'VW Gol G5 2008-2014',custo:48.90,preco:89.90,mg:45,est:34,min:10,curva:'A',loc:'A1-P2',forn:'Fras-le',obs:'Par dianteiro. Sem amianto.'},
-  {id:2,n:'Amortecedor Dianteiro',pop:'Amortecedor Corolla',sku:'AMD-024',ean:'7891234100025',ncm:'8708.80.00',oem:'48510-02440',refcross:'Cofap: GS53037, Nakata: NKF-3502',marca:'Monroe',cat:'Suspensão',subcat:'Amortecedores',compat:'Toyota Corolla 2008-2019',custo:189,preco:320,mg:41,est:8,min:5,curva:'A',loc:'B3-P1',forn:'Monroe',obs:'Vende unitário. Par recomendado.'},
-  {id:3,n:'Vela de Ignição',pop:'Vela Uno Fire',sku:'VIG-112',ean:'7891234100032',ncm:'8511.10.00',oem:'55196180',refcross:'Bosch: W7DC, Champion: N9Y',marca:'NGK',cat:'Motor',subcat:'Velas',compat:'Fiat Uno/Palio Fire 1.0 2001-2014',custo:12.50,preco:24.90,mg:49,est:120,min:20,curva:'B',loc:'A3-P8',forn:'NGK',obs:'Kit com 4 velas. Torque: 20–30 Nm.'},
-  {id:4,n:'Filtro de Óleo',pop:'Filtro Civic',sku:'FOL-078',ean:'7891234100049',ncm:'8421.23.00',oem:'15400-PLM-A01',refcross:'Mann: W 75/3, Wix: WL7079',marca:'Bosch',cat:'Filtros',subcat:'Filtro de Óleo',compat:'Honda Civic 2007-2016',custo:18.90,preco:39.90,mg:52,est:65,min:15,curva:'A',loc:'A1-P5',forn:'Bosch do Brasil',obs:'Troca a cada 5.000 km ou 6 meses.'},
-  {id:5,n:'Disco de Freio Ventilado',pop:'Disco Onix',sku:'DFV-045',ean:'7891234100056',ncm:'8708.30.11',oem:'93306834',refcross:'Brembo: 09.B335.11, ATE: 24.0122-0145',marca:'Fras-le',cat:'Freios',subcat:'Discos',compat:'Chevrolet Onix 2013-2023',custo:82,preco:149,mg:44,est:2,min:5,curva:'A',loc:'A2-P3',forn:'Fras-le',obs:'Espessura mín.: 22mm. Par dianteiro.'},
-  {id:6,n:'Correia Dentada Kit',pop:'Kit Correia Ka',sku:'CDK-088',ean:'7891234100063',ncm:'4010.39.90',oem:'1119967',refcross:'Gates: K015492XS, Contitech: CT1192K2',marca:'Dayco',cat:'Motor',subcat:'Correias',compat:'Ford Ka 1.0/1.5 2015-2023',custo:145,preco:280,mg:48,est:15,min:5,curva:'B',loc:'B1-P4',forn:'Dayco',obs:'Kit completo com tensor e bomba.'},
-  {id:7,n:'Bomba D\'água',pop:'Bomba Celta',sku:'BDA-033',ean:'7891234100070',ncm:'8413.30.00',oem:'93316960',refcross:'Gates: WP-9105HD, Graf: PA774',marca:'URBA',cat:'Motor',subcat:'Arrefecimento',compat:'Chevrolet Celta/Corsa 1.0 2001-2016',custo:67,preco:129,mg:48,est:0,min:3,curva:'B',loc:'B2-P6',forn:'Bosch do Brasil',obs:'Trocar junto com correia dentada.'},
-  {id:8,n:'Rolamento Roda Traseira',pop:'Rolamento Palio',sku:'RRT-067',ean:'7891234100087',ncm:'8482.10.10',oem:'71714353',refcross:'SKF: VKBA 3631, Timken: HA590250',marca:'FAG',cat:'Suspensão',subcat:'Rolamentos',compat:'Fiat Palio/Strada 2001-2017',custo:95,preco:189,mg:49,est:22,min:8,curva:'B',loc:'B4-P2',forn:'Monroe',obs:'Rolamento com cubo integrado.'},
-  {id:9,n:'Sensor de Temperatura do Motor',pop:'Sensor Vectra',sku:'STM-099',ean:'7891234100094',ncm:'9025.19.90',oem:'9232803',refcross:'Bosch: 0280130039, Delphi: TS10270',marca:'BOOG',cat:'Elétrica',subcat:'Sensores',compat:'Chevrolet Vectra 2006-2011',custo:38,preco:79,mg:51,est:7,min:5,curva:'C',loc:'C1-P1',forn:'Bosch do Brasil',obs:'NTC 2 pinos. Conector cinza.'},
-  {id:10,n:'Filtro de Combustível',pop:'Filtro Clio',sku:'FCB-041',ean:'7891234100100',ncm:'8421.23.00',oem:'7700845961',refcross:'Bosch: F 026 402 006, Wix: WF8168',marca:'Bosch',cat:'Filtros',subcat:'Filtro de Combustível',compat:'Renault Clio 1.0/1.6 2001-2012',custo:24,preco:48.90,mg:50,est:43,min:10,curva:'A',loc:'A1-P9',forn:'Bosch do Brasil',obs:'Troca a cada 30.000 km.'},
-  {id:11,n:'Pivô de Suspensão Dianteiro',pop:'Pivô Gol',sku:'PSD-055',ean:'7891234100117',ncm:'8708.80.00',oem:'1J0407365C',refcross:'Nakata: NKF-9800, Moog: VW-BJ-8186',marca:'Nakata',cat:'Suspensão',subcat:'Pivôs',compat:'VW Gol/Voyage/Fox 2003-2014',custo:42,preco:85,mg:50,est:18,min:6,curva:'A',loc:'B1-P7',forn:'Monroe',obs:'Par dianteiro. Verificar bucha.'},
-  {id:12,n:'Pastilha de Freio Traseira',pop:'Pastilha Corsa',sku:'PFT-022',ean:'7891234100124',ncm:'8708.30.19',oem:'90498993',refcross:'Fras-le: PD/127P, Bosch: 0986BB0097',marca:'Fras-le',cat:'Freios',subcat:'Pastilhas',compat:'Chevrolet Corsa/Classic 2002-2016',custo:35,preco:69,mg:49,est:28,min:8,curva:'B',loc:'A1-P3',forn:'Fras-le',obs:'Par traseiro. Verificar cilindros.'},
-  {id:13,n:'Filtro de Ar do Motor',pop:'Filtro Ar Onix',sku:'FAR-031',ean:'7891234100131',ncm:'8421.39.20',oem:'95513035',refcross:'Mann: C 25 012, Tecfil: ARS2064',marca:'Bosch',cat:'Filtros',subcat:'Filtro de Ar',compat:'Chevrolet Onix 1.0/1.4 2012-2019',custo:22,preco:44.90,mg:51,est:52,min:12,curva:'A',loc:'A3-P4',forn:'Bosch do Brasil',obs:'Troca a cada 15.000 km.'},
-  {id:14,n:'Cabo de Vela',pop:'Cabo Uno',sku:'CAV-018',ean:'7891234100148',ncm:'8544.30.00',oem:'46470410',refcross:'Bosch: 0986356775, NGK: RC-FI807',marca:'NGK',cat:'Elétrica',subcat:'Cabos',compat:'Fiat Uno/Palio 1.0/1.4 2001-2013',custo:28,preco:58,mg:52,est:19,min:5,curva:'B',loc:'C1-P4',forn:'NGK',obs:'Jogo 4 cabos. Alta tensão silicone.'},
-  {id:15,n:'Bucha Bandeja Dianteira',pop:'Bucha Gol G5',sku:'BBD-091',ean:'7891234100155',ncm:'4016.99.90',oem:'1J0407182',refcross:'Nakata: NKB-0088, Moog: VW-SB-1671',marca:'Nakata',cat:'Suspensão',subcat:'Buchas',compat:'VW Gol/Polo/Fox 2000-2014',custo:15,preco:32,mg:53,est:41,min:15,curva:'A',loc:'B2-P9',forn:'Monroe',obs:'Par bandeja inferior. Pressão 3t.'},
-];
+const PRODS=[];
 
 // Log de vendas do mês (gerado automaticamente baseado em produtos + OS)
 const VENDAS_MES=[
@@ -3301,14 +3269,7 @@ const VENDAS_MES=[
   {prodId:9, n:'Sensor de Temperatura',       sku:'STM-099', cat:'Elétrica',  qtd:9,  receita:711.00,  prev:8},
   {prodId:7, n:'Bomba D\'água',              sku:'BDA-033', cat:'Motor',     qtd:7,  receita:903.00,  prev:6},
 ];
-const OS_DATA=[
-  {id:'#2847',cli:'José Alves Santos',placa:'NEQ-1A23',vei:'VW Gol G5 2010',km:45280,mec:'Roberto Oliveira',st:'andamento',val:420,def:'Barulho no freio dianteiro ao frear',diag:'Desgaste avançado nas pastilhas. Discos OK.',prev:'14/05 16:00',svcs:['Troca de pastilha','Alinhamento e balanceamento'],pcs:[{n:'Pastilha Fras-le',q:1,val:89.90},{n:'Fluido DOT4',q:1,val:28}]},
-  {id:'#2846',cli:'Maria Oliveira',placa:'PMC-2B34',vei:'Fiat Palio 1.4 2015',km:78400,mec:'Carlos Mendes',st:'concluida',val:180,def:'Troca de óleo em dia',diag:'Óleo vencido. Filtro ok.',prev:'14/05 10:00',svcs:['Troca de óleo e filtro'],pcs:[{n:'Óleo 5W30 (4L)',q:1,val:120},{n:'Filtro Óleo',q:1,val:39.90}]},
-  {id:'#2845',cli:'Auto Center Top',placa:'QNR-3C45',vei:'Toyota Corolla 2018',km:112800,mec:'Roberto Oliveira',st:'aguardando',val:890,def:'Amortecedor traseiro batendo',diag:'Amortecedor traseiro esquerdo quebrado. Orçamento aprovado.',prev:'15/05 12:00',svcs:['Troca amortecedor','Balanceamento'],pcs:[{n:'Amortecedor Monroe',q:2,val:320}]},
-  {id:'#2844',cli:'Carlos Eduardo',placa:'RTS-4D56',vei:'Chevrolet Onix 2020',km:32100,mec:'Paulo Silva',st:'aberta',val:150,def:'Luz do painel acesa',diag:'Scanner pendente',prev:'14/05 18:00',svcs:['Diagnóstico eletrônico'],pcs:[]},
-  {id:'#2843',cli:'Distribuidora Norte',placa:'STV-5E67',vei:'Ford Ka 2019',km:88900,mec:'Carlos Mendes',st:'andamento',val:680,def:'Correia com barulho',diag:'Kit correia com desgaste.',prev:'15/05 09:00',svcs:['Troca kit correia','Troca bomba d\'água'],pcs:[{n:'Kit Correia',q:1,val:280},{n:'Bomba d\'água',q:1,val:129}]},
-  {id:'#2842',cli:'Ana Rodrigues',placa:'TUV-6F78',vei:'Honda Civic 2016',km:55200,mec:'Paulo Silva',st:'aberta',val:320,def:'Velas falhando',diag:'4 velas com desgaste.',prev:'14/05 17:00',svcs:['Troca de velas','Scanner'],pcs:[{n:'Vela NGK (kit 4)',q:1,val:99.60}]},
-];
+const OS_DATA=[];
 const VEICULOS=[
   {placa:'NEQ-1A23',model:'VW Gol G5',ano:'2010/2011',motor:'1.0 Flex',cor:'Prata',chassi:'9BWZZZ377VT004251',cli:'José Alves Santos',km:45280,os:7,serv:['Freios','Óleo','Alinhamento'],ult:'12/05/2025'},
   {placa:'PMC-2B34',model:'Fiat Palio 1.4',ano:'2015/2015',motor:'1.4 Flex',cor:'Branco',chassi:'9BD15822AB3234567',cli:'Maria Oliveira',km:78400,os:4,serv:['Óleo','Suspensão'],ult:'14/05/2025'},
@@ -7474,18 +7435,9 @@ const STORAGE_KEY_CLI   = 'autoerp_v4_cli';
 const STORAGE_KEY_USR   = 'autoerp_v4_usr';
 const STORAGE_KEY_PERMS = 'autoerp_v4_perms';
 
-const CLIENTES_DATA=[
-  {id:'C001',n:'José Alves Santos',apelido:'Zé Alves',d:'123.456.789-00',tel:'(82) 99234-5678',email:'jose@email.com',cep:'57300-000',rua:'Rua das Flores',num:'123',bairro:'Centro',cidade:'Arapiraca',uf:'AL',placa:'NEQ-1A23',montadora:'Volkswagen',modelo:'Gol G5',ano:2010,motor:'1.0 Flex',limite:1500,prazo:'30 dias',obs:'',tot:4820,veics:2,u:'12/05/2025'},
-  {id:'C002',n:'Maria das Graças',apelido:'Dona Maria',d:'987.654.321-00',tel:'(82) 98765-4321',email:'maria@email.com',cep:'57300-100',rua:'Av. Principal',num:'456',bairro:'Serraria',cidade:'Arapiraca',uf:'AL',placa:'OPQ-2B34',montadora:'Fiat',modelo:'Palio 1.4',ano:2012,motor:'1.4 8V',limite:800,prazo:'À vista',obs:'',tot:1240,veics:1,u:'08/05/2025'},
-  {id:'C003',n:'Auto Center Top',apelido:'',d:'12.345.678/0001-90',tel:'(82) 3222-1111',email:'contato@autocentertop.com.br',cep:'57300-200',rua:'Rua Comercial',num:'789',bairro:'Novo Horizonte',cidade:'Arapiraca',uf:'AL',placa:'',montadora:'',modelo:'',ano:0,motor:'',limite:10000,prazo:'30/60',obs:'Cliente corporativo',tot:28400,veics:8,u:'14/05/2025'},
-];
+const CLIENTES_DATA=[];
 
-const USUARIOS_DATA=[
-  {id:'u1',n:'Administrador',email:'admin@autopecas.com.br',senha:'1234',perfil:'admin',status:'ativo',cor:'linear-gradient(135deg,#EF4444,#B91C1C)',ini:'AD',u:'Agora'},
-  {id:'u2',n:'João Carlos Silva',email:'joao@autopecas.com.br',senha:'1234',perfil:'vendedor',status:'ativo',cor:'linear-gradient(135deg,var(--green),var(--teal))',ini:'JC',u:'Há 2h'},
-  {id:'u3',n:'Roberto Oliveira',email:'roberto@autopecas.com.br',senha:'1234',perfil:'mecanico',status:'ativo',cor:'linear-gradient(135deg,var(--amber),var(--orange))',ini:'RO',u:'Ontem'},
-  {id:'u4',n:'Ana Financeiro',email:'ana@autopecas.com.br',senha:'1234',perfil:'financeiro',status:'ativo',cor:'linear-gradient(135deg,var(--blue),var(--purple))',ini:'AF',u:'Há 1h'},
-];
+const USUARIOS_DATA=[];
 
 const SIDEBAR_MODULES=[
   {key:'dashboard',label:'Dashboard',sec:'PRINCIPAL'},
@@ -7527,17 +7479,9 @@ let SIDEBAR_PERMS={
 };
 let currentUser=null;
 
-const CONTAS_PAGAR=[
-  {id:'CP-001',tipo:'boleto',desc:'NF-e 003421 — Bosch do Brasil',parte:'Bosch do Brasil',valor:12400,venc:'2025-06-10',status:'pendente',ref:'NF-003421',dt:'10/05/2025'},
-  {id:'CP-002',tipo:'boleto',desc:'NF-e 001892 — Cofap S/A',parte:'Cofap S/A',valor:8720,venc:'2025-06-08',status:'pendente',ref:'NF-001892',dt:'08/05/2025'},
-  {id:'CP-003',tipo:'boleto',desc:'NF-e 000847 — Fras-le S.A.',parte:'Fras-le S.A.',valor:3240,venc:'2025-05-01',status:'pago',ref:'NF-000847',dt:'01/05/2025'},
-];
+const CONTAS_PAGAR=[];
 
-const CONTAS_RECEBER=[
-  {id:'CR-001',tipo:'crediario',desc:'Crediário — José Alves Santos',parte:'José Alves Santos',valor:420,venc:'2025-06-14',status:'pendente',parc:'1/3',ref:'PDV-2847',dt:'14/05/2025'},
-  {id:'CR-002',tipo:'crediario',desc:'Crediário — Auto Center Top',parte:'Auto Center Top',valor:1240,venc:'2025-05-28',status:'vencido',parc:'2/2',ref:'PDV-2831',dt:'28/04/2025'},
-  {id:'CR-003',tipo:'boleto',desc:'Boleto — Distribuidora Norte',parte:'Distribuidora Norte',valor:3200,venc:'2025-06-20',status:'pendente',parc:'1/1',ref:'PDV-2840',dt:'12/05/2025'},
-];
+const CONTAS_RECEBER=[];
 
 function saveData(){
   try{
@@ -7686,7 +7630,7 @@ window.addEventListener('DOMContentLoaded',async ()=>{
       onkeydown="if(event.key==='Enter')doLogin()">
     <div id="login-erro" style="font-size:11px;color:var(--red);margin-bottom:10px;display:none"><i class="ti ti-alert-triangle"></i> Senha incorreta</div>
     <button class="btn bp" onclick="doLogin()" style="width:100%;padding:11px;font-size:14px"><i class="ti ti-login"></i> Entrar</button>
-    <div style="font-size:10px;color:var(--text3);margin-top:14px">Login: <strong>admin@autopecas.com.br</strong> / Senha: <strong>1234</strong></div>
+    
   </div>
 </div>
 
