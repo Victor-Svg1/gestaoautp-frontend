@@ -4306,9 +4306,7 @@ function cadastrarTodosNovos(){
 
 async function confirmarEntradaNFe(){
   if(!parsedNFe)return;
-  const token=localStorage.getItem('token');
-  if(!token){toast('Sessão expirada, faça login novamente','error');return;}
-  const btn=document.querySelector('[onclick="confirmarEntradaNFe()"]');
+  const btn=document.getElementById('nfe-confirm-btn');
   if(btn){btn.disabled=true;btn.textContent='⏳ Processando...';}
   try{
     const itens=parsedNFe.items.map(item=>({
@@ -4317,33 +4315,30 @@ async function confirmarEntradaNFe(){
       uCom:item.uCom,qCom:item.qCom,vUnCom:item.vUnCom,vProd:item.vProdItem,
       acao:item.matched?'entrada':(item._acao||'cadastrar')
     }));
-    const resp=await fetch(API+'/nfe/confirmar',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({
-        chave:parsedNFe.chNFe,
-        emitente_cnpj:parsedNFe.emitCNPJ,
-        emitente_nome:parsedNFe.emitNome,
-        numero:parsedNFe.nNF,
-        serie:parsedNFe.serie,
-        data_emissao:parsedNFe.dhEmi,
-        valor_total:parsedNFe.vNF,
-        itens
-      })
+    const data=await api('POST','/api/nfe/confirmar',{
+      chave:parsedNFe.chNFe,
+      emitente_cnpj:parsedNFe.emitCNPJ,
+      emitente_nome:parsedNFe.emitNome,
+      numero:parsedNFe.nNF,
+      serie:parsedNFe.serie,
+      data_emissao:parsedNFe.dhEmi,
+      valor_total:parsedNFe.vNF,
+      itens
     });
-    const data=await resp.json();
-    if(!resp.ok)throw new Error(data.erro||'Erro ao confirmar');
-    const cadastrados=data.resultados.filter(r=>r.ok&&r.acao==='cadastrar').length;
-    const entradas=data.resultados.filter(r=>r.ok&&r.acao==='entrada').length;
-    toast(`✅ Entrada confirmada! ${entradas} estoques atualizados, ${cadastrados} produtos cadastrados`,'success');
+    if(!data){
+      if(btn){btn.disabled=false;btn.textContent='✅ Confirmar Entrada';}
+      return;
+    }
+    const cadastrados=(data.resultados||[]).filter(r=>r.ok&&r.acao==='cadastrar').length;
+    const entradas=(data.resultados||[]).filter(r=>r.ok&&r.acao==='entrada').length;
+    toast('✅ Entrada confirmada! '+entradas+' estoques atualizados, '+cadastrados+' produtos cadastrados','success');
     resetNFe();
-    loadProdutos();
+    loadFromAPI();
   }catch(e){
     toast('Erro: '+e.message,'error');
     if(btn){btn.disabled=false;btn.textContent='✅ Confirmar Entrada';}
   }
 }
-
 function resetNFe(){
   document.getElementById('nfe-dropzone-area').style.display='block';
   document.getElementById('nfe-preview-area').style.display='none';
