@@ -4088,62 +4088,59 @@ function g(doc,tag){
   return el?el.textContent.trim():'';
 }
 
-function processNFeXML(xmlStr){
+function processNFeXML(xmlText){
   try{
     const parser=new DOMParser();
-    const doc=parser.parseFromString(xmlStr,'application/xml');
-    if(doc.querySelector('parsererror')){toast('XML inválido ou corrompido.','error');return;}
-
-    // Parse header
-    const nNF=g(doc,'nNF');
-    const serie=g(doc,'serie');
-    const dhEmi=g(doc,'dhEmi');
-    const natOp=g(doc,'natOp');
-    const emitCNPJ=g(doc,'CNPJ');
-    const emitNome=g(doc,'xNome');
-    const emitFant=g(doc,'xFant');
-    const mod=g(doc,'mod');
-    const infCpl=g(doc,'infCpl');
-    const chNFe=doc.querySelector('[Id]')?.getAttribute('Id')?.replace('NFe','') || '—';
-
-    // Parse totals
-    const tot=doc.querySelector('ICMSTot')||doc.querySelector('total');
-    const vNF=tot?g(tot,'vNF'):'0';
-    const vICMS=tot?g(tot,'vICMS'):'0';
-    const vIPI=tot?g(tot,'vIPI'):'0';
-    const vPIS=tot?g(tot,'vPIS'):'0';
-    const vCOFINS=tot?g(tot,'vCOFINS'):'0';
-    const vFrete=tot?g(tot,'vFrete'):'0';
-    const vProd=tot?g(tot,'vProd'):'0';
-
-    // Parse items
-    const detEls=doc.querySelectorAll('det');
-    const items=Array.from(detEls).map(det=>{
-      const nItem=det.getAttribute('nItem')||'?';
-      const cProd=g(det,'cProd');
-      const cEAN=g(det,'cEAN');
-      const xProd=g(det,'xProd');
-      const NCM=g(det,'NCM');
-      const uCom=g(det,'uCom');
-      const qCom=parseFloat(g(det,'qCom')||0);
-      const vUnCom=parseFloat(g(det,'vUnCom')||0);
-      const vProdItem=parseFloat(g(det,'vProd')||0);
-      const vICMSItem=parseFloat(g(det,'vICMS')||0);
-      const pICMS=g(det,'pICMS');
+    const doc=parser.parseFromString(xmlText,'application/xml');
+    if(doc.querySelector('parsererror'))throw new Error('XML inválido');
+    const g=(el,tag)=>{const n=el?el.querySelector(tag):null;return n?n.textContent.trim():'';};
+    const ide=doc.querySelector('ide');
+    const emit=doc.querySelector('emit');
+    const total=doc.querySelector('ICMSTot')||doc.querySelector('total');
+    const cobr=doc.querySelector('cobr');
+    const infNFe=doc.querySelector('infNFe');
+    const chNFe=infNFe?infNFe.getAttribute('Id')||'':'';
+    const nNF=g(ide,'nNF');
+    const serie=g(ide,'serie');
+    const dhEmi=g(ide,'dhEmi');
+    const natOp=g(ide,'natOp');
+    const mod=g(ide,'mod');
+    const emitCNPJ=g(emit,'CNPJ');
+    const emitNome=g(emit,'xNome');
+    const emitFant=g(emit,'xFant');
+    const infCpl=g(doc.querySelector('infAdic'),'infCpl');
+    const vProd=g(total,'vProd')||'0';
+    const vICMS=g(total,'vICMS')||'0';
+    const vIPI=g(total,'vIPI')||'0';
+    const vPIS=g(total,'vPIS')||'0';
+    const vCOFINS=g(total,'vCOFINS')||'0';
+    const vFrete=g(total,'vFrete')||'0';
+    const vNF=g(total,'vNF')||g(total,'vProd')||'0';
+    const items=Array.from(doc.querySelectorAll('det')).map(det=>{
+      const nItem=det.getAttribute('nItem')||'';
+      const prod=det.querySelector('prod');
+      const imposto=det.querySelector('imposto');
+      const icms=imposto?imposto.querySelector('ICMS00,ICMS10,ICMS20,ICMS30,ICMS40,ICMS41,ICMS50,ICMS51,ICMS60,ICMS70,ICMS90,ICMSSn101,ICMSSn102,ICMSSn201,ICMSSn202,ICMSSn500,ICMSSn900'):null;
+      const cProd=g(prod,'cProd');
+      const cEAN=g(prod,'cEAN');
+      const xProd=g(prod,'xProd');
+      const NCM=g(prod,'NCM');
+      const uCom=g(prod,'uCom');
+      const qCom=parseFloat(g(prod,'qCom')||0);
+      const vUnCom=parseFloat(g(prod,'vUnCom')||0);
+      const vProdItem=parseFloat(g(prod,'vProd')||0);
+      const vICMSItem=parseFloat(g(icms,'vICMS')||0);
+      const pICMS=g(icms,'pICMS');
       const matched=matchNFeItem({cEAN,NCM,xProd,cProd});
       return{nItem,cProd,cEAN,xProd,NCM,uCom,qCom,vUnCom,vProdItem,vICMSItem,pICMS,matched};
     });
-
-    // Parse duplicatas
     const dups=Array.from(doc.querySelectorAll('dup')).map(d=>({
       nDup:g(d,'nDup'),dVenc:g(d,'dVenc'),vDup:parseFloat(g(d,'vDup')||0)
     }));
-
     parsedNFe={nNF,serie,dhEmi,natOp,emitCNPJ,emitNome,emitFant,mod,infCpl,chNFe,
       vNF:parseFloat(vNF),vICMS:parseFloat(vICMS),vIPI:parseFloat(vIPI),
       vPIS:parseFloat(vPIS),vCOFINS:parseFloat(vCOFINS),vFrete:parseFloat(vFrete),
       vProd:parseFloat(vProd),items,dups};
-
     renderNFePreview(parsedNFe);
   }catch(err){
     console.error(err);
@@ -4152,121 +4149,207 @@ function processNFeXML(xmlStr){
 }
 
 function matchNFeItem(item){
-  // Try EAN first
-  if(item.cEAN&&item.cEAN!=='SEM GTIN'){
-    const found=PRODS.find(p=>p.ean===item.cEAN);
+  if(!PRODS||!PRODS.length)return null;
+  if(item.cEAN&&item.cEAN!=='SEM GTIN'&&item.cEAN!==''){
+    const found=PRODS.find(p=>p.ean&&p.ean===item.cEAN);
     if(found)return{prod:found,type:'ean',label:'EAN'};
   }
-  // Try NCM
+  if(item.cProd){
+    const found=PRODS.find(p=>p.sku&&p.sku===item.cProd);
+    if(found)return{prod:found,type:'sku',label:'SKU'};
+  }
   if(item.NCM){
     const ncmClean=item.NCM.replace(/\D/g,'');
     const found=PRODS.find(p=>p.ncm&&p.ncm.replace(/\D/g,'')===ncmClean);
     if(found)return{prod:found,type:'ncm',label:'NCM'};
   }
-  // Try partial name
-  const words=item.xProd.toLowerCase().split(' ').filter(w=>w.length>3);
-  const scored=PRODS.map(p=>{
-    const hay=(p.n+' '+p.pop+' '+p.compat).toLowerCase();
-    const sc=words.filter(w=>hay.includes(w)).length;
-    return{p,sc};
-  }).filter(x=>x.sc>=2).sort((a,b)=>b.sc-a.sc);
-  if(scored.length)return{prod:scored[0].p,type:'name',label:'Nome'};
+  if(item.xProd){
+    const words=item.xProd.toLowerCase().split(' ').filter(w=>w.length>3);
+    if(words.length>0){
+      const scored=PRODS.map(p=>{
+        const hay=((p.nome||p.n||'')+' '+(p.sku||p.pop||'')+' '+(p.compat||'')).toLowerCase();
+        const sc=words.filter(w=>hay.includes(w)).length;
+        return{p,sc};
+      }).filter(x=>x.sc>=2).sort((a,b)=>b.sc-a.sc);
+      if(scored.length)return{prod:scored[0].p,type:'name',label:'Nome'};
+    }
+  }
   return null;
 }
 
 function renderNFePreview(d){
-  document.getElementById('nfe-dropzone-area').style.display='none';
-  document.getElementById('nfe-preview-area').style.display='block';
-
-  // Validation steps
+  const dropzone=document.getElementById('nfe-dropzone-area');
+  const preview=document.getElementById('nfe-preview-area');
+  if(dropzone)dropzone.style.display='none';
+  if(preview)preview.style.display='block';
   const matched=d.items.filter(i=>i.matched).length;
   const notMatched=d.items.length-matched;
   const steps=document.getElementById('nfe-validation-steps');
   if(steps)steps.innerHTML=`
-    <div class="ch" style="margin-bottom:10px"><div class="ct">Validação Automática</div></div>
-    <div class="nfe-step done"><i class="ti ti-check-circle" style="font-size:20px"></i><div><strong>XML válido</strong> — Estrutura NF-e 4.0 reconhecida e assinatura verificada</div></div>
-    <div class="nfe-step done"><i class="ti ti-building-store" style="font-size:20px"></i><div><strong>Emitente identificado</strong> — ${d.emitNome} (CNPJ: ${d.emitCNPJ.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')})</div></div>
-    <div class="nfe-step ${matched===d.items.length?'done':'warn'}"><i class="ti ti-package" style="font-size:20px"></i><div><strong>${matched}/${d.items.length} itens vinculados</strong> ao cadastro de produtos${notMatched>0?` — ${notMatched} não encontrado(s)`:''}</div></div>
-    ${d.dups.length?`<div class="nfe-step done"><i class="ti ti-calendar-due" style="font-size:20px"></i><div><strong>Pagamento: ${d.dups.length} duplicata(s)</strong> — R$ ${d.vNF.toLocaleString('pt-BR',{minimumFractionDigits:2})} vencendo em ${d.dups[0]?.dVenc||'—'}</div></div>`:''}
+    <div class="nfe-step done"><i class="ti ti-check-circle" style="color:var(--green);font-size:18px"></i><div><strong>XML válido</strong> — Estrutura NF-e reconhecida</div></div>
+    <div class="nfe-step done"><i class="ti ti-building-store" style="color:var(--green);font-size:18px"></i><div><strong>Emitente identificado</strong> — ${d.emitNome||'N/A'} (CNPJ: ${(d.emitCNPJ||'').replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')})</div></div>
+    <div class="nfe-step ${matched===d.items.length?'done':notMatched===d.items.length?'warn':'partial'}">
+      <i class="ti ti-packages" style="font-size:18px"></i>
+      <div><strong>${matched}/${d.items.length} itens vinculados</strong> ao cadastro de produtos — ${notMatched} não encontrado(s)</div>
+    </div>
+    <div class="nfe-step done"><i class="ti ti-credit-card" style="color:var(--green);font-size:18px"></i><div><strong>Pagamento: ${d.dups.length} duplicata(s)</strong> — R$ ${(d.vNF||0).toFixed(2).replace('.',',')} vencendo em ${d.dups[0]?.dVenc||'—'}</div></div>
   `;
-
-  // Info grid
-  const fmt=s=>{try{const dt=new Date(s);return dt.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});}catch{return s;}};
-  const ig=document.getElementById('nfe-info-grid');
-  if(ig)ig.innerHTML=`
-    <div class="nfe-info-field"><div class="nfe-info-label">Emitente</div><div class="nfe-info-val">${d.emitNome}</div><div class="nfe-info-val" style="font-size:11px;color:var(--text3)">${d.emitFant||''}</div></div>
-    <div class="nfe-info-field"><div class="nfe-info-label">CNPJ Emitente</div><div class="nfe-info-val mono">${d.emitCNPJ.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')}</div></div>
-    <div class="nfe-info-field"><div class="nfe-info-label">Número / Série</div><div class="nfe-info-val amber">NF-${d.nNF.padStart(6,'0')} / S${d.serie}</div></div>
-    <div class="nfe-info-field"><div class="nfe-info-label">Data de Emissão</div><div class="nfe-info-val">${fmt(d.dhEmi)}</div></div>
-    <div class="nfe-info-field"><div class="nfe-info-label">Natureza da Operação</div><div class="nfe-info-val">${d.natOp}</div></div>
-    <div class="nfe-info-field"><div class="nfe-info-label">Modelo</div><div class="nfe-info-val">Mod. ${d.mod} — ${d.mod==='55'?'NF-e':'NFC-e'}</div></div>
-    ${d.infCpl?`<div class="nfe-info-field" style="grid-column:1/-1"><div class="nfe-info-label">Informações Adicionais</div><div class="nfe-info-val" style="font-size:12px;color:var(--text2)">${d.infCpl}</div></div>`:''}
+  // Header NF-e
+  const hdr=document.getElementById('nfe-header-info');
+  if(hdr)hdr.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:8px">
+      <div><div class="label-xs">EMITENTE</div><div class="fw6">${d.emitNome||'—'}</div><div style="font-size:11px;color:var(--text3)">${d.emitFant||''}</div></div>
+      <div><div class="label-xs">CNPJ EMITENTE</div><div class="fw6">${(d.emitCNPJ||'').replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')}</div></div>
+      <div><div class="label-xs">NÚMERO / SÉRIE</div><div class="fw6" style="color:var(--amber)">NF-${d.nNF||'—'} / S${d.serie||'—'}</div></div>
+      <div><div class="label-xs">DATA DE EMISSÃO</div><div class="fw6">${d.dhEmi?new Date(d.dhEmi).toLocaleString('pt-BR'):'—'}</div></div>
+      <div><div class="label-xs">NATUREZA DA OPERAÇÃO</div><div class="fw6">${d.natOp||'—'}</div></div>
+      <div><div class="label-xs">MODELO</div><div class="fw6">Mod. ${d.mod||'—'} — NF-e</div></div>
+    </div>
+    ${d.infCpl?'<div style="margin-top:8px;padding:8px;background:var(--bg3);border-radius:6px;font-size:12px;color:var(--text2)"><strong>INFORMAÇÕES ADICIONAIS</strong><br>'+d.infCpl+'</div>':''}
+    <div style="margin-top:6px;padding:6px 10px;background:var(--bg3);border-radius:6px;font-size:11px;color:var(--text3)">Chave de acesso: ${d.chNFe||'—'}</div>
   `;
-
-  // Chave
-  const ch=document.getElementById('nfe-chave');
-  if(ch)ch.textContent='Chave de acesso: '+d.chNFe;
-
-  // Items count
-  const ic=document.getElementById('nfe-items-count');
-  if(ic)ic.textContent=d.items.length+' produto(s)';
-
-  // Match summary
-  const ms=document.getElementById('nfe-match-summary');
-  if(ms)ms.innerHTML=`<span class="match-badge mb-ok"><i class="ti ti-check" style="font-size:10px"></i>${matched} vinculado${matched!==1?'s':''}</span>
-    ${notMatched?`<span class="match-badge mb-warn" style="margin-left:4px"><i class="ti ti-alert-triangle" style="font-size:10px"></i>${notMatched} não encontrado${notMatched!==1?'s':''}</span>`:''}`;
-
   // Items table
-  const tb=document.getElementById('nfe-items-tbody');
-  if(tb)tb.innerHTML=d.items.map(it=>{
-    const m=it.matched;
-    const mBadge=m
-      ?`<span class="match-badge mb-ok"><i class="ti ti-check" style="font-size:10px"></i>${m.prod.n.substring(0,22)}… <span style="opacity:.7">(${m.label})</span></span>`
-      :`<span class="match-badge mb-warn"><i class="ti ti-alert-triangle" style="font-size:10px"></i>Não encontrado <button class="btn bp" style="padding:1px 6px;font-size:10px;margin-left:4px" onclick="openModal('modal-produto')">Cadastrar</button></span>`;
-    return`<tr>
-      <td class="ts tm">${it.nItem}</td>
-      <td><div class="pdd-mono" style="font-size:11px">${it.cProd}</div><div style="font-size:10px;color:var(--text3)">${it.cEAN!=='SEM GTIN'?it.cEAN:''}</div></td>
-      <td style="max-width:200px;font-size:12px">${it.xProd}</td>
-      <td class="ts mono">${it.NCM}</td>
-      <td style="text-align:right;font-weight:600">${it.qCom.toLocaleString('pt-BR')}</td>
-      <td class="ts tm">${it.uCom}</td>
-      <td style="font-family:monospace;font-size:12px">R$ ${it.vUnCom.toFixed(2)}</td>
-      <td style="font-family:var(--font-head);font-weight:700;color:var(--amber)">R$ ${it.vProdItem.toFixed(2)}</td>
-      <td style="font-size:11px;color:var(--text3)">${it.pICMS?it.pICMS+'%':'—'}</td>
-      <td>${mBadge}</td>
-    </tr>`;
-  }).join('');
-
+  renderNFeItemsTable(d.items);
   // Totals
-  const tg=document.getElementById('nfe-totals-grid');
-  if(tg)tg.innerHTML=`
-    <div class="nfe-total-item"><div class="nfe-total-label">Produtos (BC)</div><div class="nfe-total-val">R$ ${d.vProd.toFixed(2)}</div></div>
-    <div class="nfe-total-item"><div class="nfe-total-label">ICMS</div><div class="nfe-total-val" style="color:var(--amber)">R$ ${d.vICMS.toFixed(2)}</div></div>
-    <div class="nfe-total-item"><div class="nfe-total-label">IPI</div><div class="nfe-total-val" style="color:var(--amber)">R$ ${d.vIPI.toFixed(2)}</div></div>
-    <div class="nfe-total-item"><div class="nfe-total-label">PIS</div><div class="nfe-total-val" style="color:var(--text3)">R$ ${d.vPIS.toFixed(2)}</div></div>
-    <div class="nfe-total-item"><div class="nfe-total-label">COFINS</div><div class="nfe-total-val" style="color:var(--text3)">R$ ${d.vCOFINS.toFixed(2)}</div></div>
-    <div class="nfe-total-item" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)"><div class="nfe-total-label" style="color:var(--amber)">TOTAL NF-e</div><div class="nfe-total-val" style="color:var(--amber);font-size:18px">R$ ${d.vNF.toFixed(2)}</div></div>
+  const tots=document.getElementById('nfe-totals');
+  if(tots)tots.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">
+      ${[['Produtos',d.vProd],['ICMS',d.vICMS],['IPI',d.vIPI],['PIS',d.vPIS],['COFINS',d.vCOFINS],['Frete',d.vFrete]].map(([l,v])=>`<div style="padding:8px;background:var(--bg3);border-radius:6px"><div style="font-size:10px;color:var(--text3)">${l}</div><div class="fw6">R$ ${(v||0).toFixed(2).replace('.',',')}</div></div>`).join('')}
+      <div style="padding:8px;background:rgba(245,158,11,.1);border:1px solid var(--amber);border-radius:6px"><div style="font-size:10px;color:var(--amber)">TOTAL NF-e</div><div class="fw6" style="color:var(--amber);font-size:16px">R$ ${(d.vNF||0).toFixed(2).replace('.',',')}</div></div>
+    </div>
   `;
+}
 
-  // Duplicatas
-  const dp=document.getElementById('nfe-duplicatas');
-  if(dp){
-    if(d.dups.length){
-      dp.innerHTML=d.dups.map((dup,i)=>`
-        <div class="nfe-dupl-row">
-          <span class="ts tm">Dup. ${dup.nDup||i+1}</span>
-          <span style="font-family:monospace;font-size:12px">${dup.dVenc||'—'}</span>
-          <span style="font-family:var(--font-head);font-weight:700;color:var(--green)">R$ ${dup.vDup.toFixed(2)}</span>
-        </div>
-      `).join('');
-    }else{
-      dp.innerHTML='<div class="ts tm" style="padding:10px;text-align:center">Sem duplicatas cadastradas</div>';
-    }
+function renderNFeItemsTable(items){
+  const container=document.getElementById('nfe-items-table-container');
+  if(!container)return;
+  const matched=items.filter(i=>i.matched).length;
+  container.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <strong>Itens da Nota</strong>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text3)">${items.length} produto(s)</span>
+        <span class="badge bg2" style="font-size:11px">${matched} vinculados</span>
+        <span class="badge ba" style="font-size:11px">${items.length-matched} não encontrados</span>
+        ${items.length-matched>0?'<button class="btn-sm" onclick="cadastrarTodosNovos()" style="background:var(--green);color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">📦 Cadastrar todos novos</button>':''}
+      </div>
+    </div>
+    <div style="overflow-x:auto;overflow-y:auto;max-height:420px;border:1px solid var(--border);border-radius:8px">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead style="position:sticky;top:0;background:var(--bg2);z-index:1">
+          <tr>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3);white-space:nowrap">#</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3);white-space:nowrap">CÓDIGO / EAN</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3)">DESCRIÇÃO (NF-e)</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3);white-space:nowrap">NCM</th>
+            <th style="padding:8px 10px;text-align:right;font-size:11px;color:var(--text3);white-space:nowrap">QTD</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text3);white-space:nowrap">UN.</th>
+            <th style="padding:8px 10px;text-align:right;font-size:11px;color:var(--text3);white-space:nowrap">VL. UNIT.</th>
+            <th style="padding:8px 10px;text-align:right;font-size:11px;color:var(--text3);white-space:nowrap">VL. TOTAL</th>
+            <th style="padding:8px 10px;text-align:center;font-size:11px;color:var(--text3);white-space:nowrap">MATCH NO SISTEMA</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map((item,idx)=>{
+            const isMatched=!!item.matched;
+            const prod=item.matched?.prod;
+            return `<tr style="border-top:1px solid var(--border);background:${idx%2===0?'transparent':'rgba(255,255,255,.02)'}">
+              <td style="padding:8px 10px;color:var(--text3)">${item.nItem||idx+1}</td>
+              <td style="padding:8px 10px;white-space:nowrap">
+                <div class="fw6">${item.cProd||'—'}</div>
+                <div style="font-size:10px;color:var(--text3)">${item.cEAN&&item.cEAN!=='SEM GTIN'?item.cEAN:''}</div>
+              </td>
+              <td style="padding:8px 10px;max-width:220px">${item.xProd||'—'}</td>
+              <td style="padding:8px 10px;font-size:11px;color:var(--text3)">${item.NCM||'—'}</td>
+              <td style="padding:8px 10px;text-align:right;font-weight:600">${item.qCom||0}</td>
+              <td style="padding:8px 10px;font-size:11px">${item.uCom||'—'}</td>
+              <td style="padding:8px 10px;text-align:right">R$ ${(item.vUnCom||0).toFixed(2).replace('.',',')}</td>
+              <td style="padding:8px 10px;text-align:right;font-weight:600;color:var(--amber)">R$ ${(item.vProdItem||0).toFixed(2).replace('.',',')}</td>
+              <td style="padding:8px 10px;text-align:center">
+                ${isMatched
+                  ? `<span style="color:var(--green);font-size:11px">✅ ${item.matched.label}: ${prod?.nome||prod?.n||''}</span>`
+                  : `<span style="color:var(--amber);font-size:11px">⚠️ Não encontrado</span>
+                     <button onclick="cadastrarItemNfe(${idx})" style="margin-left:6px;background:var(--blue);color:#fff;border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px">Cadastrar</button>`
+                }
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="resetNFe()" style="padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--text1);border-radius:8px;cursor:pointer">✕ Descartar</button>
+      <button onclick="confirmarEntradaNFe()" style="padding:8px 22px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px">✅ Confirmar Entrada (${matched} itens)</button>
+    </div>
+  `;
+}
+
+function cadastrarItemNfe(idx){
+  if(!parsedNFe||!parsedNFe.items[idx])return;
+  const item=parsedNFe.items[idx];
+  // Pre-fill new product modal with NF-e data
+  const modal=document.getElementById('modal-produto');
+  if(!modal){toast('Abra o modal de produto para cadastrar','warning');return;}
+  const setVal=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  setVal('prod-nome',item.xProd||'');
+  setVal('prod-sku',item.cProd||'');
+  setVal('prod-ean',(item.cEAN&&item.cEAN!=='SEM GTIN')?item.cEAN:'');
+  setVal('prod-ncm',item.NCM||'');
+  setVal('prod-custo',item.vUnCom||0);
+  setVal('prod-estoque',item.qCom||0);
+  setVal('prod-unidade',item.uCom||'UN');
+  // Store index to match back after save
+  modal.dataset.nfeIdx=idx;
+  modal.style.display='flex';
+}
+
+function cadastrarTodosNovos(){
+  if(!parsedNFe)return;
+  const naoVinculados=parsedNFe.items.filter(i=>!i.matched);
+  if(!naoVinculados.length){toast('Todos os itens já estão vinculados','success');return;}
+  // Mark all unmatched as 'cadastrar' action for confirm step
+  naoVinculados.forEach(item=>{ item._acao='cadastrar'; });
+  toast(`${naoVinculados.length} itens marcados para cadastro automático ao confirmar a entrada`,'success');
+}
+
+async function confirmarEntradaNFe(){
+  if(!parsedNFe)return;
+  const token=localStorage.getItem('token');
+  if(!token){toast('Sessão expirada, faça login novamente','error');return;}
+  const btn=document.querySelector('[onclick="confirmarEntradaNFe()"]');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Processando...';}
+  try{
+    const itens=parsedNFe.items.map(item=>({
+      produto_id:item.matched?.prod?.id||null,
+      cProd:item.cProd,cEAN:item.cEAN,xProd:item.xProd,NCM:item.NCM,
+      uCom:item.uCom,qCom:item.qCom,vUnCom:item.vUnCom,vProd:item.vProdItem,
+      acao:item.matched?'entrada':(item._acao||'cadastrar')
+    }));
+    const resp=await fetch(API+'/nfe/confirmar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({
+        chave:parsedNFe.chNFe,
+        emitente_cnpj:parsedNFe.emitCNPJ,
+        emitente_nome:parsedNFe.emitNome,
+        numero:parsedNFe.nNF,
+        serie:parsedNFe.serie,
+        data_emissao:parsedNFe.dhEmi,
+        valor_total:parsedNFe.vNF,
+        itens
+      })
+    });
+    const data=await resp.json();
+    if(!resp.ok)throw new Error(data.erro||'Erro ao confirmar');
+    const cadastrados=data.resultados.filter(r=>r.ok&&r.acao==='cadastrar').length;
+    const entradas=data.resultados.filter(r=>r.ok&&r.acao==='entrada').length;
+    toast(`✅ Entrada confirmada! ${entradas} estoques atualizados, ${cadastrados} produtos cadastrados`,'success');
+    resetNFe();
+    loadProdutos();
+  }catch(e){
+    toast('Erro: '+e.message,'error');
+    if(btn){btn.disabled=false;btn.textContent='✅ Confirmar Entrada';}
   }
-
-  toast('NF-e '+d.nNF+' carregada — '+d.items.length+' itens, R$ '+d.vNF.toFixed(2),'success');
-  // Inicializa painel de impostos
-  setTimeout(initTaxPanel,100);
 }
 
 function resetNFe(){
