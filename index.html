@@ -7033,12 +7033,12 @@ function showLoginOverlay(){
 
 async function loadFromAPI(){
   try{
-    const [prods, oss, clis, orcs, dash] = await Promise.all([
+    const [prods, oss, clis, orcs, dash, forns, vends, mecs] = await Promise.all([
       api('GET','/api/produtos'),
       api('GET','/api/os'),
       api('GET','/api/clientes'),
       api('GET','/api/orcamentos'),
-      api('GET','/api/dashboard'),
+      api('GET','/api/dashboard'), api('GET','/api/fornecedores'), api('GET','/api/vendedores'), api('GET','/api/mecanicos'),
     ]);
     if(prods && Array.isArray(prods)){
       PRODS.length=0;
@@ -7078,7 +7078,7 @@ async function loadFromAPI(){
         st:o.status||'rascunho', itens:o.itens||[], _db_id:o.id
       }));
     }
-    renderDash();renderOS();renderProd();renderCli();renderOrcamentos();renderFinanceiro();
+    if(forns&&Array.isArray(forns)){FORNECEDORES_DATA.length=0;const fcolors=['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#14B8A6'];forns.forEach((f,i)=>FORNECEDORES_DATA.push({id:String(f.id),nome:f.nome||'',fantasia:f.fantasia||f.nome||'',cnpj:f.cnpj||'',cat:f.categoria||'',status:f.status||'ativo',bg:fcolors[i%fcolors.length],av:(f.fantasia||f.nome||'?').trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(),rating:parseFloat(f.rating)||0,_db_id:f.id}));} if(vends&&Array.isArray(vends)){SELLERS.length=0;const scolors=['#3B82F6','#10B981','#F59E0B','#8B5CF6'];vends.forEach((s,i)=>{const real=parseFloat(s.realizado_mes)||0,vend=parseInt(s.vendas_mes)||0;SELLERS.push({n:s.nome||'',bg:scolors[i%scolors.length],av:(s.nome||'?').trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(),real,meta:parseFloat(s.meta)||10000,vend,ticket:vend>0?Math.round(real/vend):0,comm:parseFloat(s.comissao_pct)||0,pago:0,_db_id:s.id});});} if(mecs&&Array.isArray(mecs)){MECHS.length=0;const mcolors=['#10B981','#3B82F6','#F59E0B','#8B5CF6'];mecs.forEach((m,i)=>MECHS.push({n:m.nome||'',bg:mcolors[i%mcolors.length],av:(m.nome||'?').trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(),os:parseInt(m.os_concluidas)||0,horas:parseInt(m.horas_mes)||160,fat:parseFloat(m.faturamento_mes)||0,comm:parseFloat(m.comissao_pct)||0,_db_id:m.id}));} renderDash();renderOS();renderProd();renderCli();renderOrcamentos();renderFinanceiro();renderForns();renderVendedores();renderMecanicos();
     toast('✅ Dados carregados da nuvem','success');
   }catch(e){ console.warn('loadFromAPI error:',e); }
 }
