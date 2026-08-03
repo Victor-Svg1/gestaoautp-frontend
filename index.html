@@ -886,7 +886,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       <div class="su">
         <div class="av">AD</div>
         <div class="nl"><div style="font-size:13px;font-weight:500">Administrador</div><div style="font-size:11px;color:var(--text3)">Acesso Total</div></div>
-        <div class="tbb mla" onclick="toast('Saindo…','info')" style="border:none"><i class="ti ti-logout" style="font-size:16px;color:var(--text3)"></i></div>
+        <div class="tbb mla" onclick="logoutUser()" style="border:none" title="Sair"><i class="ti ti-logout" style="font-size:16px;color:var(--text3)"></i></div>
       </div>
     </div>
   </aside>
@@ -8458,65 +8458,97 @@ function renderInventario(){
 
 
 let loginSelectedUser=null;
-function renderLoginScreen(){
-  const list=document.getElementById('login-users-list');if(!list)return;
-  const ativos=USUARIOS_DATA.filter(u=>u.status==='ativo');
-  list.innerHTML=ativos.map(u=>`
-    <div class="login-user-btn" id="lbtn-${u.id}" onclick="selectLoginUser('${u.id}')">
-      <div class="login-user-av" style="background:${u.cor}">${u.ini}</div>
-      <div>
-        <div class="login-user-name">${u.n}</div>
-        <div class="login-user-role">${({admin:'Administrador',vendedor:'Vendedor',mecanico:'Mecânico',financeiro:'Financeiro',caixa:'Caixa',estoque:'Estoque'})[u.perfil]||u.perfil}</div>
-      </div>
-      <i class="ti ti-check" style="margin-left:auto;color:var(--amber);display:none" id="check-${u.id}"></i>
-    </div>
-  `).join('');
-  // Auto-seleciona o primeiro usuário ativo
-  if(ativos.length>0)selectLoginUser(ativos[0].id);
-}
-function selectLoginUser(id){
-  loginSelectedUser=id;
-  document.querySelectorAll('.login-user-btn').forEach(b=>{b.classList.remove('selected');b.style.borderColor='';});
-  document.querySelectorAll('[id^="check-"]').forEach(c=>c.style.display='none');
-  const btn=document.getElementById('lbtn-'+id);
-  if(btn){btn.classList.add('selected');btn.style.borderColor='var(--amber)';}
-  const chk=document.getElementById('check-'+id);
-  if(chk)chk.style.display='block';
-  const erroEl=document.getElementById('login-erro');
-  if(erroEl)erroEl.style.display='none';
-  document.getElementById('login-senha')?.focus();
+// ======= AUTENTICAÇÃO REAL (API) =======
+const API_BASE='https://autoerp-api-production.up.railway.app/api';
+const STORAGE_KEY_TOKEN='autoerp_v4_token';
+const STORAGE_KEY_USER='autoerp_v4_current_user';
+
+function authHeaders(){
+  const token=localStorage.getItem(STORAGE_KEY_TOKEN);
+  return token?{'Authorization':'Bearer '+token,'Content-Type':'application/json'}:{'Content-Type':'application/json'};
 }
 
-function doLogin(){
+async function doLoginReal(){
   const erroEl=document.getElementById('login-erro');
+  const emailEl=document.getElementById('login-email');
   const senhaEl=document.getElementById('login-senha');
+  const btn=document.getElementById('login-btn');
+  const email=(emailEl?.value||'').trim();
+  const senha=senhaEl?.value||'';
 
-  if(!loginSelectedUser){
-    if(erroEl){erroEl.textContent='⚠ Selecione um usuário acima.';erroEl.style.display='block';}
+  if(erroEl)erroEl.style.display='none';
+  if(!email||!senha){
+    if(erroEl){erroEl.textContent='⚠ Preencha email e senha.';erroEl.style.display='block';}
     return;
   }
-  const u=USUARIOS_DATA.find(x=>x.id===loginSelectedUser);if(!u)return;
-  const senha=senhaEl?.value||'';
-  if(!senha){
-    if(erroEl){erroEl.textContent='⚠ Digite sua senha.';erroEl.style.display='block';}
-    senhaEl?.focus();return;
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Entrando…';}
+
+  try{
+    const resp=await fetch(API_BASE+'/auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,senha})
+    });
+    const data=await resp.json();
+    if(!resp.ok){
+      if(erroEl){erroEl.textContent='⚠ '+(data.erro||'Credenciais inválidas.');erroEl.style.display='block';}
+      if(senhaEl){senhaEl.style.borderColor='var(--red)';senhaEl.value='';setTimeout(()=>{if(senhaEl)senhaEl.style.borderColor='';},900);}
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY_TOKEN,data.token);
+    aplicarSessaoLogada(data.usuario);
+    toast(`Bem-vindo, ${data.usuario.nome.split(' ')[0]}! ✅`,'success');
+  }catch(e){
+    if(erroEl){erroEl.textContent='⚠ Não foi possível conectar ao servidor. Verifique sua internet.';erroEl.style.display='block';}
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-login"></i> Entrar';}
   }
-  if(senha!==u.senha){
-    if(erroEl){erroEl.textContent='⚠ Senha incorreta. Tente novamente.';erroEl.style.display='block';}
-    if(senhaEl){senhaEl.style.borderColor='var(--red)';senhaEl.value='';
-      setTimeout(()=>{if(senhaEl)senhaEl.style.borderColor='';},900);}
-    senhaEl?.focus();return;
-  }
-  // Sucesso
-  currentUser=u;
-  if(erroEl)erroEl.style.display='none';
+}
+
+function aplicarSessaoLogada(usuario){
+  // Normaliza o formato vindo da API pro que o resto do app espera (currentUser.n)
+  currentUser={id:usuario.id,n:usuario.nome,perfil:usuario.perfil,email:usuario.email};
+  localStorage.setItem(STORAGE_KEY_USER,JSON.stringify(currentUser));
   document.getElementById('login-overlay').style.display='none';
-  applySidebarPerms(u.perfil);
+  applySidebarPerms(currentUser.perfil);
+  const initials=currentUser.n.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
+  const cores={admin:'linear-gradient(135deg,var(--red),#B91C1C)',vendedor:'linear-gradient(135deg,var(--blue),var(--purple))',mecanico:'linear-gradient(135deg,var(--amber),var(--orange))',financeiro:'linear-gradient(135deg,var(--green),var(--teal))'};
   const topUser=document.getElementById('topbar-user');
-  if(topUser)topUser.innerHTML=`<div class="login-user-av" style="width:30px;height:30px;font-size:11px;border-radius:8px;background:${u.cor};cursor:pointer" onclick="openAdminPanel()" title="Painel Admin">${u.ini}</div>`;
-  if(senhaEl)senhaEl.value='';
-  toast(`Bem-vindo, ${u.n.split(' ')[0]}! ✅`,'success');
+  if(topUser)topUser.innerHTML=`<div class="login-user-av" style="width:30px;height:30px;font-size:11px;border-radius:8px;background:${cores[currentUser.perfil]||'linear-gradient(135deg,var(--amber),var(--orange))'};cursor:pointer" onclick="openAdminPanel()" title="Painel Admin">${initials}</div>`;
   nav('dashboard',document.querySelector('.ni[onclick*="dashboard"]'));
+}
+
+async function verificarSessaoSalva(){
+  const token=localStorage.getItem(STORAGE_KEY_TOKEN);
+  if(!token)return false;
+  try{
+    const resp=await fetch(API_BASE+'/auth/me',{headers:authHeaders()});
+    if(!resp.ok){
+      localStorage.removeItem(STORAGE_KEY_TOKEN);
+      localStorage.removeItem(STORAGE_KEY_USER);
+      return false;
+    }
+    const usuario=await resp.json();
+    aplicarSessaoLogada(usuario);
+    return true;
+  }catch(e){
+    // Sem internet no momento — mantém sessão local sem revalidar, pra não travar o operador
+    const saved=localStorage.getItem(STORAGE_KEY_USER);
+    if(saved){
+      currentUser=JSON.parse(saved);
+      document.getElementById('login-overlay').style.display='none';
+      applySidebarPerms(currentUser.perfil);
+      return true;
+    }
+    return false;
+  }
+}
+
+function logoutUser(){
+  localStorage.removeItem(STORAGE_KEY_TOKEN);
+  localStorage.removeItem(STORAGE_KEY_USER);
+  currentUser=null;
+  location.reload();
 }
 
 // ======= SIDEBAR POR PERFIL =======
@@ -8970,7 +9002,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const hasData=localStorage.getItem(STORAGE_KEY_PRODS);
   const savedCount=hasData?JSON.parse(hasData).length:0;
   // Render login screen and show it
-  renderLoginScreen();
+  verificarSessaoSalva();
   setTimeout(()=>toast(hasData?`💾 ${savedCount} produtos carregados`:'AutoERP Pro v4 pronto!','info'),600);
 });
 </script>
@@ -8979,15 +9011,18 @@ window.addEventListener('DOMContentLoaded',()=>{
 <div class="login-overlay" id="login-overlay">
   <div class="login-box">
     <div class="login-logo">🔧 Auto<span style="color:var(--amber)">ERP</span> Pro</div>
-    <div class="login-sub">Selecione seu usuário para entrar</div>
-    <div class="login-users" id="login-users-list"></div>
-    <input type="password" id="login-senha" placeholder="Senha" maxlength="20"
-      style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--text1);font-size:15px;text-align:center;font-family:monospace;letter-spacing:4px;outline:none;margin-bottom:10px;transition:border-color var(--tr)"
+    <div class="login-sub">Entre com seu email e senha</div>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="username"
+      style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--text1);font-size:14px;outline:none;margin-bottom:10px;transition:border-color var(--tr)"
       onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--border)'"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <div id="login-erro" style="font-size:11px;color:var(--red);margin-bottom:10px;display:none"><i class="ti ti-alert-triangle"></i> Senha incorreta</div>
-    <button class="btn bp" onclick="doLogin()" style="width:100%;padding:11px;font-size:14px"><i class="ti ti-login"></i> Entrar</button>
-    <div style="font-size:10px;color:var(--text3);margin-top:14px">Senha padrão: <strong>1234</strong></div>
+      onkeydown="if(event.key==='Enter')document.getElementById('login-senha').focus()">
+    <input type="password" id="login-senha" placeholder="Senha" autocomplete="current-password"
+      style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--text1);font-size:14px;outline:none;margin-bottom:10px;transition:border-color var(--tr)"
+      onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--border)'"
+      onkeydown="if(event.key==='Enter')doLoginReal()">
+    <div id="login-erro" style="font-size:11px;color:var(--red);margin-bottom:10px;display:none"><i class="ti ti-alert-triangle"></i> Credenciais inválidas</div>
+    <button class="btn bp" id="login-btn" onclick="doLoginReal()" style="width:100%;padding:11px;font-size:14px"><i class="ti ti-login"></i> Entrar</button>
+    <div style="font-size:10px;color:var(--text3);margin-top:14px">Seus dados ficam salvos na nuvem — entre com o mesmo login em qualquer dispositivo.</div>
   </div>
 </div>
 
