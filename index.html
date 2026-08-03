@@ -1884,7 +1884,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
       <!-- ===== FORNECEDORES ===== -->
       <div class="screen" id="screen-fornecedores">
-        <div class="ph"><div class="phl"><h1>Fornecedores</h1><p>Gestão de parceiros, avaliação e performance</p></div><div class="flx g2b"><button class="btn bs btn-sm" onclick="toast('Exportando lista…','success')"><i class="ti ti-download"></i>Exportar</button><button class="btn bp" onclick="openModal('modal-fornecedor')"><i class="ti ti-plus"></i>Novo</button></div></div>
+        <div class="ph"><div class="phl"><h1>Fornecedores</h1><p>Gestão de parceiros, avaliação e performance</p></div><div class="flx g2b"><button class="btn bs btn-sm" onclick="toast('Exportando lista…','success')"><i class="ti ti-download"></i>Exportar</button><button class="btn bp" onclick="openFornecedorNovo()"><i class="ti ti-plus"></i>Novo</button></div></div>
         <div class="g4 mb14">
           <div class="kpi cg"><div class="ki"><i class="ti ti-building-store"></i></div><div class="kl">Fornecedores Ativos</div><div class="kv">24</div><div class="kc up"><i class="ti ti-arrow-up"></i>+2 este mês</div></div>
           <div class="kpi ca"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Volume de Compras</div><div class="kv">R$ 284k</div><div class="kc up"><i class="ti ti-arrow-up"></i>Mês atual</div></div>
@@ -2641,7 +2641,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
 <!-- MODAIS NOVOS v4 -->
 <div class="mov" id="modal-fornecedor" onclick="closeModal('modal-fornecedor')"><div class="modal wide" onclick="event.stopPropagation()" style="max-width:660px">
-  <div class="mhd"><span class="mtit"><i class="ti ti-building-store" style="color:var(--amber)"></i> Novo Fornecedor</span><button class="mcl" onclick="closeModal('modal-fornecedor')"><i class="ti ti-x"></i></button></div>
+  <div class="mhd"><span class="mtit"><i class="ti ti-building-store" style="color:var(--amber)"></i> <span id="modal-forn-title">Novo Fornecedor</span></span><button class="mcl" onclick="closeModal('modal-fornecedor')"><i class="ti ti-x"></i></button></div>
   <div class="mbd"><div class="fg">
     <div class="ff sp3">
       <label>CNPJ <span style="color:var(--amber);font-size:10px">— Digite para preencher automaticamente</span></label>
@@ -2722,7 +2722,8 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       <div class="ff"><label>RG</label><input id="vend-rg" placeholder="00.000.000-0"></div>
       <div class="ff"><label>Data de Nascimento</label><input id="vend-nasc" type="date"></div>
       <div class="ff"><label>WhatsApp</label><input id="vend-whatsapp" placeholder="(82) 99999-9999" oninput="fmtFone(this)"></div>
-      <div class="ff"><label>Email</label><input id="vend-email" type="email" placeholder="vendedor@email.com"></div>
+      <div class="ff"><label>Email *</label><input id="vend-email" type="email" placeholder="vendedor@email.com"></div>
+      <div class="ff" id="vend-senha-wrap"><label>Senha de acesso *</label><input id="vend-senha" type="password" placeholder="Mínimo 6 caracteres"></div>
 
       <div class="ff sp3" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px"><label style="color:var(--amber);font-size:11px;font-weight:700;letter-spacing:.5px">ENDEREÇO</label></div>
       <div class="ff"><label>CEP</label><input id="vend-cep" placeholder="00000-000" maxlength="9" style="font-family:monospace" oninput="fmtCEP(this);buscarCEPVend(this.value)"></div>
@@ -2803,7 +2804,8 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     <div class="ff"><label>RG</label><input id="mec-rg" placeholder="00.000.000-0"></div>
     <div class="ff"><label>Data de Nascimento</label><input id="mec-nasc" type="date"></div>
     <div class="ff"><label>WhatsApp</label><input id="mec-whatsapp" placeholder="(82) 99999-9999" oninput="fmtFone(this)"></div>
-    <div class="ff"><label>Email</label><input id="mec-email" type="email" placeholder="mecanico@email.com"></div>
+    <div class="ff"><label>Email *</label><input id="mec-email" type="email" placeholder="mecanico@email.com"></div>
+    <div class="ff" id="mec-senha-wrap"><label>Senha de acesso *</label><input id="mec-senha" type="password" placeholder="Mínimo 6 caracteres"></div>
 
     <div class="ff sp3" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px"><label style="color:var(--amber);font-size:11px;font-weight:700;letter-spacing:.5px">ENDEREÇO</label></div>
     <div class="ff"><label>CEP</label><input id="mec-cep" placeholder="00000-000" maxlength="9" style="font-family:monospace" oninput="fmtCEP(this);buscarCEPMec(this.value)"></div>
@@ -3378,14 +3380,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
 <script>
 // ======= DATA =======
-const FORNECEDORES_DATA=[
-  {id:'F001',nome:'Bosch do Brasil',fantasia:'Bosch',cnpj:'59.104.422/0001-88',cat:'Motor/Elétrica',rep:'Marcos Ferreira',tel:'(11) 94521-0088',rating:5,pedidos:28,volume:84200,prazo:'28 dias',ult:'10/05/2025',status:'ativo',av:'BS',bg:'linear-gradient(135deg,#EF4444,#B91C1C)',cats:['Motor','Elétrica','Filtros'],hist:[{dt:'10/05',v:'R$ 4.820',st:'Recebido'},{dt:'12/04',v:'R$ 6.240',st:'Recebido'},{dt:'15/03',v:'R$ 3.960',st:'Recebido'}]},
-  {id:'F002',nome:'Fras-le S.A.',fantasia:'Fras-le',cnpj:'88.611.835/0001-77',cat:'Freios',rep:'Carla Andrade',tel:'(54) 98844-2211',rating:5,pedidos:34,volume:52800,prazo:'30 dias',ult:'08/05/2025',status:'ativo',av:'FL',bg:'linear-gradient(135deg,#F59E0B,#D97706)',cats:['Freios','Embreagem'],hist:[{dt:'08/05',v:'R$ 3.240',st:'Recebido'},{dt:'01/04',v:'R$ 4.180',st:'Recebido'}]},
-  {id:'F003',nome:'Monroe Shock Absorbers',fantasia:'Monroe',cnpj:'61.182.474/0001-44',cat:'Suspensão',rep:'Eduardo Lima',tel:'(11) 97733-5566',rating:4,pedidos:18,volume:38400,prazo:'30/60',ult:'05/05/2025',status:'ativo',av:'MN',bg:'linear-gradient(135deg,#3B82F6,#2563EB)',cats:['Suspensão','Amortecedores'],hist:[{dt:'05/05',v:'R$ 5.760',st:'Recebido'},{dt:'28/03',v:'R$ 4.320',st:'Recebido'}]},
-  {id:'F004',nome:'NGK do Brasil',fantasia:'NGK',cnpj:'48.912.023/0001-99',cat:'Motor',rep:'Fernanda Costa',tel:'(11) 96622-4433',rating:5,pedidos:42,volume:24600,prazo:'28 dias',ult:'12/05/2025',status:'ativo',av:'NG',bg:'linear-gradient(135deg,#8B5CF6,#7C3AED)',cats:['Velas','Motor','Elétrica'],hist:[{dt:'12/05',v:'R$ 1.980',st:'Em trânsito'},{dt:'10/04',v:'R$ 2.340',st:'Recebido'}]},
-  {id:'F005',nome:'Dayco do Brasil',fantasia:'Dayco',cnpj:'72.344.521/0001-23',cat:'Motor',rep:'Ricardo Souza',tel:'(11) 95511-8877',rating:4,pedidos:14,volume:18900,prazo:'30 dias',ult:'02/05/2025',status:'ativo',av:'DC',bg:'linear-gradient(135deg,#10B981,#059669)',cats:['Correias','Motor'],hist:[{dt:'02/05',v:'R$ 2.100',st:'Recebido'}]},
-  {id:'F006',nome:'Distribuidora Central',fantasia:'DistCentral',cnpj:'33.211.887/0001-55',cat:'Multi',rep:'Lúcia Pereira',tel:'(82) 98833-7744',rating:3,pedidos:8,volume:12400,prazo:'À vista',ult:'20/04/2025',status:'inativo',av:'DC',bg:'linear-gradient(135deg,#64748B,#475569)',cats:['Freios','Filtros','Lubrificantes'],hist:[{dt:'20/04',v:'R$ 1.840',st:'Recebido'}]},
-];
+let FORNECEDORES_DATA=[];
 const ORC_DATA=[
   {id:'ORC-028',cli:'José Alves Santos',vei:'VW Gol G5',val:420,desc:'Troca de pastilha + fluido DOT4',dt:'12/05/2025',val_dt:'19/05/2025',st:'aprovado'},
   {id:'ORC-029',cli:'Maria Oliveira',vei:'Fiat Palio 1.4',val:1240,desc:'Amortecedor dianteiro par + alinhamento',dt:'12/05/2025',val_dt:'19/05/2025',st:'enviado'},
@@ -3460,17 +3455,8 @@ const MOVS_CAIXA=[
   {desc:'Venda PDV — João Carlos',dt:'09h20',val:149,tp:'e',pay:'PIX'},
   {desc:'Suprimento inicial',dt:'08h00',val:500,tp:'e',pay:''},
 ];
-const SELLERS=[
-  {n:'João Carlos Silva',meta:30000,real:34820,vend:101,ticket:342,comm:3,pago:750,av:'JC',bg:'linear-gradient(135deg,#10B981,#14B8A6)'},
-  {n:'Ana Paula Ferreira',meta:25000,real:28100,vend:87,ticket:320,comm:3,pago:610,av:'AP',bg:'linear-gradient(135deg,#3B82F6,#8B5CF6)'},
-  {n:'Roberto Mendes',meta:25000,real:22400,vend:75,ticket:298,comm:3,pago:0,av:'RM',bg:'linear-gradient(135deg,#F59E0B,#F97316)'},
-  {n:'Carla Souza',meta:20000,real:19200,vend:72,ticket:265,comm:3,pago:0,av:'CS',bg:'linear-gradient(135deg,#8B5CF6,#3B82F6)'},
-];
-const MECHS=[
-  {n:'Roberto Oliveira',os:28,horas:184,fat:18420,comm:8,pago:840,av:'RO',bg:'linear-gradient(135deg,#F59E0B,#F97316)'},
-  {n:'Carlos Mendes',os:24,horas:156,fat:15600,comm:8,pago:710,av:'CM',bg:'linear-gradient(135deg,#3B82F6,#14B8A6)'},
-  {n:'Paulo Silva',os:19,horas:128,fat:12400,comm:8,pago:0,av:'PS',bg:'linear-gradient(135deg,#10B981,#3B82F6)'},
-];
+let SELLERS=[];
+let MECHS=[];
 
 // ======= CART STATE =======
 let cart=[];
@@ -5110,7 +5096,7 @@ function selectForn(id){
   p.innerHTML=`
     <div class="flx ic g3b mb14" style="justify-content:space-between">
       <div class="flx ic g3b"><div class="forn-logo" style="background:${f.bg};color:#fff;width:52px;height:52px;font-size:18px">${f.av}</div><div><div class="forn-name">${f.nome}</div><div class="forn-cnpj">${f.cnpj}</div></div></div>
-      <div class="flx g2b"><button class="btn bs btn-sm" onclick="openModal('modal-compra')"><i class="ti ti-shopping-cart"></i>Pedir</button><button class="btn bg btn-sm"><i class="ti ti-edit"></i></button></div>
+      <div class="flx g2b"><button class="btn bs btn-sm" onclick="openModal('modal-compra')"><i class="ti ti-shopping-cart"></i>Pedir</button><button class="btn bg btn-sm" onclick="openFornecedorEditar('${f.id}')"><i class="ti ti-edit"></i></button></div>
     </div>
     <div class="forn-stars mb14">${Array(5).fill(0).map((_,i)=>`<i class="ti ti-star${i<f.rating?'-filled forn-star':' forn-star empty'}"></i>`).join('')}<span style="font-size:12px;color:var(--text3);margin-left:6px">Avaliação: ${f.rating}.0/5</span></div>
     <div class="fr ts"><span class="lbl"><i class="ti ti-user"></i> Rep. Comercial</span><span class="val">${f.rep}</span></div>
@@ -5502,6 +5488,27 @@ function updatePermPreview(perfil){
     }
   }
 }
+function mapUsuarioFromApi(row){
+  const cores={admin:'linear-gradient(135deg,#EF4444,#B91C1C)',vendedor:'linear-gradient(135deg,var(--green),var(--teal))',mecanico:'linear-gradient(135deg,var(--amber),var(--orange))',financeiro:'linear-gradient(135deg,var(--blue),var(--purple))'};
+  return{
+    id:row.id,n:row.nome||'',email:row.email||'',perfil:row.perfil||'',
+    status:row.ativo?'ativo':'inativo',
+    ini:(row.nome||'??').split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase(),
+    cor:cores[row.perfil]||'linear-gradient(135deg,var(--amber),var(--orange))',
+    u:row.criado_em?new Date(row.criado_em).toLocaleDateString('pt-BR'):'—'
+  };
+}
+async function carregarUsuarios(){
+  try{
+    const resp=await fetch(API_BASE+'/usuarios',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar usuários');
+    const rows=await resp.json();
+    USUARIOS_DATA.length=0;
+    USUARIOS_DATA.push(...rows.map(mapUsuarioFromApi));
+    renderUsuarios();
+    if(typeof renderAdminUsers==='function')renderAdminUsers();
+  }catch(e){toast('Erro ao carregar usuários: '+e.message,'error');}
+}
 function renderUsuarios(){
   const tbody=document.getElementById('usuarios-tbl');if(!tbody)return;
   const perfilLabel={admin:'Admin',vendedor:'Vendedor',mecanico:'Mecânico',financeiro:'Financeiro',caixa:'Caixa',estoque:'Estoque'};
@@ -5524,7 +5531,6 @@ function openUsuarioNovo(){
   const statusEl=document.getElementById('usr-status');if(statusEl)statusEl.value='ativo';
   const permWrap=document.getElementById('usr-perm-wrap');if(permWrap)permWrap.style.display='none';
   const vincWrap=document.getElementById('usr-vinculo-wrap');if(vincWrap)vincWrap.style.display='none';
-  const vincSelect=document.getElementById('usr-vinculo-id');if(vincSelect)vincSelect.innerHTML='<option value="">Selecione</option>';
   openModal('modal-usuario');
 }
 function openUsuarioEditar(idx){
@@ -5533,77 +5539,55 @@ function openUsuarioEditar(idx){
   const t=document.getElementById('modal-usuario-title');if(t)t.textContent='Editar Usuário';
   const bt=document.getElementById('modal-usuario-btn-txt');if(bt)bt.textContent='Salvar Alterações';
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
-  set('usr-nome',u.n);set('usr-email',u.email);set('usr-obs',u.obs);
-  const perfilEl=document.getElementById('usr-perfil');if(perfilEl){perfilEl.value=u.perfil||'';updatePermPreview(u.perfil);}
-  setTimeout(()=>{
-    const vincSelect=document.getElementById('usr-vinculo-id');
-    if(vincSelect&&(u.perfil==='vendedor'||u.perfil==='mecanico')){
-      vincSelect.value=u.vinculoIdx!==undefined&&u.vinculoIdx!==null?String(u.vinculoIdx):'';
-    }
-  },10);
+  set('usr-nome',u.n);set('usr-email',u.email);
+  const perfilEl=document.getElementById('usr-perfil');if(perfilEl){perfilEl.value=u.perfil||'';}
+  const vincWrap=document.getElementById('usr-vinculo-wrap');if(vincWrap)vincWrap.style.display='none';
   const statusEl=document.getElementById('usr-status');if(statusEl)statusEl.value=u.status||'ativo';
   const senhaEl=document.getElementById('usr-senha');if(senhaEl){senhaEl.value='';senhaEl.placeholder='Deixe em branco pra manter a senha atual';}
   const senha2El=document.getElementById('usr-senha2');if(senha2El){senha2El.value='';senha2El.placeholder='Repita apenas se for trocar a senha';}
   openModal('modal-usuario');
 }
-function salvarUsuario(){
+async function salvarUsuario(){
   const nome=(document.getElementById('usr-nome')?.value||'').trim();
   const email=(document.getElementById('usr-email')?.value||'').trim();
   const perfil=document.getElementById('usr-perfil')?.value||'';
   const status=document.getElementById('usr-status')?.value||'ativo';
   const senha=document.getElementById('usr-senha')?.value||'';
   const senha2=document.getElementById('usr-senha2')?.value||'';
-  const obs=(document.getElementById('usr-obs')?.value||'').trim();
   if(!nome){toast('Informe o nome do usuário','error');return;}
   if(!email||!email.includes('@')){toast('Informe um email válido','error');return;}
   if(!perfil){toast('Selecione o perfil de acesso','error');return;}
-
-  // Vínculo obrigatório pra vendedor/mecânico — é isso que faz a venda dele contar pra comissão
-  let vinculoIdx=null;
-  if(perfil==='vendedor'||perfil==='mecanico'){
-    const vincVal=document.getElementById('usr-vinculo-id')?.value;
-    if(vincVal===''||vincVal===undefined){
-      toast(`Selecione qual ${perfil==='vendedor'?'vendedor':'mecânico'} esse usuário representa`,'error');return;
-    }
-    vinculoIdx=parseInt(vincVal);
-  }
-
   const editando=editingUsuarioIdx!==null&&USUARIOS_DATA[editingUsuarioIdx];
-
-  // Senha: obrigatória ao criar; opcional ao editar (só troca se preenchida)
   if(!editando||senha){
     if(senha.length<6){toast('A senha deve ter pelo menos 6 caracteres','error');return;}
     if(senha!==senha2){toast('As senhas não conferem','error');return;}
   }
-  // Impede emails duplicados
-  const emailDuplicado=USUARIOS_DATA.some((u,i)=>u.email.toLowerCase()===email.toLowerCase()&&i!==editingUsuarioIdx);
-  if(emailDuplicado){toast('Já existe um usuário com esse email','error');return;}
-
-  if(editando){
-    const u=USUARIOS_DATA[editingUsuarioIdx];
-    u.n=nome;u.email=email;u.perfil=perfil;u.status=status;u.obs=obs;u.vinculoIdx=vinculoIdx;
-    u.ini=nome.split(' ').map(p=>p[0]).join('').substring(0,2).toUpperCase();
-    if(senha)u.senha=senha;
-    saveData();renderUsuarios();
-    toast(`✅ Usuário "${nome}" atualizado!`,'success');
-  }else{
-    const initials=nome.split(' ').map(p=>p[0]).join('').substring(0,2).toUpperCase();
-    const cores=['linear-gradient(135deg,var(--amber),var(--orange))','linear-gradient(135deg,var(--blue),var(--purple))','linear-gradient(135deg,var(--green),var(--teal))','linear-gradient(135deg,var(--red),#B91C1C)'];
-    const cor=cores[Math.floor(Math.random()*cores.length)];
-    USUARIOS_DATA.push({
-      id:'u'+(USUARIOS_DATA.length+1)+'-'+Date.now(),
-      n:nome,email,senha,perfil,status,obs,vinculoIdx,
-      cor,ini:initials,u:'Nunca acessou'
-    });
-    saveData();renderUsuarios();
-    toast(`✅ Usuário "${nome}" criado! Ele já pode fazer login com o email e senha cadastrados.`,'success');
+  try{
+    if(editando){
+      const id=USUARIOS_DATA[editingUsuarioIdx].id;
+      const resp=await fetch(API_BASE+'/usuarios/'+id,{method:'PUT',headers:authHeaders(),body:JSON.stringify({nome,perfil})});
+      if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar usuário');}
+      if(senha){
+        const respS=await fetch(API_BASE+'/usuarios/'+id+'/senha',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({senha_nova:senha})});
+        if(!respS.ok)throw new Error('Erro ao atualizar senha');
+      }
+      await fetch(API_BASE+'/usuarios/'+id+'/ativo',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({ativo:status==='ativo'})});
+      await carregarUsuarios();
+      toast(`✅ Usuário "${nome}" atualizado!`,'success');
+    }else{
+      const resp=await fetch(API_BASE+'/usuarios',{method:'POST',headers:authHeaders(),body:JSON.stringify({nome,email,senha,perfil})});
+      if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao criar usuário');}
+      await carregarUsuarios();
+      toast(`✅ Usuário "${nome}" criado! Ele já pode fazer login com o email e senha cadastrados.`,'success');
+    }
+    closeModal('modal-usuario');
+    editingUsuarioIdx=null;
+    ['usr-nome','usr-email','usr-senha','usr-senha2','usr-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const permWrap=document.getElementById('usr-perm-wrap');if(permWrap)permWrap.style.display='none';
+    const vincWrap=document.getElementById('usr-vinculo-wrap');if(vincWrap)vincWrap.style.display='none';
+  }catch(e){
+    toast('Erro ao salvar usuário: '+e.message,'error');
   }
-
-  closeModal('modal-usuario');
-  editingUsuarioIdx=null;
-  ['usr-nome','usr-email','usr-senha','usr-senha2','usr-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  const permWrap=document.getElementById('usr-perm-wrap');if(permWrap)permWrap.style.display='none';
-  const vincWrap=document.getElementById('usr-vinculo-wrap');if(vincWrap)vincWrap.style.display='none';
 }
 
 
@@ -7665,6 +7649,28 @@ function openCreditoDetalhe(clienteId){
 // ======= CLIENTE — SAVE + UTILITÁRIOS =======
 const CLI_FIELD_IDS=['cli-nome','cli-apelido','cli-doc','cli-whats','cli-email','cli-cep','cli-rua','cli-num','cli-comp','cli-bairro','cli-cidade','cli-placa','cli-modelo','cli-ano','cli-motor','cli-cor','cli-limite','cli-obs'];
 let editingClienteIdx=null;
+function mapClienteFromApi(row){
+  return {
+    id:row.id,n:row.nome||'',apelido:row.apelido||'',d:row.cpf_cnpj||'',tel:row.telefone||'',
+    email:row.email||'',cep:row.cep||'',rua:row.rua||'',num:row.numero||'',comp:row.complemento||'',
+    bairro:row.bairro||'',cidade:row.cidade||'',uf:row.uf||'',placa:row.placa||'',montadora:row.montadora||'',
+    modelo:row.modelo||'',ano:row.ano_veiculo||'',motor:row.motor||'',cor:row.cor||'',
+    limite:parseFloat(row.limite_credito)||0,prazo:row.prazo_pagamento||'À vista',obs:row.observacoes||'',
+    tot:0,veics:0,u:row.criado_em?new Date(row.criado_em).toLocaleDateString('pt-BR'):'—'
+  };
+}
+async function carregarClientes(q){
+  try{
+    const resp=await fetch(API_BASE+'/clientes'+(q?('?q='+encodeURIComponent(q)):''),{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar clientes');
+    const rows=await resp.json();
+    CLIENTES_DATA.length=0;
+    CLIENTES_DATA.push(...rows.map(mapClienteFromApi));
+    renderCli();
+  }catch(e){
+    toast('Erro ao carregar clientes: '+e.message,'error');
+  }
+}
 function openClienteNovo(){
   editingClienteIdx=null;
   const title=document.getElementById('modal-cli-title');if(title)title.textContent='Novo Cliente';
@@ -7691,48 +7697,52 @@ function openClienteDetail(idx){
   ['cli-placa-loading','cli-placa-found','cli-placa-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   openModal('modal-cliente');
 }
-function saveCliente(){
+async function saveCliente(){
   const nome=(document.getElementById('cli-nome')?.value||'').trim();
-  const whats=(document.getElementById('cli-whats')?.value||'').trim();
   if(!nome){toast('Informe o nome do cliente','error');return;}
-  const dados={
-    n:nome,
+  const payload={
+    nome,
     apelido:(document.getElementById('cli-apelido')?.value||'').trim(),
-    d:(document.getElementById('cli-doc')?.value||'').trim(),
-    tel:whats,
+    cpf_cnpj:(document.getElementById('cli-doc')?.value||'').trim(),
+    telefone:(document.getElementById('cli-whats')?.value||'').trim(),
     email:(document.getElementById('cli-email')?.value||'').trim(),
     cep:(document.getElementById('cli-cep')?.value||'').trim(),
     rua:(document.getElementById('cli-rua')?.value||'').trim(),
-    num:(document.getElementById('cli-num')?.value||'').trim(),
-    comp:(document.getElementById('cli-comp')?.value||'').trim(),
+    numero:(document.getElementById('cli-num')?.value||'').trim(),
+    complemento:(document.getElementById('cli-comp')?.value||'').trim(),
     bairro:(document.getElementById('cli-bairro')?.value||'').trim(),
     cidade:(document.getElementById('cli-cidade')?.value||'').trim(),
     uf:document.getElementById('cli-uf')?.value||'',
     placa:(document.getElementById('cli-placa')?.value||'').trim(),
     montadora:document.getElementById('cli-montadora')?.value||'',
     modelo:(document.getElementById('cli-modelo')?.value||'').trim(),
-    ano:parseInt(document.getElementById('cli-ano')?.value||0)||0,
+    ano_veiculo:(document.getElementById('cli-ano')?.value||'').toString().trim(),
     motor:(document.getElementById('cli-motor')?.value||'').trim(),
     cor:(document.getElementById('cli-cor')?.value||'').trim(),
-    limite:parseFloat(document.getElementById('cli-limite')?.value||0)||0,
-    prazo:document.getElementById('cli-prazo')?.value||'À vista',
-    obs:(document.getElementById('cli-obs')?.value||'').trim(),
+    limite_credito:parseFloat(document.getElementById('cli-limite')?.value||0)||0,
+    prazo_pagamento:document.getElementById('cli-prazo')?.value||'À vista',
+    observacoes:(document.getElementById('cli-obs')?.value||'').trim(),
   };
-  if(editingClienteIdx!==null&&CLIENTES_DATA[editingClienteIdx]){
-    Object.assign(CLIENTES_DATA[editingClienteIdx],dados);
-    saveData();renderCli();
-    toast(`✅ Cliente "${nome}" atualizado!`,'success');
+  payload.endereco=[payload.rua,payload.numero,payload.bairro,payload.cidade,payload.uf].filter(Boolean).join(', ');
+  payload.veiculo=[payload.montadora,payload.modelo,payload.ano_veiculo,payload.motor].filter(Boolean).join(' ');
+
+  const editando=editingClienteIdx!==null&&CLIENTES_DATA[editingClienteIdx];
+  try{
+    let resp;
+    if(editando){
+      resp=await fetch(API_BASE+'/clientes/'+CLIENTES_DATA[editingClienteIdx].id,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    }else{
+      resp=await fetch(API_BASE+'/clientes',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+    }
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar cliente');}
+    await carregarClientes();
+    toast(`✅ Cliente "${nome}" ${editando?'atualizado':'cadastrado'}!`,'success');
     closeModal('modal-cliente');
     editingClienteIdx=null;
-    return;
+    CLI_FIELD_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  }catch(e){
+    toast('Erro ao salvar cliente: '+e.message,'error');
   }
-  const newId='C'+String(CLIENTES_DATA.length+1).padStart(3,'0');
-  const hoje=new Date().toLocaleDateString('pt-BR');
-  CLIENTES_DATA.push({id:newId,...dados,tot:0,veics:0,u:hoje});
-  saveData();renderCli();
-  toast(`✅ Cliente "${nome}" cadastrado com sucesso!`,'success');
-  closeModal('modal-cliente');
-  CLI_FIELD_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 }
 function fmtDocCli(el){let v=el.value.replace(/\D/g,'');if(v.length<=11)el.value=v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');else el.value=v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5');}
 function fmtFone(el){let v=el.value.replace(/\D/g,'');el.value=v.length<=11?v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3'):v;}
@@ -7805,31 +7815,89 @@ function _buscarCNPJ(cnpj){
     })
     .catch(err=>{show('cnpj-err',err.message||'Erro na consulta. Verifique sua conexão.');});
 }
-function saveFornecedor(){
+function mapFornecedorFromApi(row){
+  return{
+    id:row.id,nome:row.nome||'',fantasia:row.fantasia||row.nome||'',cnpj:row.cnpj||'',
+    cat:row.categoria||'Autopeças',rep:row.representante||'',tel:row.telefone||'',email:row.email||'',
+    natureza:row.natureza||'',porte:row.porte||'',cep:row.cep||'',logr:row.logradouro||'',num:row.numero||'',
+    bairro:row.bairro||'',cidade:row.cidade||'',uf:row.uf||'',obs:row.observacoes||'',
+    rating:row.rating||0,pedidos:0,volume:0,prazo:'30 dias',ult:row.criado_em?new Date(row.criado_em).toLocaleDateString('pt-BR'):'Novo',
+    status:row.status||'ativo',av:(row.fantasia||row.nome||'??').substring(0,2).toUpperCase(),
+    bg:'linear-gradient(135deg,var(--amber),var(--orange))',cats:[row.categoria||'Autopeças'],hist:[]
+  };
+}
+async function carregarFornecedores(q){
+  try{
+    const resp=await fetch(API_BASE+'/fornecedores'+(q?('?q='+encodeURIComponent(q)):''),{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar fornecedores');
+    const rows=await resp.json();
+    FORNECEDORES_DATA.length=0;
+    FORNECEDORES_DATA.push(...rows.map(mapFornecedorFromApi));
+    renderForns();
+  }catch(e){
+    toast('Erro ao carregar fornecedores: '+e.message,'error');
+  }
+}
+let editingFornecedorId=null;
+function openFornecedorNovo(){
+  editingFornecedorId=null;
+  const title=document.getElementById('modal-forn-title');if(title)title.textContent='Novo Fornecedor';
+  ['forn-cnpj','forn-razao','forn-fantasia','forn-natureza','forn-porte','forn-logr','forn-num','forn-bairro','forn-cidade','forn-uf','forn-cep','forn-tel','forn-email','forn-rep','forn-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['cnpj-loading','cnpj-found','cnpj-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  openModal('modal-fornecedor');
+}
+function openFornecedorEditar(id){
+  const f=FORNECEDORES_DATA.find(x=>x.id===id);if(!f)return;
+  editingFornecedorId=id;
+  const title=document.getElementById('modal-forn-title');if(title)title.textContent='Editar Fornecedor';
+  const set=(elId,v)=>{const el=document.getElementById(elId);if(el)el.value=v||'';};
+  set('forn-cnpj',f.cnpj);set('forn-razao',f.nome);set('forn-fantasia',f.fantasia);set('forn-natureza',f.natureza);
+  set('forn-porte',f.porte);set('forn-logr',f.logr);set('forn-num',f.num);set('forn-bairro',f.bairro);
+  set('forn-cidade',f.cidade);set('forn-uf',f.uf);set('forn-cep',f.cep);set('forn-tel',f.tel);
+  set('forn-email',f.email);set('forn-rep',f.rep);set('forn-obs',f.obs);
+  const catEl=document.getElementById('forn-cat');if(catEl)catEl.value=f.cat||'Autopeças';
+  openModal('modal-fornecedor');
+}
+async function saveFornecedor(){
   const razao=(document.getElementById('forn-razao')?.value||'').trim();
   const cnpj=(document.getElementById('forn-cnpj')?.value||'').trim();
   if(!razao){toast('Informe a Razão Social','error');return;}
   const fantasia=(document.getElementById('forn-fantasia')?.value||razao).trim();
-  const newId='F'+String(FORNECEDORES_DATA.length+1).padStart(3,'0');
-  FORNECEDORES_DATA.push({
-    id:newId,
+  const payload={
     nome:razao,fantasia,cnpj,
-    cat:document.getElementById('forn-cat')?.value||'Autopeças',
-    rep:(document.getElementById('forn-rep')?.value||'').trim(),
-    tel:(document.getElementById('forn-tel')?.value||'').trim(),
-    prazo:document.getElementById('forn-prazo')?.value||'30 dias',
-    rating:5,pedidos:0,volume:0,
-    ult:'Novo',status:'ativo',
-    av:fantasia.substring(0,2).toUpperCase(),
-    bg:'linear-gradient(135deg,var(--amber),var(--orange))',
-    cats:[document.getElementById('forn-cat')?.value||'Autopeças'],
-    hist:[]
-  });
-  saveData();renderForns();
-  toast(`✅ Fornecedor "${razao}" cadastrado!`,'success');
-  closeModal('modal-fornecedor');
-  ['forn-cnpj','forn-razao','forn-fantasia','forn-natureza','forn-porte','forn-logr','forn-num','forn-bairro','forn-cidade','forn-uf','forn-cep','forn-tel','forn-email','forn-rep','forn-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['cnpj-loading','cnpj-found','cnpj-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+    categoria:document.getElementById('forn-cat')?.value||'Autopeças',
+    representante:(document.getElementById('forn-rep')?.value||'').trim(),
+    telefone:(document.getElementById('forn-tel')?.value||'').trim(),
+    email:(document.getElementById('forn-email')?.value||'').trim(),
+    natureza:(document.getElementById('forn-natureza')?.value||'').trim(),
+    porte:(document.getElementById('forn-porte')?.value||'').trim(),
+    cep:(document.getElementById('forn-cep')?.value||'').trim(),
+    logradouro:(document.getElementById('forn-logr')?.value||'').trim(),
+    numero:(document.getElementById('forn-num')?.value||'').trim(),
+    bairro:(document.getElementById('forn-bairro')?.value||'').trim(),
+    cidade:(document.getElementById('forn-cidade')?.value||'').trim(),
+    uf:document.getElementById('forn-uf')?.value||'',
+    observacoes:(document.getElementById('forn-obs')?.value||'').trim(),
+    rating:5,status:'ativo'
+  };
+  payload.endereco=[payload.logradouro,payload.numero,payload.bairro,payload.cidade,payload.uf].filter(Boolean).join(', ');
+  try{
+    let resp;
+    if(editingFornecedorId){
+      resp=await fetch(API_BASE+'/fornecedores/'+editingFornecedorId,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    }else{
+      resp=await fetch(API_BASE+'/fornecedores',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+    }
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar fornecedor');}
+    await carregarFornecedores();
+    toast(`✅ Fornecedor "${razao}" ${editingFornecedorId?'atualizado':'cadastrado'}!`,'success');
+    closeModal('modal-fornecedor');
+    editingFornecedorId=null;
+    ['forn-cnpj','forn-razao','forn-fantasia','forn-natureza','forn-porte','forn-logr','forn-num','forn-bairro','forn-cidade','forn-uf','forn-cep','forn-tel','forn-email','forn-rep','forn-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['cnpj-loading','cnpj-found','cnpj-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  }catch(e){
+    toast('Erro ao salvar fornecedor: '+e.message,'error');
+  }
 }
 
 let editingMecanicoIdx=null;
@@ -7838,6 +7906,8 @@ function openMecanicoNovo(){
   editingMecanicoIdx=null;
   const title=document.getElementById('mecanico-modal-title');if(title)title.innerHTML='<i class="ti ti-user-cog" style="color:var(--amber)"></i> Novo Mecânico';
   MEC_FIELD_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const senhaEl=document.getElementById('mec-senha');if(senhaEl)senhaEl.value='';
+  const senhaWrap=document.getElementById('mec-senha-wrap');if(senhaWrap)senhaWrap.style.display='block';
   const espSel=document.getElementById('mec-especialidades');
   if(espSel)Array.from(espSel.options).forEach(o=>o.selected=false);
   const commEl=document.getElementById('mec-comissao');if(commEl)commEl.value=0;
@@ -7911,12 +7981,15 @@ function openVendedorNovo(){
   const turnoEl=document.getElementById('vend-turno');if(turnoEl)turnoEl.value='Integral';
   const statusEl=document.getElementById('vend-status');if(statusEl)statusEl.value='ativo';
   const pixTipoEl=document.getElementById('vend-pix-tipo');if(pixTipoEl)pixTipoEl.value='CPF';
+  const senhaEl=document.getElementById('vend-senha');if(senhaEl)senhaEl.value='';
+  const senhaWrap=document.getElementById('vend-senha-wrap');if(senhaWrap)senhaWrap.style.display='block';
   openModal('modal-vendedor');
 }
 function openVendedorDetalhe(idx){
   const s=SELLERS[idx];if(!s)return;
   editingVendedorIdx=idx;
   const title=document.getElementById('modal-vend-title');if(title)title.textContent='Editar Vendedor';
+  const senhaWrap=document.getElementById('vend-senha-wrap');if(senhaWrap)senhaWrap.style.display='none';
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   set('vend-nome',s.n);set('vend-apelido',s.apelido);set('vend-cpf',s.cpf);set('vend-rg',s.rg);set('vend-nasc',s.nasc);
   set('vend-whatsapp',s.whatsapp);set('vend-email',s.email);
@@ -7947,25 +8020,62 @@ function readVendedorForm(){
     emergNome:g('vend-emerg-nome'),emergTel:g('vend-emerg-tel'),obs:g('vend-obs')
   };
 }
-function saveVendedor(){
+function mapVendedorFromApi(row){
+  return{
+    id:row.id,n:row.nome||'',apelido:row.apelido||'',cpf:row.cpf||'',rg:row.rg||'',
+    nasc:row.data_nascimento?String(row.data_nascimento).slice(0,10):'',whatsapp:row.whatsapp||'',email:row.email||'',
+    cep:row.cep||'',logr:row.logradouro||'',num:row.numero||'',comp:row.complemento||'',
+    bairro:row.bairro||'',cidade:row.cidade||'',uf:row.uf||'',
+    vinculo:row.vinculo||'CLT',admissao:row.data_admissao?String(row.data_admissao).slice(0,10):'',turno:row.turno||'Integral',
+    pixTipo:row.pix_tipo||'CPF',pix:row.pix_chave||'',emergNome:row.emergencia_nome||'',emergTel:row.emergencia_telefone||'',
+    obs:row.observacoes||'',status:row.status_trabalho||'ativo',
+    meta:parseFloat(row.meta)||0,real:parseFloat(row.realizado_mes)||0,vend:parseInt(row.vendas_mes)||0,
+    ticket:row.vendas_mes>0?Math.round(row.realizado_mes/row.vendas_mes):0,
+    comm:parseFloat(row.comissao_pct)||0,pago:parseFloat(row.comissao_paga)||0,
+    av:(row.nome||'??').split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase(),
+    bg:row.bg||'linear-gradient(135deg,#10B981,#14B8A6)',pagamentos:[]
+  };
+}
+async function carregarVendedores(){
+  try{
+    const resp=await fetch(API_BASE+'/vendedores',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar vendedores');
+    const rows=await resp.json();
+    SELLERS.length=0;
+    SELLERS.push(...rows.map(mapVendedorFromApi));
+    renderVendedores();
+  }catch(e){toast('Erro ao carregar vendedores: '+e.message,'error');}
+}
+async function saveVendedor(){
   const f=readVendedorForm();
   if(!f.nome){toast('Informe o nome do vendedor','error');return;}
-  const initials=f.nome.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()||'??';
-  if(editingVendedorIdx!==null&&SELLERS[editingVendedorIdx]){
-    Object.assign(SELLERS[editingVendedorIdx],f,{n:f.nome});
-    delete SELLERS[editingVendedorIdx].nome;
-    saveData();renderVendedores();
-    toast(`✅ Vendedor "${f.nome}" atualizado!`,'success');
+  const editando=editingVendedorIdx!==null&&SELLERS[editingVendedorIdx];
+  const payload={
+    nome:f.nome,perfil:'vendedor',apelido:f.apelido,cpf:f.cpf,rg:f.rg,data_nascimento:f.nasc||null,
+    whatsapp:f.whatsapp,cep:f.cep,logradouro:f.logr,numero:f.num,complemento:f.comp,bairro:f.bairro,
+    cidade:f.cidade,uf:f.uf,vinculo:f.vinculo,data_admissao:f.admissao||null,turno:f.turno,
+    pix_tipo:f.pixTipo,pix_chave:f.pix,emergencia_nome:f.emergNome,emergencia_telefone:f.emergTel,
+    observacoes:f.obs,status_trabalho:f.status,meta_mensal:f.meta,comissao_pct:f.comm
+  };
+  try{
+    let resp;
+    if(editando){
+      resp=await fetch(API_BASE+'/usuarios/'+SELLERS[editingVendedorIdx].id,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    }else{
+      const senha=(document.getElementById('vend-senha')?.value||'').trim();
+      const email=f.email;
+      if(!email){toast('Informe o email do vendedor','error');return;}
+      if(!senha||senha.length<6){toast('Informe uma senha de acesso com pelo menos 6 caracteres','error');return;}
+      resp=await fetch(API_BASE+'/usuarios',{method:'POST',headers:authHeaders(),body:JSON.stringify({...payload,email,senha})});
+    }
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar vendedor');}
+    await carregarVendedores();
+    toast(`✅ Vendedor "${f.nome}" ${editando?'atualizado':'cadastrado'}!`,'success');
     closeModal('modal-vendedor');
     editingVendedorIdx=null;
-    return;
+  }catch(e){
+    toast('Erro ao salvar vendedor: '+e.message,'error');
   }
-  const gradients=['linear-gradient(135deg,#10B981,#14B8A6)','linear-gradient(135deg,#3B82F6,#8B5CF6)','linear-gradient(135deg,#F59E0B,#F97316)','linear-gradient(135deg,#8B5CF6,#3B82F6)'];
-  SELLERS.push(Object.assign({},f,{n:f.nome,real:0,vend:0,ticket:0,pago:0,av:initials,bg:gradients[SELLERS.length%gradients.length]}));
-  delete SELLERS[SELLERS.length-1].nome;
-  saveData();renderVendedores();
-  toast(`✅ Vendedor "${f.nome}" cadastrado!`,'success');
-  closeModal('modal-vendedor');
 }
 function parseDataBR(d){
   // Converte 'dd/mm/yyyy' em Date
@@ -8049,6 +8159,7 @@ function openMecanicoDetail(idx){
   const m=MECHS[idx];if(!m)return;
   editingMecanicoIdx=idx;
   const title=document.getElementById('mecanico-modal-title');if(title)title.innerHTML='<i class="ti ti-user-cog" style="color:var(--amber)"></i> Editar Mecânico';
+  const senhaWrap=document.getElementById('mec-senha-wrap');if(senhaWrap)senhaWrap.style.display='none';
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   set('mec-nome',m.n);set('mec-apelido',m.apelido);set('mec-cpf',m.cpf);set('mec-rg',m.rg);set('mec-nasc',m.nasc);
   set('mec-whatsapp',m.whatsapp);set('mec-email',m.email);
@@ -8082,35 +8193,67 @@ function readMecanicoForm(){
     especialidades:espSel?Array.from(espSel.selectedOptions).map(o=>o.value):[]
   };
 }
-function saveMecanico(){
+function mapMecanicoFromApi(row){
+  return{
+    id:row.id,n:row.nome||'',apelido:row.apelido||'',cpf:row.cpf||'',rg:row.rg||'',
+    nasc:row.data_nascimento?String(row.data_nascimento).slice(0,10):'',whatsapp:row.whatsapp||'',email:row.email||'',
+    cep:row.cep||'',logr:row.logradouro||'',num:row.numero||'',comp:row.complemento||'',
+    bairro:row.bairro||'',cidade:row.cidade||'',uf:row.uf||'',
+    vinculo:row.vinculo||'CLT',admissao:row.data_admissao?String(row.data_admissao).slice(0,10):'',turno:row.turno||'Integral',
+    pixTipo:row.pix_tipo||'CPF',pix:row.pix_chave||'',emergNome:row.emergencia_nome||'',emergTel:row.emergencia_telefone||'',
+    obs:row.observacoes||'',status:row.status_trabalho||'ativo',
+    especialidades:row.especialidade?row.especialidade.split(',').map(s=>s.trim()).filter(Boolean):[],
+    os:parseInt(row.os_concluidas)||0,horas:row.horas_mes||160,fat:parseFloat(row.faturamento_mes)||0,
+    comm:parseFloat(row.comissao_pct)||0,pago:parseFloat(row.comissao_paga)||0,
+    av:(row.nome||'??').split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase(),
+    bg:row.bg||'linear-gradient(135deg,#F59E0B,#F97316)',compras:[],pagamentos:[]
+  };
+}
+async function carregarMecanicos(){
+  try{
+    const resp=await fetch(API_BASE+'/mecanicos',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar mecânicos');
+    const rows=await resp.json();
+    MECHS.length=0;
+    MECHS.push(...rows.map(mapMecanicoFromApi));
+    renderMecanicos();
+  }catch(e){toast('Erro ao carregar mecânicos: '+e.message,'error');}
+}
+async function saveMecanico(){
   const f=readMecanicoForm();
   if(!f.nome){toast('Informe o Nome Completo','error');return;}
-  const initials=f.nome.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()||'??';
-  if(editingMecanicoIdx!==null&&MECHS[editingMecanicoIdx]){
-    Object.assign(MECHS[editingMecanicoIdx],f,{n:f.nome,av:initials});
-    delete MECHS[editingMecanicoIdx].nome;
-    renderMecanicos();
-    saveData();
-    toast(`✅ Mecânico "${f.nome}" atualizado!`,'success');
+  const editando=editingMecanicoIdx!==null&&MECHS[editingMecanicoIdx];
+  const payload={
+    nome:f.nome,perfil:'mecanico',apelido:f.apelido,cpf:f.cpf,rg:f.rg,data_nascimento:f.nasc||null,
+    whatsapp:f.whatsapp,cep:f.cep,logradouro:f.logr,numero:f.num,complemento:f.comp,bairro:f.bairro,
+    cidade:f.cidade,uf:f.uf,vinculo:f.vinculo,data_admissao:f.admissao||null,turno:f.turno,
+    pix_tipo:f.pixTipo,pix_chave:f.pix,emergencia_nome:f.emergNome,emergencia_telefone:f.emergTel,
+    observacoes:f.obs,status_trabalho:f.status,comissao_pct:f.comm,
+    especialidade:f.especialidades.join(', '),horas_mes:160
+  };
+  try{
+    let resp;
+    if(editando){
+      resp=await fetch(API_BASE+'/usuarios/'+MECHS[editingMecanicoIdx].id,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    }else{
+      const senha=(document.getElementById('mec-senha')?.value||'').trim();
+      const email=f.email;
+      if(!email){toast('Informe o email do mecânico','error');return;}
+      if(!senha||senha.length<6){toast('Informe uma senha de acesso com pelo menos 6 caracteres','error');return;}
+      resp=await fetch(API_BASE+'/usuarios',{method:'POST',headers:authHeaders(),body:JSON.stringify({...payload,email,senha})});
+    }
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar mecânico');}
+    await carregarMecanicos();
+    toast(`✅ Mecânico "${f.nome}" ${editando?'atualizado':'cadastrado'}!`,'success');
     closeModal('modal-mecanico');
     editingMecanicoIdx=null;
-    return;
+    MEC_FIELD_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const espSel2=document.getElementById('mec-especialidades');
+    if(espSel2)Array.from(espSel2.options).forEach(o=>o.selected=false);
+    document.getElementById('mec-comissao').value=0;
+  }catch(e){
+    toast('Erro ao salvar mecânico: '+e.message,'error');
   }
-  const gradients=['linear-gradient(135deg,#F59E0B,#F97316)','linear-gradient(135deg,#3B82F6,#14B8A6)','linear-gradient(135deg,#10B981,#3B82F6)','linear-gradient(135deg,#8B5CF6,#EC4899)'];
-  MECHS.push(Object.assign({},f,{
-    n:f.nome,os:0,horas:0,fat:0,pago:0,
-    av:initials,
-    bg:gradients[MECHS.length%gradients.length]
-  }));
-  delete MECHS[MECHS.length-1].nome;
-  renderMecanicos();
-  saveData();
-  toast(`✅ Mecânico "${f.nome}" cadastrado!`,'success');
-  closeModal('modal-mecanico');
-  MEC_FIELD_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  const espSel2=document.getElementById('mec-especialidades');
-  if(espSel2)Array.from(espSel2.options).forEach(o=>o.selected=false);
-  document.getElementById('mec-comissao').value=0;
 }
 
 // ======= PDV — CREDIÁRIO =======
@@ -8516,6 +8659,11 @@ function aplicarSessaoLogada(usuario){
   const topUser=document.getElementById('topbar-user');
   if(topUser)topUser.innerHTML=`<div class="login-user-av" style="width:30px;height:30px;font-size:11px;border-radius:8px;background:${cores[currentUser.perfil]||'linear-gradient(135deg,var(--amber),var(--orange))'};cursor:pointer" onclick="openAdminPanel()" title="Painel Admin">${initials}</div>`;
   nav('dashboard',document.querySelector('.ni[onclick*="dashboard"]'));
+  carregarClientes();
+  if(typeof carregarFornecedores==='function')carregarFornecedores();
+  if(typeof carregarMecanicos==='function')carregarMecanicos();
+  if(typeof carregarVendedores==='function')carregarVendedores();
+  if(typeof carregarUsuarios==='function')carregarUsuarios();
 }
 
 async function verificarSessaoSalva(){
@@ -8577,7 +8725,7 @@ function openAdminPanel(){
   if(!currentUser){toast('Faça login primeiro','error');return;}
   if(currentUser.perfil!=='admin'){toast('Acesso restrito ao Administrador','error');return;}
   document.getElementById('admin-panel').classList.add('open');
-  renderAdminUsers();
+  carregarUsuarios();
   renderPermMatrix();
 }
 function closeAdminPanel(){document.getElementById('admin-panel').classList.remove('open');}
@@ -8603,28 +8751,27 @@ function renderAdminUsers(){
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px">
-        <button class="btn bg btn-sm" onclick="editarUsuario('${u.id}')"><i class="ti ti-edit"></i></button>
-        ${u.perfil!=='admin'?`<button class="btn bg btn-sm" onclick="toggleUsuarioStatus('${u.id}')"><i class="ti ti-${u.status==='ativo'?'ban':'check'}"></i></button>`:''}
+        <button class="btn bg btn-sm" onclick="editarUsuario(${u.id})"><i class="ti ti-edit"></i></button>
+        ${u.perfil!=='admin'?`<button class="btn bg btn-sm" onclick="toggleUsuarioStatus(${u.id})"><i class="ti ti-${u.status==='ativo'?'ban':'check'}"></i></button>`:''}
       </div>
     </div>
   `).join('');
 }
 function editarUsuario(id){
-  const u=USUARIOS_DATA.find(x=>x.id===id);if(!u)return;
-  openModal('modal-usuario');
-  setTimeout(()=>{
-    document.getElementById('usr-nome').value=u.n;
-    document.getElementById('usr-email').value=u.email;
-    document.getElementById('usr-perfil').value=u.perfil;
-    document.getElementById('usr-status').value=u.status;
-    updatePermPreview(u.perfil);
-  },50);
+  const idx=USUARIOS_DATA.findIndex(x=>x.id===id);if(idx<0)return;
+  openUsuarioEditar(idx);
 }
-function toggleUsuarioStatus(id){
+async function toggleUsuarioStatus(id){
   const u=USUARIOS_DATA.find(x=>x.id===id);if(!u)return;
-  u.status=u.status==='ativo'?'inativo':'ativo';
-  saveData();renderAdminUsers();
-  toast(`Usuário ${u.n} ${u.status==='ativo'?'ativado':'desativado'}!`,'info');
+  const novoStatus=u.status==='ativo'?false:true;
+  try{
+    const resp=await fetch(API_BASE+'/usuarios/'+id+'/ativo',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({ativo:novoStatus})});
+    if(!resp.ok)throw new Error('Erro ao atualizar status');
+    await carregarUsuarios();
+    toast(`Usuário ${u.n} ${novoStatus?'ativado':'desativado'}!`,'info');
+  }catch(e){
+    toast('Erro: '+e.message,'error');
+  }
 }
 
 // ======= MATRIX DE PERMISSÕES =======
@@ -8679,10 +8826,10 @@ function nav(id,el){
   setTimeout(initCharts,80);
   if(id==='pdv')setTimeout(()=>{renderPDV();renderPDVClients();},50);
   if(id==='agenda')setTimeout(renderCal,50);
-  if(id==='fornecedores')setTimeout(renderForns,50);
-  if(id==='vendedores')setTimeout(()=>{renderVendedores();setTimeout(initCharts,100);},50);
-  if(id==='mecanicos')setTimeout(()=>{renderMecanicos();setTimeout(initCharts,100);},50);
-  if(id==='usuarios')setTimeout(renderUsuarios,50);
+  if(id==='fornecedores')setTimeout(()=>carregarFornecedores(),50);
+  if(id==='vendedores')setTimeout(()=>{carregarVendedores();setTimeout(initCharts,100);},50);
+  if(id==='mecanicos')setTimeout(()=>{carregarMecanicos();setTimeout(initCharts,100);},50);
+  if(id==='usuarios')setTimeout(()=>carregarUsuarios(),50);
   if(id==='credito')setTimeout(renderCredito,50);
   if(id==='reposicao')setTimeout(renderReposicao,50);
   if(id==='orcamentos')setTimeout(renderOrcamentos,50);
@@ -8690,7 +8837,7 @@ function nav(id,el){
   if(id==='produtos')setTimeout(renderProd,50);
   if(id==='estoque'){setTimeout(()=>{renderMov();atualizarKpisEstoque();},50);}
   if(id==='inventario')setTimeout(renderInventario,50);
-  if(id==='clientes')setTimeout(renderCli,50);
+  if(id==='clientes')setTimeout(()=>carregarClientes(),50);
   if(id==='compras')setTimeout(renderCompras,50);
   if(id==='financeiro')setTimeout(renderFinanceiro,50);
   if(id==='os')setTimeout(renderOS,50);
@@ -8785,18 +8932,9 @@ const STORAGE_KEY_MONT  = 'autoerp_v4_mont';
 const STORAGE_KEY_CAIXA = 'autoerp_v4_caixa';
 const STORAGE_KEY_OPTS  = 'autoerp_v4_opts';
 
-const CLIENTES_DATA=[
-  {id:'C001',n:'José Alves Santos',apelido:'Zé Alves',d:'123.456.789-00',tel:'(82) 99234-5678',email:'jose@email.com',cep:'57300-000',rua:'Rua das Flores',num:'123',bairro:'Centro',cidade:'Arapiraca',uf:'AL',placa:'NEQ-1A23',montadora:'Volkswagen',modelo:'Gol G5',ano:2010,motor:'1.0 Flex',limite:1500,prazo:'30 dias',obs:'',tot:4820,veics:2,u:'12/05/2025'},
-  {id:'C002',n:'Maria das Graças',apelido:'Dona Maria',d:'987.654.321-00',tel:'(82) 98765-4321',email:'maria@email.com',cep:'57300-100',rua:'Av. Principal',num:'456',bairro:'Serraria',cidade:'Arapiraca',uf:'AL',placa:'OPQ-2B34',montadora:'Fiat',modelo:'Palio 1.4',ano:2012,motor:'1.4 8V',limite:800,prazo:'À vista',obs:'',tot:1240,veics:1,u:'08/05/2025'},
-  {id:'C003',n:'Auto Center Top',apelido:'',d:'12.345.678/0001-90',tel:'(82) 3222-1111',email:'contato@autocentertop.com.br',cep:'57300-200',rua:'Rua Comercial',num:'789',bairro:'Novo Horizonte',cidade:'Arapiraca',uf:'AL',placa:'',montadora:'',modelo:'',ano:0,motor:'',limite:10000,prazo:'30/60',obs:'Cliente corporativo',tot:28400,veics:8,u:'14/05/2025'},
-];
+let CLIENTES_DATA=[];
 
-const USUARIOS_DATA=[
-  {id:'u1',n:'Administrador',email:'admin@autopecas.com.br',senha:'1234',perfil:'admin',status:'ativo',cor:'linear-gradient(135deg,#EF4444,#B91C1C)',ini:'AD',u:'Agora'},
-  {id:'u2',n:'João Carlos Silva',email:'joao@autopecas.com.br',senha:'1234',perfil:'vendedor',status:'ativo',cor:'linear-gradient(135deg,var(--green),var(--teal))',ini:'JC',u:'Há 2h'},
-  {id:'u3',n:'Roberto Oliveira',email:'roberto@autopecas.com.br',senha:'1234',perfil:'mecanico',status:'ativo',cor:'linear-gradient(135deg,var(--amber),var(--orange))',ini:'RO',u:'Ontem'},
-  {id:'u4',n:'Ana Financeiro',email:'ana@autopecas.com.br',senha:'1234',perfil:'financeiro',status:'ativo',cor:'linear-gradient(135deg,var(--blue),var(--purple))',ini:'AF',u:'Há 1h'},
-];
+let USUARIOS_DATA=[];
 
 const SIDEBAR_MODULES=[
   {key:'dashboard',label:'Dashboard',sec:'PRINCIPAL'},
@@ -8857,12 +8995,12 @@ function saveData(){
     localStorage.setItem(STORAGE_KEY_ORC,JSON.stringify(ORC_DATA));
     localStorage.setItem(STORAGE_KEY_OS,JSON.stringify(OS_DATA));
     localStorage.setItem(STORAGE_KEY_FIN,JSON.stringify({cp:CONTAS_PAGAR,cr:CONTAS_RECEBER}));
-    localStorage.setItem(STORAGE_KEY_CLI,JSON.stringify(CLIENTES_DATA));
-    localStorage.setItem(STORAGE_KEY_USR,JSON.stringify(USUARIOS_DATA));
+    localStorage.setItem(STORAGE_KEY_CLI,'[]');
+    localStorage.setItem(STORAGE_KEY_USR,'[]');
     localStorage.setItem(STORAGE_KEY_PERMS,JSON.stringify(SIDEBAR_PERMS));
-    localStorage.setItem(STORAGE_KEY_FORN,JSON.stringify(FORNECEDORES_DATA));
-    localStorage.setItem(STORAGE_KEY_MECH,JSON.stringify(MECHS));
-    localStorage.setItem(STORAGE_KEY_VEND,JSON.stringify(SELLERS));
+    localStorage.setItem(STORAGE_KEY_FORN,'[]');
+    localStorage.setItem(STORAGE_KEY_MECH,'[]');
+    localStorage.setItem(STORAGE_KEY_VEND,'[]');
     localStorage.setItem(STORAGE_KEY_MONT,JSON.stringify(MONTADORAS));
     localStorage.setItem(STORAGE_KEY_CAIXA,JSON.stringify({aberto:caixaAberto,saldoInicial:caixaSaldoInicial,horaAbertura:caixaHoraAbertura,operador:caixaOperadorAbertura,fechamentos:CAIXA_FECHAMENTOS,movs:MOVS_CAIXA}));
     const ind=document.getElementById('save-indicator');
@@ -8883,14 +9021,9 @@ function loadData(){
       if(f.cp&&f.cp.length){CONTAS_PAGAR.length=0;CONTAS_PAGAR.push(...f.cp);}
       if(f.cr&&f.cr.length){CONTAS_RECEBER.length=0;CONTAS_RECEBER.push(...f.cr);}
     }
-    const sc=localStorage.getItem(STORAGE_KEY_CLI);
-    if(sc){const c=JSON.parse(sc);if(Array.isArray(c)&&c.length){CLIENTES_DATA.length=0;CLIENTES_DATA.push(...c);}}
-    const sforn=localStorage.getItem(STORAGE_KEY_FORN);
-    if(sforn){const f=JSON.parse(sforn);if(Array.isArray(f)&&f.length){FORNECEDORES_DATA.length=0;FORNECEDORES_DATA.push(...f);}}
-    const smech=localStorage.getItem(STORAGE_KEY_MECH);
-    if(smech){const m=JSON.parse(smech);if(Array.isArray(m)&&m.length){MECHS.length=0;MECHS.push(...m);}}
-    const svend=localStorage.getItem(STORAGE_KEY_VEND);
-    if(svend){const v=JSON.parse(svend);if(Array.isArray(v)&&v.length){SELLERS.length=0;SELLERS.push(...v);}}
+    // CLIENTES_DATA agora vem da API (carregarClientes), não mais do localStorage
+    // FORNECEDORES_DATA agora vem da API (carregarFornecedores), não mais do localStorage
+    // MECHS/SELLERS agora vêm da API (carregarMecanicos/carregarVendedores), não mais do localStorage
     const smont=localStorage.getItem(STORAGE_KEY_MONT);
     if(smont){const mo=JSON.parse(smont);if(Array.isArray(mo)&&mo.length){MONTADORAS.length=0;MONTADORAS.push(...mo);}}
     const scaixa=localStorage.getItem(STORAGE_KEY_CAIXA);
@@ -8905,8 +9038,7 @@ function loadData(){
         if(Array.isArray(cx.movs)&&cx.movs.length){MOVS_CAIXA.length=0;MOVS_CAIXA.push(...cx.movs);}
       }catch(e){}
     }
-    const su=localStorage.getItem(STORAGE_KEY_USR);
-    if(su){const u=JSON.parse(su);if(Array.isArray(u)&&u.length){USUARIOS_DATA.length=0;USUARIOS_DATA.push(...u);}}
+    // USUARIOS_DATA agora vem da API (carregarUsuarios), não mais do localStorage
     const sperms=localStorage.getItem(STORAGE_KEY_PERMS);
     if(sperms){
       const p=JSON.parse(sperms);
