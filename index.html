@@ -2672,6 +2672,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     <div class="ff sp3"><label>Observações</label><textarea id="forn-obs" rows="2" placeholder="Condições especiais, contatos adicionais…"></textarea></div>
   </div></div>
   <div class="mft">
+    <button class="btn ber" id="btn-excluir-fornecedor" onclick="excluirFornecedorAtual()" style="display:none;margin-right:auto"><i class="ti ti-trash"></i>Excluir</button>
     <button class="btn bg" onclick="closeModal('modal-fornecedor')"><i class="ti ti-x"></i>Cancelar</button>
     <button class="btn bp" onclick="saveFornecedor()"><i class="ti ti-check"></i>Salvar Fornecedor</button>
   </div>
@@ -2754,6 +2755,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
     </div></div>
     <div class="mft">
+      <button class="btn ber" id="btn-excluir-vendedor" onclick="excluirVendedorAtual()" style="display:none;margin-right:auto"><i class="ti ti-trash"></i>Excluir</button>
       <button class="btn bg" onclick="closeModal('modal-vendedor')">Cancelar</button>
       <button class="btn bp" onclick="saveVendedor()"><i class="ti ti-check"></i>Salvar</button>
     </div>
@@ -2836,7 +2838,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     <div class="ff sp3"><label>Observações</label><textarea id="mec-obs" rows="2" placeholder="Restrições, preferências de horário, informações relevantes…"></textarea></div>
 
   </div></div>
-  <div class="mft"><button class="btn bg" onclick="closeModal('modal-mecanico')"><i class="ti ti-x"></i>Cancelar</button><button class="btn bp" onclick="saveMecanico()"><i class="ti ti-check"></i>Salvar</button></div>
+  <div class="mft"><button class="btn ber" id="btn-excluir-mecanico" onclick="excluirMecanicoAtual()" style="display:none;margin-right:auto"><i class="ti ti-trash"></i>Excluir</button><button class="btn bg" onclick="closeModal('modal-mecanico')"><i class="ti ti-x"></i>Cancelar</button><button class="btn bp" onclick="saveMecanico()"><i class="ti ti-check"></i>Salvar</button></div>
 </div></div>
 
 <div class="mov" id="modal-orc" onclick="closeModal('modal-orc')"><div class="modal wide" onclick="event.stopPropagation()" style="max-width:740px">
@@ -3365,6 +3367,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     </div>
   </div>
   <div class="mft">
+    <button class="btn ber" id="btn-excluir-cliente" onclick="excluirClienteAtual()" style="display:none;margin-right:auto"><i class="ti ti-trash"></i>Excluir</button>
     <button class="btn bg" onclick="closeModal('modal-cliente')"><i class="ti ti-x"></i>Cancelar</button>
     <button class="btn bp" onclick="saveCliente()"><i class="ti ti-check"></i>Salvar Cliente</button>
   </div>
@@ -5488,6 +5491,19 @@ function updatePermPreview(perfil){
     }
   }
 }
+async function excluirUsuario(id,nome){
+  if(!confirm(`Tem certeza que deseja excluir "${nome}"? Essa ação não pode ser desfeita.`))return;
+  try{
+    const resp=await fetch(API_BASE+'/usuarios/'+id,{method:'DELETE',headers:authHeaders()});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao excluir usuário');}
+    await carregarUsuarios();
+    if(typeof carregarMecanicos==='function')carregarMecanicos();
+    if(typeof carregarVendedores==='function')carregarVendedores();
+    toast(`✅ "${nome}" excluído!`,'success');
+  }catch(e){
+    toast('Erro ao excluir: '+e.message,'error');
+  }
+}
 function mapUsuarioFromApi(row){
   const cores={admin:'linear-gradient(135deg,#EF4444,#B91C1C)',vendedor:'linear-gradient(135deg,var(--green),var(--teal))',mecanico:'linear-gradient(135deg,var(--amber),var(--orange))',financeiro:'linear-gradient(135deg,var(--blue),var(--purple))'};
   return{
@@ -5518,7 +5534,10 @@ function renderUsuarios(){
     <td><span class="badge ${perfilBadge[u.perfil]||'ba'}">${perfilLabel[u.perfil]||u.perfil}</span></td>
     <td class="ts">${u.u||'—'}</td>
     <td><span class="badge ${u.status==='ativo'?'bg2':'br'}">${u.status==='ativo'?'Ativo':'Inativo'}</span></td>
-    <td><button class="btn bg btn-sm" onclick="openUsuarioEditar(${i})"><i class="ti ti-edit"></i></button></td>
+    <td><div class="flx g2b">
+      <button class="btn bg btn-sm" onclick="openUsuarioEditar(${i})"><i class="ti ti-edit"></i></button>
+      ${u.perfil!=='admin'?`<button class="btn ber btn-sm" onclick="excluirUsuario(${u.id},'${u.n.replace(/'/g,"\\'")}')"><i class="ti ti-trash"></i></button>`:''}
+    </div></td>
   </tr>`).join('');
 }
 let editingUsuarioIdx=null;
@@ -7649,6 +7668,21 @@ function openCreditoDetalhe(clienteId){
 // ======= CLIENTE — SAVE + UTILITÁRIOS =======
 const CLI_FIELD_IDS=['cli-nome','cli-apelido','cli-doc','cli-whats','cli-email','cli-cep','cli-rua','cli-num','cli-comp','cli-bairro','cli-cidade','cli-placa','cli-modelo','cli-ano','cli-motor','cli-cor','cli-limite','cli-obs'];
 let editingClienteIdx=null;
+async function excluirClienteAtual(){
+  if(editingClienteIdx===null||!CLIENTES_DATA[editingClienteIdx])return;
+  const c=CLIENTES_DATA[editingClienteIdx];
+  if(!confirm(`Tem certeza que deseja excluir o cliente "${c.n}"? Essa ação não pode ser desfeita.`))return;
+  try{
+    const resp=await fetch(API_BASE+'/clientes/'+c.id,{method:'DELETE',headers:authHeaders()});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao excluir cliente');}
+    await carregarClientes();
+    toast(`✅ Cliente "${c.n}" excluído!`,'success');
+    closeModal('modal-cliente');
+    editingClienteIdx=null;
+  }catch(e){
+    toast('Erro ao excluir cliente: '+e.message,'error');
+  }
+}
 function mapClienteFromApi(row){
   return {
     id:row.id,n:row.nome||'',apelido:row.apelido||'',d:row.cpf_cnpj||'',tel:row.telefone||'',
@@ -7679,6 +7713,7 @@ function openClienteNovo(){
   const mont=document.getElementById('cli-montadora');if(mont)mont.selectedIndex=0;
   const prazo=document.getElementById('cli-prazo');if(prazo)prazo.selectedIndex=0;
   const limite=document.getElementById('cli-limite');if(limite)limite.value=0;
+  const delBtn=document.getElementById('btn-excluir-cliente');if(delBtn)delBtn.style.display='none';
   ['cli-placa-loading','cli-placa-found','cli-placa-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   openModal('modal-cliente');
 }
@@ -7694,6 +7729,7 @@ function openClienteDetail(idx){
   const uf=document.getElementById('cli-uf');if(uf)uf.value=c.uf||'';
   const mont=document.getElementById('cli-montadora');if(mont)mont.value=c.montadora||'';
   const prazo=document.getElementById('cli-prazo');if(prazo)prazo.value=c.prazo||'À vista';
+  const delBtn=document.getElementById('btn-excluir-cliente');if(delBtn)delBtn.style.display='inline-flex';
   ['cli-placa-loading','cli-placa-found','cli-placa-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   openModal('modal-cliente');
 }
@@ -7844,6 +7880,7 @@ function openFornecedorNovo(){
   const title=document.getElementById('modal-forn-title');if(title)title.textContent='Novo Fornecedor';
   ['forn-cnpj','forn-razao','forn-fantasia','forn-natureza','forn-porte','forn-logr','forn-num','forn-bairro','forn-cidade','forn-uf','forn-cep','forn-tel','forn-email','forn-rep','forn-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['cnpj-loading','cnpj-found','cnpj-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const delBtn=document.getElementById('btn-excluir-fornecedor');if(delBtn)delBtn.style.display='none';
   openModal('modal-fornecedor');
 }
 function openFornecedorEditar(id){
@@ -7856,7 +7893,23 @@ function openFornecedorEditar(id){
   set('forn-cidade',f.cidade);set('forn-uf',f.uf);set('forn-cep',f.cep);set('forn-tel',f.tel);
   set('forn-email',f.email);set('forn-rep',f.rep);set('forn-obs',f.obs);
   const catEl=document.getElementById('forn-cat');if(catEl)catEl.value=f.cat||'Autopeças';
+  const delBtn=document.getElementById('btn-excluir-fornecedor');if(delBtn)delBtn.style.display='inline-flex';
   openModal('modal-fornecedor');
+}
+async function excluirFornecedorAtual(){
+  if(!editingFornecedorId)return;
+  const f=FORNECEDORES_DATA.find(x=>x.id===editingFornecedorId);if(!f)return;
+  if(!confirm(`Tem certeza que deseja excluir o fornecedor "${f.nome}"? Essa ação não pode ser desfeita.`))return;
+  try{
+    const resp=await fetch(API_BASE+'/fornecedores/'+f.id,{method:'DELETE',headers:authHeaders()});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao excluir fornecedor');}
+    await carregarFornecedores();
+    toast(`✅ Fornecedor "${f.nome}" excluído!`,'success');
+    closeModal('modal-fornecedor');
+    editingFornecedorId=null;
+  }catch(e){
+    toast('Erro ao excluir fornecedor: '+e.message,'error');
+  }
 }
 async function saveFornecedor(){
   const razao=(document.getElementById('forn-razao')?.value||'').trim();
@@ -7908,6 +7961,7 @@ function openMecanicoNovo(){
   MEC_FIELD_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const senhaEl=document.getElementById('mec-senha');if(senhaEl)senhaEl.value='';
   const senhaWrap=document.getElementById('mec-senha-wrap');if(senhaWrap)senhaWrap.style.display='block';
+  const delBtn=document.getElementById('btn-excluir-mecanico');if(delBtn)delBtn.style.display='none';
   const espSel=document.getElementById('mec-especialidades');
   if(espSel)Array.from(espSel.options).forEach(o=>o.selected=false);
   const commEl=document.getElementById('mec-comissao');if(commEl)commEl.value=0;
@@ -7983,6 +8037,7 @@ function openVendedorNovo(){
   const pixTipoEl=document.getElementById('vend-pix-tipo');if(pixTipoEl)pixTipoEl.value='CPF';
   const senhaEl=document.getElementById('vend-senha');if(senhaEl)senhaEl.value='';
   const senhaWrap=document.getElementById('vend-senha-wrap');if(senhaWrap)senhaWrap.style.display='block';
+  const delBtn=document.getElementById('btn-excluir-vendedor');if(delBtn)delBtn.style.display='none';
   openModal('modal-vendedor');
 }
 function openVendedorDetalhe(idx){
@@ -7990,6 +8045,7 @@ function openVendedorDetalhe(idx){
   editingVendedorIdx=idx;
   const title=document.getElementById('modal-vend-title');if(title)title.textContent='Editar Vendedor';
   const senhaWrap=document.getElementById('vend-senha-wrap');if(senhaWrap)senhaWrap.style.display='none';
+  const delBtn2=document.getElementById('btn-excluir-vendedor');if(delBtn2)delBtn2.style.display='inline-flex';
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   set('vend-nome',s.n);set('vend-apelido',s.apelido);set('vend-cpf',s.cpf);set('vend-rg',s.rg);set('vend-nasc',s.nasc);
   set('vend-whatsapp',s.whatsapp);set('vend-email',s.email);
@@ -8019,6 +8075,21 @@ function readVendedorForm(){
     pixTipo:document.getElementById('vend-pix-tipo')?.value||'CPF',pix:g('vend-pix'),
     emergNome:g('vend-emerg-nome'),emergTel:g('vend-emerg-tel'),obs:g('vend-obs')
   };
+}
+async function excluirVendedorAtual(){
+  if(editingVendedorIdx===null||!SELLERS[editingVendedorIdx])return;
+  const s=SELLERS[editingVendedorIdx];
+  if(!confirm(`Tem certeza que deseja excluir o vendedor "${s.n}"? Essa ação não pode ser desfeita.`))return;
+  try{
+    const resp=await fetch(API_BASE+'/usuarios/'+s.id,{method:'DELETE',headers:authHeaders()});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao excluir vendedor');}
+    await carregarVendedores();
+    toast(`✅ Vendedor "${s.n}" excluído!`,'success');
+    closeModal('modal-vendedor');
+    editingVendedorIdx=null;
+  }catch(e){
+    toast('Erro ao excluir vendedor: '+e.message,'error');
+  }
 }
 function mapVendedorFromApi(row){
   return{
@@ -8160,6 +8231,7 @@ function openMecanicoDetail(idx){
   editingMecanicoIdx=idx;
   const title=document.getElementById('mecanico-modal-title');if(title)title.innerHTML='<i class="ti ti-user-cog" style="color:var(--amber)"></i> Editar Mecânico';
   const senhaWrap=document.getElementById('mec-senha-wrap');if(senhaWrap)senhaWrap.style.display='none';
+  const delBtn2=document.getElementById('btn-excluir-mecanico');if(delBtn2)delBtn2.style.display='inline-flex';
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   set('mec-nome',m.n);set('mec-apelido',m.apelido);set('mec-cpf',m.cpf);set('mec-rg',m.rg);set('mec-nasc',m.nasc);
   set('mec-whatsapp',m.whatsapp);set('mec-email',m.email);
@@ -8192,6 +8264,21 @@ function readMecanicoForm(){
     emergNome:g('mec-emerg-nome'),emergTel:g('mec-emerg-tel'),obs:g('mec-obs'),
     especialidades:espSel?Array.from(espSel.selectedOptions).map(o=>o.value):[]
   };
+}
+async function excluirMecanicoAtual(){
+  if(editingMecanicoIdx===null||!MECHS[editingMecanicoIdx])return;
+  const m=MECHS[editingMecanicoIdx];
+  if(!confirm(`Tem certeza que deseja excluir o mecânico "${m.n}"? Essa ação não pode ser desfeita.`))return;
+  try{
+    const resp=await fetch(API_BASE+'/usuarios/'+m.id,{method:'DELETE',headers:authHeaders()});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao excluir mecânico');}
+    await carregarMecanicos();
+    toast(`✅ Mecânico "${m.n}" excluído!`,'success');
+    closeModal('modal-mecanico');
+    editingMecanicoIdx=null;
+  }catch(e){
+    toast('Erro ao excluir mecânico: '+e.message,'error');
+  }
 }
 function mapMecanicoFromApi(row){
   return{
@@ -8753,6 +8840,7 @@ function renderAdminUsers(){
       <div style="display:flex;flex-direction:column;gap:5px">
         <button class="btn bg btn-sm" onclick="editarUsuario(${u.id})"><i class="ti ti-edit"></i></button>
         ${u.perfil!=='admin'?`<button class="btn bg btn-sm" onclick="toggleUsuarioStatus(${u.id})"><i class="ti ti-${u.status==='ativo'?'ban':'check'}"></i></button>`:''}
+        ${u.perfil!=='admin'?`<button class="btn ber btn-sm" onclick="excluirUsuario(${u.id},'${u.n.replace(/'/g,"\\'")}')"><i class="ti ti-trash"></i></button>`:''}
       </div>
     </div>
   `).join('');
