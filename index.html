@@ -3143,7 +3143,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
         </div>
         <div class="ff"><label>Fornecedor Principal</label>
           <div class="sel-row">
-            <select id="sel-forn"><option>Bosch do Brasil</option><option>Fras-le</option><option>Monroe</option><option>NGK</option><option>Dayco</option></select>
+            <select id="sel-forn"><option value="">Selecione</option></select>
             <input type="text" class="add-opt-inp" id="inp-forn" placeholder="Novo fornecedor…" onkeydown="if(event.key==='Enter')confirmAddOpt('forn')">
             <button type="button" id="btn-add-forn" onclick="toggleAddOpt('forn')" title="Adicionar fornecedor" style="flex-shrink:0;width:22px;height:22px;background:var(--bg2);border:1px solid var(--border);color:var(--amber);border-radius:5px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center">+</button>
             <button class="btn bp btn-sm" id="btn-save-forn" style="display:none;flex-shrink:0" onclick="confirmAddOpt('forn')"><i class="ti ti-check"></i></button>
@@ -3300,6 +3300,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     </div>
   </div>
   <div class="mft">
+    <button class="btn ber" id="btn-excluir-produto" onclick="excluirProdutoAtual()" style="display:none;margin-right:auto"><i class="ti ti-trash"></i>Excluir</button>
     <button class="btn bg" onclick="cancelProdModal()"><i class="ti ti-x"></i>Cancelar</button>
     <button class="btn bs" onclick="saveProduto('rascunho')"><i class="ti ti-device-floppy"></i>Salvar rascunho</button>
     <button class="btn bp" onclick="saveProduto()"><i class="ti ti-check"></i>Salvar Produto</button>
@@ -3394,23 +3395,7 @@ const ORC_DATA=[
   {id:'ORC-027',cli:'Posto Vitória',vei:'VW Saveiro',val:1480,desc:'Freio completo + pastilha + disco',dt:'09/05/2025',val_dt:'16/05/2025',st:'aprovado'},
   {id:'ORC-026',cli:'Transportes JM',vei:'Ford Transit',val:3200,desc:'Revisão completa + pneus',dt:'08/05/2025',val_dt:'15/05/2025',st:'rascunho'},
 ];
-const PRODS=[
-  {id:1,n:'Pastilha de Freio Dianteira',pop:'Pastilha Gol G5',sku:'PFD-001',ean:'7891234100018',ncm:'8708.30.19',oem:'7H0698151B',refcross:'Bosch: 0986461723, Nakata: NKF-9501',marca:'Fras-le',cat:'Freios',subcat:'Pastilhas',compat:'VW Gol G5 2008-2014',custo:48.90,preco:89.90,mg:45,est:34,min:10,curva:'A',loc:'A1-P2',forn:'Fras-le',obs:'Par dianteiro. Sem amianto.'},
-  {id:2,n:'Amortecedor Dianteiro',pop:'Amortecedor Corolla',sku:'AMD-024',ean:'7891234100025',ncm:'8708.80.00',oem:'48510-02440',refcross:'Cofap: GS53037, Nakata: NKF-3502',marca:'Monroe',cat:'Suspensão',subcat:'Amortecedores',compat:'Toyota Corolla 2008-2019',custo:189,preco:320,mg:41,est:8,min:5,curva:'A',loc:'B3-P1',forn:'Monroe',obs:'Vende unitário. Par recomendado.'},
-  {id:3,n:'Vela de Ignição',pop:'Vela Uno Fire',sku:'VIG-112',ean:'7891234100032',ncm:'8511.10.00',oem:'55196180',refcross:'Bosch: W7DC, Champion: N9Y',marca:'NGK',cat:'Motor',subcat:'Velas',compat:'Fiat Uno/Palio Fire 1.0 2001-2014',custo:12.50,preco:24.90,mg:49,est:120,min:20,curva:'B',loc:'A3-P8',forn:'NGK',obs:'Kit com 4 velas. Torque: 20–30 Nm.'},
-  {id:4,n:'Filtro de Óleo',pop:'Filtro Civic',sku:'FOL-078',ean:'7891234100049',ncm:'8421.23.00',oem:'15400-PLM-A01',refcross:'Mann: W 75/3, Wix: WL7079',marca:'Bosch',cat:'Filtros',subcat:'Filtro de Óleo',compat:'Honda Civic 2007-2016',custo:18.90,preco:39.90,mg:52,est:65,min:15,curva:'A',loc:'A1-P5',forn:'Bosch do Brasil',obs:'Troca a cada 5.000 km ou 6 meses.'},
-  {id:5,n:'Disco de Freio Ventilado',pop:'Disco Onix',sku:'DFV-045',ean:'7891234100056',ncm:'8708.30.11',oem:'93306834',refcross:'Brembo: 09.B335.11, ATE: 24.0122-0145',marca:'Fras-le',cat:'Freios',subcat:'Discos',compat:'Chevrolet Onix 2013-2023',custo:82,preco:149,mg:44,est:2,min:5,curva:'A',loc:'A2-P3',forn:'Fras-le',obs:'Espessura mín.: 22mm. Par dianteiro.'},
-  {id:6,n:'Correia Dentada Kit',pop:'Kit Correia Ka',sku:'CDK-088',ean:'7891234100063',ncm:'4010.39.90',oem:'1119967',refcross:'Gates: K015492XS, Contitech: CT1192K2',marca:'Dayco',cat:'Motor',subcat:'Correias',compat:'Ford Ka 1.0/1.5 2015-2023',custo:145,preco:280,mg:48,est:15,min:5,curva:'B',loc:'B1-P4',forn:'Dayco',obs:'Kit completo com tensor e bomba.'},
-  {id:7,n:'Bomba D\'água',pop:'Bomba Celta',sku:'BDA-033',ean:'7891234100070',ncm:'8413.30.00',oem:'93316960',refcross:'Gates: WP-9105HD, Graf: PA774',marca:'URBA',cat:'Motor',subcat:'Arrefecimento',compat:'Chevrolet Celta/Corsa 1.0 2001-2016',custo:67,preco:129,mg:48,est:0,min:3,curva:'B',loc:'B2-P6',forn:'Bosch do Brasil',obs:'Trocar junto com correia dentada.'},
-  {id:8,n:'Rolamento Roda Traseira',pop:'Rolamento Palio',sku:'RRT-067',ean:'7891234100087',ncm:'8482.10.10',oem:'71714353',refcross:'SKF: VKBA 3631, Timken: HA590250',marca:'FAG',cat:'Suspensão',subcat:'Rolamentos',compat:'Fiat Palio/Strada 2001-2017',custo:95,preco:189,mg:49,est:22,min:8,curva:'B',loc:'B4-P2',forn:'Monroe',obs:'Rolamento com cubo integrado.'},
-  {id:9,n:'Sensor de Temperatura do Motor',pop:'Sensor Vectra',sku:'STM-099',ean:'7891234100094',ncm:'9025.19.90',oem:'9232803',refcross:'Bosch: 0280130039, Delphi: TS10270',marca:'BOOG',cat:'Elétrica',subcat:'Sensores',compat:'Chevrolet Vectra 2006-2011',custo:38,preco:79,mg:51,est:7,min:5,curva:'C',loc:'C1-P1',forn:'Bosch do Brasil',obs:'NTC 2 pinos. Conector cinza.'},
-  {id:10,n:'Filtro de Combustível',pop:'Filtro Clio',sku:'FCB-041',ean:'7891234100100',ncm:'8421.23.00',oem:'7700845961',refcross:'Bosch: F 026 402 006, Wix: WF8168',marca:'Bosch',cat:'Filtros',subcat:'Filtro de Combustível',compat:'Renault Clio 1.0/1.6 2001-2012',custo:24,preco:48.90,mg:50,est:43,min:10,curva:'A',loc:'A1-P9',forn:'Bosch do Brasil',obs:'Troca a cada 30.000 km.'},
-  {id:11,n:'Pivô de Suspensão Dianteiro',pop:'Pivô Gol',sku:'PSD-055',ean:'7891234100117',ncm:'8708.80.00',oem:'1J0407365C',refcross:'Nakata: NKF-9800, Moog: VW-BJ-8186',marca:'Nakata',cat:'Suspensão',subcat:'Pivôs',compat:'VW Gol/Voyage/Fox 2003-2014',custo:42,preco:85,mg:50,est:18,min:6,curva:'A',loc:'B1-P7',forn:'Monroe',obs:'Par dianteiro. Verificar bucha.'},
-  {id:12,n:'Pastilha de Freio Traseira',pop:'Pastilha Corsa',sku:'PFT-022',ean:'7891234100124',ncm:'8708.30.19',oem:'90498993',refcross:'Fras-le: PD/127P, Bosch: 0986BB0097',marca:'Fras-le',cat:'Freios',subcat:'Pastilhas',compat:'Chevrolet Corsa/Classic 2002-2016',custo:35,preco:69,mg:49,est:28,min:8,curva:'B',loc:'A1-P3',forn:'Fras-le',obs:'Par traseiro. Verificar cilindros.'},
-  {id:13,n:'Filtro de Ar do Motor',pop:'Filtro Ar Onix',sku:'FAR-031',ean:'7891234100131',ncm:'8421.39.20',oem:'95513035',refcross:'Mann: C 25 012, Tecfil: ARS2064',marca:'Bosch',cat:'Filtros',subcat:'Filtro de Ar',compat:'Chevrolet Onix 1.0/1.4 2012-2019',custo:22,preco:44.90,mg:51,est:52,min:12,curva:'A',loc:'A3-P4',forn:'Bosch do Brasil',obs:'Troca a cada 15.000 km.'},
-  {id:14,n:'Cabo de Vela',pop:'Cabo Uno',sku:'CAV-018',ean:'7891234100148',ncm:'8544.30.00',oem:'46470410',refcross:'Bosch: 0986356775, NGK: RC-FI807',marca:'NGK',cat:'Elétrica',subcat:'Cabos',compat:'Fiat Uno/Palio 1.0/1.4 2001-2013',custo:28,preco:58,mg:52,est:19,min:5,curva:'B',loc:'C1-P4',forn:'NGK',obs:'Jogo 4 cabos. Alta tensão silicone.'},
-  {id:15,n:'Bucha Bandeja Dianteira',pop:'Bucha Gol G5',sku:'BBD-091',ean:'7891234100155',ncm:'4016.99.90',oem:'1J0407182',refcross:'Nakata: NKB-0088, Moog: VW-SB-1671',marca:'Nakata',cat:'Suspensão',subcat:'Buchas',compat:'VW Gol/Polo/Fox 2000-2014',custo:15,preco:32,mg:53,est:41,min:15,curva:'A',loc:'B2-P9',forn:'Monroe',obs:'Par bandeja inferior. Pressão 3t.'},
-];
+let PRODS=[];
 const OS_DATA=[
   {id:'#2847',cli:'José Alves Santos',placa:'NEQ-1A23',vei:'VW Gol G5 2010',km:45280,mec:'Roberto Oliveira',st:'andamento',val:420,def:'Barulho no freio dianteiro ao frear',diag:'Desgaste avançado nas pastilhas. Discos OK.',prev:'14/05 16:00',svcs:['Troca de pastilha','Alinhamento e balanceamento'],pcs:[{n:'Pastilha Fras-le',q:1,val:89.90},{n:'Fluido DOT4',q:1,val:28}]},
   {id:'#2846',cli:'Maria Oliveira',placa:'PMC-2B34',vei:'Fiat Palio 1.4 2015',km:78400,mec:'Carlos Mendes',st:'concluida',val:180,def:'Troca de óleo em dia',diag:'Óleo vencido. Filtro ok.',prev:'14/05 10:00',svcs:['Troca de óleo e filtro'],pcs:[{n:'Óleo 5W30 (4L)',q:1,val:120},{n:'Filtro Óleo',q:1,val:39.90}]},
@@ -3923,6 +3908,7 @@ function confirmarDevolucao(){
     const prod=PRODS.find(p=>p.id===it.id);
     if(prod){
       prod.est=(prod.est||0)+qtd;
+      movimentarEstoque(prod.id,'entrada',qtd,'Devolução venda '+(m.codigo||''));
       if(!Array.isArray(window.MOVIMENTACOES_ESTOQUE))window.MOVIMENTACOES_ESTOQUE=[];
       window.MOVIMENTACOES_ESTOQUE.unshift({p:prod.n,tp:'Entrada (Devolução venda '+(m.codigo||'')+')',q:'+'+qtd,u:(typeof currentUser!=='undefined'&&currentUser&&currentUser.n)?currentUser.n:'Administrador',d:new Date().toLocaleDateString('pt-BR')+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
     }
@@ -4170,8 +4156,15 @@ function finalizeSale(){
   const recebidoVal=payUsado==='cash'?(parseFloat(document.getElementById('cash-received')?.value||0)||0):null;
   const trocoVal=recebidoVal!==null?parseFloat((recebidoVal-tot).toFixed(2)):null;
   const itensSnapshot=cart.map(it=>({id:it.id,n:it.n,qty:it.qty,preco:it.preco}));
-  const clienteNomeAtual=pdvSelectedCliente?pdvSelectedCliente.nome:'';
   const numVenda='V'+Date.now().toString().slice(-8);
+  cart.forEach(it=>{
+    const prod=PRODS.find(p=>p.id===it.id);
+    if(prod){
+      prod.est=Math.max(0,(prod.est||0)-it.qty);
+      movimentarEstoque(prod.id,'saida',it.qty,'Venda PDV '+numVenda);
+    }
+  });
+  const clienteNomeAtual=pdvSelectedCliente?pdvSelectedCliente.nome:'';
   const operadorVenda=(typeof currentUser!=='undefined'&&currentUser&&currentUser.n)?currentUser.n:'Administrador';
   // Contabiliza a venda pro vendedor logado (comissão) — automático, não depende de seleção manual
   if(typeof currentUser!=='undefined'&&currentUser&&currentUser.perfil==='vendedor'&&currentUser.vinculoIdx!==null&&currentUser.vinculoIdx!==undefined){
@@ -4466,13 +4459,18 @@ let prodEditId=null;
 function openProdModal(id){
   prodEditId=id;
   const title=document.getElementById('modal-prod-title');
+  const fornSel=document.getElementById('sel-forn');
+  if(fornSel)fornSel.innerHTML='<option value="">Selecione</option>'+FORNECEDORES_DATA.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
+  const delBtn=document.getElementById('btn-excluir-produto');
   if(id===null){
     clearProdModal();
     if(title)title.textContent='Novo Produto';
+    if(delBtn)delBtn.style.display='none';
   }else{
     const p=PRODS.find(x=>x.id===id);if(!p)return;
     if(title)title.textContent='Editar — '+p.n.substring(0,30);
     fillProdModal(p);
+    if(delBtn)delBtn.style.display='inline-flex';
   }
   prodTab('id',document.querySelector('.pmt'));
   openModal('modal-produto');
@@ -4506,7 +4504,7 @@ function fillProdModal(p){
   setOpt('sel-cat',p.cat);
   if(p.cat)updateSubcats(p.cat);
   setTimeout(()=>setOpt('modal-subcat',p.subcat||''),80);
-  setOpt('sel-forn',p.forn||'');
+  setOpt('sel-forn',p.fornecedor_id?String(p.fornecedor_id):'');
   fillCompatRows(p.compatEstruturada||[]);
 }
 
@@ -4522,6 +4520,39 @@ function clearProdModal(){
 
 function cancelProdModal(){prodEditId=null;closeModal('modal-produto');}
 
+function mapProdutoFromApi(row){
+  const compatEstruturada=(row.compatibilidade||[]).map(c=>({montadora:c.montadora||'',modelo:c.modelo||'',anoIni:c.ano_ini||'',anoFim:c.ano_fim||'',motor:c.motor||''}));
+  const est=parseInt(row.estoque)||0,min=parseInt(row.estoque_minimo)||5;
+  const custo=parseFloat(row.custo)||0,preco=parseFloat(row.preco)||0;
+  return{
+    id:row.id,n:row.nome||'',pop:row.nome||'',sku:row.sku||'',ean:row.codigo_barras||'',ncm:'',oem:'',refcross:'',
+    obs:'',loc:row.loc||'',compatLivre:row.compat||'',compatEstruturada,compat:row.compat||'A cadastrar',
+    marca:row.marca||'',cat:row.categoria||'',subcat:row.subcategoria||'',
+    fornecedor_id:row.fornecedor_id||null,forn:(FORNECEDORES_DATA.find(f=>f.id===row.fornecedor_id)||{}).nome||'',
+    custo,preco,mg:custo>0?parseFloat((((preco-custo)/preco)*100).toFixed(1)):0,
+    est,min,curva:est>=min*4?'A':est>=min?'B':'C'
+  };
+}
+async function carregarProdutos(q){
+  try{
+    const resp=await fetch(API_BASE+'/produtos'+(q?('?q='+encodeURIComponent(q)):''),{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar produtos');
+    const rows=await resp.json();
+    PRODS.length=0;
+    PRODS.push(...rows.map(mapProdutoFromApi));
+    renderProd();
+  }catch(e){toast('Erro ao carregar produtos: '+e.message,'error');}
+}
+async function movimentarEstoque(produtoId,tipo,quantidade,motivo){
+  try{
+    const resp=await fetch(API_BASE+'/estoque/movimentar',{method:'POST',headers:authHeaders(),body:JSON.stringify({produto_id:produtoId,tipo,quantidade,motivo})});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao movimentar estoque');}
+    return true;
+  }catch(e){
+    toast('⚠️ Estoque local atualizado, mas falhou ao sincronizar com o servidor: '+e.message,'error');
+    return false;
+  }
+}
 function saveProduto(mode){
   const get=id=>(document.getElementById(id)?.value||'').trim();
   const nome=get('inp-nome-tecnico');
@@ -4537,33 +4568,52 @@ function saveProduto(mode){
   const compatEstruturadaTxt=compatRowsToText(compatRows);
   const compatLivreTxt=get('inp-compat-livre');
   const compatFull=[compatEstruturadaTxt,compatLivreTxt].filter(Boolean).join(' · ')||'A cadastrar';
-  const data={
-    n:nome,pop:get('inp-nome-popular')||nome.split(' ').slice(0,3).join(' '),
-    ean:get('inp-ean'),ncm:get('inp-ncm'),oem:get('inp-oem'),refcross:get('inp-refcross'),obs:get('inp-obs'),
-    loc:get('inp-loc').toUpperCase(),
-    compatLivre:compatLivreTxt,compatEstruturada:compatRows,compat:compatFull,
-    marca:document.getElementById('sel-marca')?.value||'',
-    cat,subcat:document.getElementById('modal-subcat')?.value||'',
-    forn:document.getElementById('sel-forn')?.value||'',
-    custo:parseFloat(custo.toFixed(2)),preco:parseFloat(preco.toFixed(2)),mg:parseFloat(mg.toFixed(1)),
-    est,min,curva:est>=min*4?'A':est>=min?'B':'C',
+  const fornSel=document.getElementById('sel-forn');
+  const fornId=fornSel&&fornSel.value?parseInt(fornSel.value):null;
+  const payload={
+    nome,sku:get('inp-sku'),marca:document.getElementById('sel-marca')?.value||'',
+    categoria:cat,subcategoria:document.getElementById('modal-subcat')?.value||'',
+    fornecedor_id:fornId,custo:parseFloat(custo.toFixed(2)),preco:parseFloat(preco.toFixed(2)),
+    estoque:est,estoque_minimo:min,compat:compatFull,loc:get('inp-loc').toUpperCase(),
+    codigo_barras:get('inp-ean'),compatibilidade:compatRows
   };
+  saveProdutoAsync(payload,mode,nome);
+}
+async function saveProdutoAsync(payload,mode,nome){
   const savedId=prodEditId;
-  if(savedId!==null){
-    const idx=PRODS.findIndex(p=>p.id===savedId);
-    if(idx>=0){PRODS[idx]={...PRODS[idx],...data};toast('✅ Produto "'+nome.substring(0,28)+'" atualizado!','success');}
-  }else{
-    const newId=Math.max(0,...PRODS.map(p=>p.id))+1;
-    const autoSku=get('inp-sku')||(cat.substring(0,3).toUpperCase()+'-'+String(newId).padStart(3,'0'));
-    PRODS.push({...data,id:newId,sku:autoSku});
-    toast('✅ Produto "'+nome.substring(0,28)+'" cadastrado!','success');
+  try{
+    let resp;
+    if(savedId!==null){
+      resp=await fetch(API_BASE+'/produtos/'+savedId,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    }else{
+      resp=await fetch(API_BASE+'/produtos',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+    }
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar produto');}
+    await carregarProdutos();
+    toast(savedId!==null?`✅ Produto "${nome.substring(0,28)}" atualizado!`:`✅ Produto "${nome.substring(0,28)}" cadastrado!`,'success');
+    if(mode==='rascunho')return;
+    closeModal('modal-produto');
+    const newId=savedId||PRODS.find(p=>p.sku===payload.sku)?.id;
+    prodEditId=null;
+    if(newId)setTimeout(()=>openProdDrawer(newId),300);
+  }catch(e){
+    toast('Erro ao salvar produto: '+e.message,'error');
   }
-  if(mode==='rascunho'){return;}
-  closeModal('modal-produto');
-  prodEditId=null;
-  renderProd();
-  saveData();
-  if(savedId!==null)setTimeout(()=>openProdDrawer(savedId),300);
+}
+async function excluirProdutoAtual(){
+  if(prodEditId===null)return;
+  const p=PRODS.find(x=>x.id===prodEditId);if(!p)return;
+  if(!confirm(`Tem certeza que deseja excluir "${p.n}"? Essa ação não pode ser desfeita.`))return;
+  try{
+    const resp=await fetch(API_BASE+'/produtos/'+p.id,{method:'DELETE',headers:authHeaders()});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao excluir produto');}
+    await carregarProdutos();
+    toast(`✅ Produto "${p.n}" excluído!`,'success');
+    closeModal('modal-produto');
+    prodEditId=null;
+  }catch(e){
+    toast('Erro ao excluir produto: '+e.message,'error');
+  }
 }
 
 // ======= TABS MODAL PRODUTO =======
@@ -6857,6 +6907,7 @@ function confirmNFeEntry(){
     const precoFinal=calcPV(custoFinal);
     if(it.matched&&it.matched.prod){
       it.matched.prod.est=Math.round(it.matched.prod.est+it.qCom);
+      movimentarEstoque(it.matched.prod.id,'entrada',Math.round(it.qCom),'Entrada NF-e');
       it.matched.prod.custo=custoFinal;
       it.matched.prod.preco=precoFinal;
       it.matched.prod.mg=67;
@@ -8552,7 +8603,11 @@ function finalizarInventario(){
     invAtual.itens.forEach(it=>{
       if(it.qtdContada!==null&&it.diff!==0){
         const p=PRODS.find(x=>x.id===it.prodId);
-        if(p){p.est=it.qtdContada;corrigidos++;}
+        if(p){
+          const diff=it.qtdContada-p.est;
+          p.est=it.qtdContada;corrigidos++;
+          if(diff!==0)movimentarEstoque(p.id,diff>0?'entrada':'saida',Math.abs(diff),'Ajuste de inventário');
+        }
       }
     });
     saveData();
@@ -8751,6 +8806,7 @@ function aplicarSessaoLogada(usuario){
   if(typeof carregarMecanicos==='function')carregarMecanicos();
   if(typeof carregarVendedores==='function')carregarVendedores();
   if(typeof carregarUsuarios==='function')carregarUsuarios();
+  if(typeof carregarProdutos==='function')carregarProdutos();
 }
 
 async function verificarSessaoSalva(){
@@ -8922,7 +8978,7 @@ function nav(id,el){
   if(id==='reposicao')setTimeout(renderReposicao,50);
   if(id==='orcamentos')setTimeout(renderOrcamentos,50);
   if(id==='relatorios')setTimeout(()=>{selectReport(activeReport,document.querySelector('.rep-type-card.active'));},80);
-  if(id==='produtos')setTimeout(renderProd,50);
+  if(id==='produtos')setTimeout(()=>carregarProdutos(),50);
   if(id==='estoque'){setTimeout(()=>{renderMov();atualizarKpisEstoque();},50);}
   if(id==='inventario')setTimeout(renderInventario,50);
   if(id==='clientes')setTimeout(()=>carregarClientes(),50);
@@ -8932,12 +8988,11 @@ function nav(id,el){
   if(id==='config')setTimeout(()=>{
     const info=document.getElementById('storage-info');
     if(!info)return;
-    const p=localStorage.getItem(STORAGE_KEY_PRODS);
+    const pc=PRODS.length;
     const o=localStorage.getItem(STORAGE_KEY_ORC);
-    const pc=p?JSON.parse(p).length:0;
     const oc=o?JSON.parse(o).length:0;
-    const kb=Math.round((p||'').length/1024*10)/10;
-    info.innerHTML=`<i class="ti ti-device-floppy" style="color:var(--green)"></i> <strong>${pc} produtos</strong> · <strong>${oc} orçamentos</strong> salvos localmente · ~${kb}KB<br><span style="color:var(--text3);font-size:11px">Salvos automaticamente no navegador deste computador.</span>`;
+    const kb='—';
+    info.innerHTML=`<i class="ti ti-cloud-check" style="color:var(--green)"></i> <strong>${pc} produtos</strong> · <strong>${oc} orçamentos</strong><br><span style="color:var(--text3);font-size:11px">Produtos sincronizados com o servidor. Orçamentos ainda salvos localmente neste navegador.</span>`;
   },100);
 }
 
@@ -9079,7 +9134,7 @@ const CONTAS_RECEBER=[
 
 function saveData(){
   try{
-    localStorage.setItem(STORAGE_KEY_PRODS,JSON.stringify(PRODS));
+    localStorage.setItem(STORAGE_KEY_PRODS,'[]');
     localStorage.setItem(STORAGE_KEY_ORC,JSON.stringify(ORC_DATA));
     localStorage.setItem(STORAGE_KEY_OS,JSON.stringify(OS_DATA));
     localStorage.setItem(STORAGE_KEY_FIN,JSON.stringify({cp:CONTAS_PAGAR,cr:CONTAS_RECEBER}));
@@ -9098,8 +9153,7 @@ function saveData(){
 
 function loadData(){
   try{
-    const sp=localStorage.getItem(STORAGE_KEY_PRODS);
-    if(sp){const p=JSON.parse(sp);if(Array.isArray(p)&&p.length){PRODS.length=0;PRODS.push(...p);}}
+    // PRODS agora vem da API (carregarProdutos), não mais do localStorage
     const so=localStorage.getItem(STORAGE_KEY_ORC);
     if(so){const o=JSON.parse(so);if(Array.isArray(o)&&o.length){ORC_DATA.length=0;ORC_DATA.push(...o);}}
     const ss=localStorage.getItem(STORAGE_KEY_OS);
@@ -9219,11 +9273,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   if(repTbl)repTbl.innerHTML=REP_DATA.vendas.tbl.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
   const pqb=document.getElementById('pix-qr-box');if(pqb)pqb.style.display='block';
   setTimeout(initCharts,150);
-  const hasData=localStorage.getItem(STORAGE_KEY_PRODS);
-  const savedCount=hasData?JSON.parse(hasData).length:0;
   // Render login screen and show it
   verificarSessaoSalva();
-  setTimeout(()=>toast(hasData?`💾 ${savedCount} produtos carregados`:'AutoERP Pro v4 pronto!','info'),600);
+  setTimeout(()=>toast('AutoERP Pro v4 pronto!','info'),600);
 });
 </script>
 
