@@ -6051,7 +6051,7 @@ function salvarLancamento(){
 // ======= USUÁRIO =======
 const PERFIL_PERMS={
   admin:['Dashboard','Produtos','PDV','Orçamentos','NF-e','Estoque','Compras','Financeiro','DRE','Clientes','Fornecedores','WhatsApp','Vendedores','Mecânicos','BI','IA','Relatórios','Usuários','Config'],
-  vendedor:['Dashboard','Produtos','PDV','Orçamentos','Clientes','Estoque (ver)'],
+  vendedor:['Dashboard','Produtos','PDV','Orçamentos','Vendas','Ofertas','Clientes','Estoque (ver)'],
   mecanico:['Dashboard','OS','Veículos','Garantias','Produtos (ver)'],
   financeiro:['Dashboard','Financeiro','DRE','Relatórios','NF-e','Clientes','Fornecedores'],
   caixa:['Dashboard','PDV','Caixa','NF-e (emitir)','Clientes (ver)'],
@@ -9782,6 +9782,8 @@ const SIDEBAR_MODULES=[
   {key:'garantias',label:'Garantias',sec:'OFICINA'},
   {key:'pdv',label:'PDV',sec:'VENDAS'},
   {key:'orcamentos',label:'Orçamentos',sec:'VENDAS'},
+  {key:'vendas',label:'Vendas',sec:'VENDAS'},
+  {key:'ofertas',label:'Ofertas',sec:'VENDAS'},
   {key:'nfe',label:'NF-e / Fiscal',sec:'VENDAS'},
   {key:'produtos',label:'Produtos',sec:'ESTOQUE'},
   {key:'busca',label:'Busca Inteligente',sec:'ESTOQUE'},
@@ -9807,11 +9809,11 @@ const SIDEBAR_MODULES=[
 const ALL_KEYS=SIDEBAR_MODULES.map(m=>m.key);
 let SIDEBAR_PERMS={
   admin:   [...ALL_KEYS],
-  vendedor:['dashboard','agenda','pdv','orcamentos','produtos','busca','estoque','clientes','caixa','comissoes'],
+  vendedor:['dashboard','agenda','pdv','orcamentos','vendas','ofertas','produtos','busca','estoque','clientes','caixa','comissoes'],
   mecanico:['dashboard','agenda','os','veiculos','garantias','produtos','busca','clientes'],
   financeiro:['dashboard','financeiro','dre','relatorios','nfe','clientes','fornecedores','caixa','comissoes'],
-  caixa:   ['dashboard','pdv','caixa','nfe','clientes'],
-  estoque: ['dashboard','produtos','busca','estoque','inventario','compras','fornecedores'],
+  caixa:   ['dashboard','pdv','vendas','caixa','nfe','clientes'],
+  estoque: ['dashboard','produtos','ofertas','busca','estoque','inventario','compras','fornecedores'],
 };
 let currentUser=null;
 
@@ -9886,16 +9888,27 @@ function loadData(){
         SIDEBAR_PERMS.admin=[...ALL_KEYS];
         // Para outros perfis, adiciona módulos novos que ainda não estão na lista salva
         const defaultPerms={
-          vendedor:['dashboard','agenda','pdv','orcamentos','produtos','busca','estoque','clientes','credito','caixa','comissoes'],
+          vendedor:['dashboard','agenda','pdv','orcamentos','vendas','ofertas','produtos','busca','estoque','clientes','credito','caixa','comissoes'],
           mecanico:['dashboard','agenda','os','veiculos','garantias','produtos','busca','clientes'],
           financeiro:['dashboard','financeiro','dre','relatorios','nfe','clientes','credito','fornecedores','caixa','comissoes'],
-          caixa:['dashboard','pdv','caixa','nfe','clientes'],
-          estoque:['dashboard','produtos','busca','estoque','reposicao','inventario','compras','fornecedores'],
+          caixa:['dashboard','pdv','vendas','caixa','nfe','clientes'],
+          estoque:['dashboard','produtos','ofertas','busca','estoque','reposicao','inventario','compras','fornecedores'],
         };
         // Garante que 'inventario' está nos perfis que deveriam ter
         ['admin','estoque'].forEach(role=>{
           if(SIDEBAR_PERMS[role]&&!SIDEBAR_PERMS[role].includes('inventario')){
             SIDEBAR_PERMS[role].push('inventario');
+          }
+        });
+        // Garante que 'vendas' e 'ofertas' aparecem mesmo pra quem já tinha permissões salvas antes desses módulos existirem
+        ['vendedor','caixa'].forEach(role=>{
+          if(SIDEBAR_PERMS[role]&&!SIDEBAR_PERMS[role].includes('vendas')){
+            SIDEBAR_PERMS[role].push('vendas');
+          }
+        });
+        ['vendedor','estoque'].forEach(role=>{
+          if(SIDEBAR_PERMS[role]&&!SIDEBAR_PERMS[role].includes('ofertas')){
+            SIDEBAR_PERMS[role].push('ofertas');
           }
         });
       }
