@@ -6689,12 +6689,12 @@ function updateCart(){
       ci.innerHTML=cart.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg2);border:1px solid ${c.ofertaAtiva?'var(--amber)':'var(--border)'};border-radius:var(--radius-sm);margin-bottom:6px">
         <div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.n.substring(0,26)}${c.ofertaAtiva?' <span style="color:var(--amber);font-size:9px">🏷️ OFERTA</span>':''}</div><div style="font-size:10px;color:var(--text3)">${c.ofertaAtiva?`<span style="text-decoration:line-through;opacity:.6">R$ ${(c.precoOriginal||0).toFixed(2)}</span> `:''}R$ ${c.preco.toFixed(2)} un.</div></div>
         <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-          <button style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center" onclick="changeQty(${JSON.stringify(c.id)},-1)">−</button>
+          <button style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center" onclick="changeQty(${typeof c.id==='string'?"'"+c.id+"'":c.id},-1)">−</button>
           <span style="font-size:12px;font-weight:600;min-width:20px;text-align:center">${c.qty}</span>
-          <button style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center" onclick="changeQty(${JSON.stringify(c.id)},1)">+</button>
+          <button style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center" onclick="changeQty(${typeof c.id==='string'?"'"+c.id+"'":c.id},1)">+</button>
         </div>
         <div style="font-size:12px;font-weight:700;color:var(--amber);min-width:58px;text-align:right">R$ ${(c.preco*c.qty).toFixed(2)}</div>
-        <i class="ti ti-x" style="font-size:13px;color:var(--text3);cursor:pointer;opacity:.7" onclick="cart=cart.filter(x=>x.id!==${JSON.stringify(c.id)});updateCart()"></i>
+        <i class="ti ti-x" style="font-size:13px;color:var(--text3);cursor:pointer;opacity:.7" onclick="cart=cart.filter(x=>x.id!==${typeof c.id==='string'?"'"+c.id+"'":c.id});updateCart()"></i>
       </div>`).join('');
     }
   }
