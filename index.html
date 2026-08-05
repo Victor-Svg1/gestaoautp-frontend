@@ -523,6 +523,9 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
   body.printing-repos>*:not(#modal-repos-print){display:none!important}
   body.printing-repos #modal-repos-print{position:static!important;background:#fff!important;display:block!important}
   body.printing-repos #modal-repos-print .modal{box-shadow:none!important;border:none!important;max-width:100%!important;margin:0!important}
+  body.printing-cp>*:not(#modal-contaspagar-print){display:none!important}
+  body.printing-cp #modal-contaspagar-print{position:static!important;background:#fff!important;display:block!important}
+  body.printing-cp #modal-contaspagar-print .modal{box-shadow:none!important;border:none!important;max-width:100%!important;margin:0!important}
 }
 .receipt{width:270px;margin:0 auto;font-family:'Courier New',monospace;color:#000}
 .rc-logo{font-size:15px;font-weight:800;text-align:center}
@@ -843,6 +846,8 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       <div class="ns">VENDAS</div>
       <div class="ni" onclick="nav('pdv',this)"><div class="nic"><i class="ti ti-device-desktop-dollar"></i></div><span class="nl">PDV</span><span class="nb b">PDV</span></div>
       <div class="ni" onclick="nav('orcamentos',this)"><div class="nic"><i class="ti ti-file-description"></i></div><span class="nl">Orçamentos</span><span class="nb">5</span></div>
+      <div class="ni" onclick="nav('vendas',this)"><div class="nic"><i class="ti ti-receipt-2"></i></div><span class="nl">Vendas</span></div>
+      <div class="ni" onclick="nav('ofertas',this)"><div class="nic"><i class="ti ti-discount-2"></i></div><span class="nl">Ofertas</span></div>
       <div class="ni" onclick="nav('nfe',this)"><div class="nic"><i class="ti ti-file-invoice"></i></div><span class="nl">NF-e / Fiscal</span></div>
 
       <div class="ns">ESTOQUE</div>
@@ -1557,6 +1562,39 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
           <tbody id="repos-tbl"></tbody>
         </table></div></div>
       </div>
+
+      <div class="screen" id="screen-vendas">
+        <div class="ph"><div class="phl"><h1>Vendas</h1><p>Histórico de vendas finalizadas do PDV</p></div>
+          <div class="flx g2b"><button class="btn bs btn-sm" onclick="exportarVendasCSV()"><i class="ti ti-file-spreadsheet"></i>Exportar CSV</button></div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:14px 16px">
+            <span style="font-size:12px;color:var(--text3)">Período:</span>
+            <button class="btn bp btn-sm venda-periodo-btn" data-p="dia" onclick="filterVendasPeriodo('dia',this)">Hoje</button>
+            <button class="btn bs btn-sm venda-periodo-btn" data-p="semana" onclick="filterVendasPeriodo('semana',this)">Semana</button>
+            <button class="btn bs btn-sm venda-periodo-btn" data-p="mes" onclick="filterVendasPeriodo('mes',this)">Mês</button>
+            <button class="btn bs btn-sm venda-periodo-btn" data-p="ano" onclick="filterVendasPeriodo('ano',this)">Ano</button>
+            <div style="width:1px;height:22px;background:var(--border);margin:0 4px"></div>
+            <input type="text" id="vendas-busca" placeholder="Buscar por código ou cliente…" oninput="renderVendasTable()" style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);padding:6px 10px;border-radius:var(--radius-sm);font-size:12px;outline:none;flex:1;min-width:160px">
+          </div>
+        </div>
+        <div class="g4 mb14" id="vendas-kpis"></div>
+        <div class="card"><div class="tw"><table>
+          <thead><tr><th>Código</th><th>Data/Hora</th><th>Cliente</th><th>Operador</th><th>Pagamento</th><th>Itens</th><th>Total</th><th>Status</th><th>Ação</th></tr></thead>
+          <tbody id="vendas-tbl"></tbody>
+        </table></div></div>
+      </div>
+
+      <div class="screen" id="screen-ofertas">
+        <div class="ph"><div class="phl"><h1>Ofertas</h1><p>Produtos com preço promocional por período — sem desconto adicional</p></div>
+          <button class="btn bp" onclick="openOfertaNovo()"><i class="ti ti-plus"></i>Nova Oferta</button>
+        </div>
+        <div class="card"><div class="tw"><table>
+          <thead><tr><th>Produto</th><th>Preço Normal</th><th>Preço de Oferta</th><th>Válido de</th><th>Válido até</th><th>Status</th><th>Ação</th></tr></thead>
+          <tbody id="ofertas-tbl"></tbody>
+        </table></div></div>
+      </div>
+
       <div class="screen" id="screen-compras">
         <div class="ph">
           <div class="phl"><h1>Pedidos de Compra</h1><p>Gestão de pedidos e entrada de mercadorias</p></div>
@@ -1812,6 +1850,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
         <!-- Tabs -->
         <div class="fin-tabs">
           <div class="fin-tab active" onclick="finTab('pagar',this)"><i class="ti ti-arrow-up-circle" style="font-size:13px"></i> Contas a Pagar <span id="fin-badge-pagar" class="nb r" style="margin-left:4px">0</span></div>
+          <div class="fin-tab" onclick="finTab('pagas',this)"><i class="ti ti-circle-check" style="font-size:13px"></i> Contas Pagas <span id="fin-badge-pagas" class="nb g" style="margin-left:4px">0</span></div>
           <div class="fin-tab" onclick="finTab('receber',this)"><i class="ti ti-arrow-down-circle" style="font-size:13px"></i> Contas a Receber <span id="fin-badge-receber" class="nb g" style="margin-left:4px">0</span></div>
           <div class="fin-tab" onclick="finTab('fluxo',this)"><i class="ti ti-chart-line" style="font-size:13px"></i> Fluxo de Caixa</div>
         </div>
@@ -1829,11 +1868,28 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
                   <option value="atrasado">Atrasados</option>
                 </select>
                 <select id="fin-pagar-status" onchange="renderFinanceiro()" style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);padding:5px 10px;border-radius:var(--radius-sm);font-size:12px;outline:none">
-                  <option value="">Todos</option><option value="pendente">Pendentes</option><option value="vencido">Vencidos</option><option value="pago">Pagos</option>
+                  <option value="">Todos</option><option value="pendente">Pendentes</option><option value="vencido">Vencidos</option>
                 </select>
+                <button class="btn bs btn-sm" onclick="imprimirContasPagar()" title="Imprimir a lista filtrada"><i class="ti ti-printer"></i>Imprimir</button>
               </div>
             </div>
             <div id="contas-pagar-list"></div>
+          </div>
+        </div>
+        <!-- Contas Pagas -->
+        <div id="fin-tab-pagas" style="display:none">
+          <div class="card">
+            <div class="ch">
+              <div class="ct">Contas Pagas <span style="font-size:11px;color:var(--text3);font-weight:400">— histórico de pagamentos</span></div>
+              <div class="flx g2b">
+                <select id="fin-pagas-periodo" onchange="renderFinanceiro()" style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);padding:5px 10px;border-radius:var(--radius-sm);font-size:12px;outline:none">
+                  <option value="">Todo período</option>
+                  <option value="semana">Últimos 7 dias</option>
+                  <option value="mes">Últimos 30 dias</option>
+                </select>
+              </div>
+            </div>
+            <div id="contas-pagas-list"></div>
           </div>
         </div>
         <!-- Contas a Receber -->
@@ -2158,6 +2214,64 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 </div>
 
 <!-- MODAL ETIQUETA -->
+<div class="mov" id="modal-oferta" onclick="closeModal('modal-oferta')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:460px">
+    <div class="mhd"><span class="mtit"><i class="ti ti-discount-2" style="color:var(--amber)"></i> <span id="modal-oferta-title">Nova Oferta</span></span><button class="mcl" onclick="closeModal('modal-oferta')"><i class="ti ti-x"></i></button></div>
+    <div class="mbd">
+      <div class="ff mb14"><label>Produto *</label>
+        <input type="text" id="oferta-busca-produto" placeholder="Digite pra buscar…" oninput="buscarProdutoOferta(this.value)" autocomplete="off">
+        <div id="oferta-produto-resultados" style="max-height:160px;overflow-y:auto;margin-top:4px"></div>
+      </div>
+      <div id="oferta-produto-selecionado" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:600" id="oferta-produto-nome"></div>
+        <div style="font-size:11px;color:var(--text3)">Preço normal: <span id="oferta-produto-preco-normal"></span></div>
+      </div>
+      <div class="ff mb14"><label>Preço de oferta (R$) *</label><input type="number" id="oferta-preco" placeholder="0,00" min="0" step="0.01"></div>
+      <div class="fg t">
+        <div class="ff sp2"><label>Válido de *</label><input type="date" id="oferta-inicio"></div>
+        <div class="ff sp2"><label>Válido até *</label><input type="date" id="oferta-fim"></div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn ber" id="btn-excluir-oferta" onclick="removerOfertaAtual()" style="display:none;margin-right:auto"><i class="ti ti-trash"></i>Remover Oferta</button>
+      <button class="btn bg" onclick="closeModal('modal-oferta')">Cancelar</button>
+      <button class="btn bp" onclick="salvarOferta()"><i class="ti ti-check"></i>Salvar Oferta</button>
+    </div>
+  </div>
+</div>
+
+<div class="mov" id="modal-venda-detalhe" onclick="closeModal('modal-venda-detalhe')">
+  <div class="modal wide" onclick="event.stopPropagation()" style="max-width:560px">
+    <div class="mhd"><span class="mtit"><i class="ti ti-receipt" style="color:var(--amber)"></i> <span id="venda-detalhe-titulo">Detalhe da Venda</span></span><button class="mcl" onclick="closeModal('modal-venda-detalhe')"><i class="ti ti-x"></i></button></div>
+    <div class="mbd" style="max-height:70vh;overflow-y:auto">
+      <div id="venda-detalhe-info" class="fg" style="margin-bottom:14px"></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--amber);margin-bottom:8px">ITENS DA VENDA</div>
+      <div class="tw"><table>
+        <thead><tr><th>Produto</th><th>Qtd</th><th>Preço Un.</th><th>Subtotal</th></tr></thead>
+        <tbody id="venda-detalhe-itens"></tbody>
+      </table></div>
+      <div id="venda-detalhe-devolvida-aviso" style="display:none;margin-top:14px;padding:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-sm);font-size:12px;color:var(--red)"><i class="ti ti-alert-triangle"></i> Essa venda já foi devolvida.</div>
+    </div>
+    <div class="mft">
+      <button class="btn ber" id="btn-devolver-venda" onclick="devolverVendaAtual()"><i class="ti ti-arrow-back-up"></i>Registrar Devolução</button>
+      <button class="btn bg" onclick="closeModal('modal-venda-detalhe')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="mov" id="modal-contaspagar-print" onclick="closeModal('modal-contaspagar-print')">
+  <div class="modal wide" onclick="event.stopPropagation()" style="max-width:640px">
+    <div class="mhd no-print"><span class="mtit"><i class="ti ti-file-invoice" style="color:var(--amber)"></i> Contas a Pagar</span><button class="mcl" onclick="closeModal('modal-contaspagar-print')"><i class="ti ti-x"></i></button></div>
+    <div class="mbd" style="max-height:70vh;overflow-y:auto">
+      <div id="contaspagar-print-area"></div>
+    </div>
+    <div class="mft no-print">
+      <button class="btn bg" onclick="closeModal('modal-contaspagar-print')">Fechar</button>
+      <button class="btn bp" onclick="handleImprimirContasPagar()"><i class="ti ti-printer"></i>Imprimir</button>
+    </div>
+  </div>
+</div>
+
 <div class="mov" id="modal-repos-print" onclick="closeModal('modal-repos-print')">
   <div class="modal wide" onclick="event.stopPropagation()" style="max-width:640px">
     <div class="mhd no-print"><span class="mtit"><i class="ti ti-clipboard-list" style="color:var(--amber)"></i> Lista de Reposição</span><button class="mcl" onclick="closeModal('modal-repos-print')"><i class="ti ti-x"></i></button></div>
@@ -3136,6 +3250,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       <div class="pmt" onclick="prodTab('compat',this)"><i class="ti ti-car" style="font-size:12px"></i> Compatibilidade</div>
       <div class="pmt" onclick="prodTab('estoque',this)"><i class="ti ti-package" style="font-size:12px"></i> Estoque & Preços</div>
       <div class="pmt" onclick="prodTab('fotos',this)"><i class="ti ti-camera" style="font-size:12px"></i> Fotos</div>
+      <div class="pmt" onclick="prodTab('similar',this)"><i class="ti ti-git-compare" style="font-size:12px"></i> Similaridade</div>
     </div>
     <div class="pmt-content active" id="ptab-id">
       <div class="fg">
@@ -3325,6 +3440,18 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       </div>
       <div style="font-size:11px;color:var(--text3);text-align:center">
         JPG · PNG · WEBP &nbsp;·&nbsp; Até 5 MB &nbsp;·&nbsp; Até 6 fotos &nbsp;·&nbsp; Resolução recomendada: 1280×720 ou superior
+      </div>
+    </div>
+    <div class="pmt-content" id="ptab-similar">
+      <div id="similar-sem-produto" style="text-align:center;padding:24px;color:var(--text3)"><i class="ti ti-info-circle" style="font-size:24px;display:block;margin-bottom:8px"></i>Salve o produto primeiro pra poder vincular similares.</div>
+      <div id="similar-conteudo" style="display:none">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Vincule aqui o mesmo item de outras marcas/referências (ex: pivô Astro PIV1001 = pivô Via Ronda VR-334). Ao buscar qualquer um dos dois, você vê os dois no estoque.</div>
+        <div class="ff mb14"><label>Buscar produto pra vincular</label>
+          <input type="text" id="similar-busca" placeholder="Digite nome ou SKU…" oninput="buscarProdutoSimilar(this.value)" autocomplete="off">
+          <div id="similar-resultados" style="max-height:140px;overflow-y:auto;margin-top:4px"></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--amber);margin-bottom:8px">PRODUTOS SIMILARES VINCULADOS</div>
+        <div id="similar-lista"></div>
       </div>
     </div>
   </div>
@@ -4104,6 +4231,242 @@ async function carregarDashboard(){
   // Garantias: módulo ainda não migrado — mostra estado honesto em vez de número fictício
   set('dash-garantias','—');
 }
+// ======= VENDAS (histórico real) =======
+let VENDAS_DATA=[];
+let vendasPeriodoAtivo='dia';
+async function carregarVendas(periodo){
+  try{
+    const p=periodo||vendasPeriodoAtivo;
+    const resp=await fetch(API_BASE+'/vendas?periodo='+p,{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar vendas');
+    const rows=await resp.json();
+    VENDAS_DATA.length=0;
+    VENDAS_DATA.push(...rows.map(r=>({
+      id:r.id,codigo:r.codigo,cliente:r.cliente_nome||'',operador:r.operador||'',
+      pagamento:r.forma_pagamento,subtotal:parseFloat(r.subtotal)||0,desconto:parseFloat(r.desconto)||0,
+      total:parseFloat(r.total)||0,itens:r.itens||[],devolvida:r.devolvida,criadoEm:r.criado_em
+    })));
+    renderVendasTable();
+  }catch(e){toast('Erro ao carregar vendas: '+e.message,'error');}
+}
+function filterVendasPeriodo(p,btn){
+  vendasPeriodoAtivo=p;
+  document.querySelectorAll('.venda-periodo-btn').forEach(b=>b.className='btn bs btn-sm venda-periodo-btn');
+  if(btn)btn.className='btn bp btn-sm venda-periodo-btn';
+  carregarVendas(p);
+}
+function renderVendasKpis(itens){
+  const wrap=document.getElementById('vendas-kpis');if(!wrap)return;
+  const totalVendido=itens.reduce((s,v)=>s+(v.devolvida?0:v.total),0);
+  const qtdVendas=itens.filter(v=>!v.devolvida).length;
+  const ticketMedio=qtdVendas>0?totalVendido/qtdVendas:0;
+  const devolvidas=itens.filter(v=>v.devolvida).length;
+  wrap.innerHTML=`
+    <div class="kpi cg"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Total Vendido</div><div class="kv">R$ ${totalVendido.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+    <div class="kpi cb"><div class="ki"><i class="ti ti-receipt"></i></div><div class="kl">Qtd. de Vendas</div><div class="kv">${qtdVendas}</div></div>
+    <div class="kpi ca"><div class="ki"><i class="ti ti-chart-bar"></i></div><div class="kl">Ticket Médio</div><div class="kv">R$ ${ticketMedio.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+    <div class="kpi cr"><div class="ki"><i class="ti ti-arrow-back-up"></i></div><div class="kl">Devolvidas</div><div class="kv">${devolvidas}</div></div>
+  `;
+}
+function renderVendasTable(){
+  const t=document.getElementById('vendas-tbl');if(!t)return;
+  const q=normTxt(document.getElementById('vendas-busca')?.value||'');
+  let itens=VENDAS_DATA;
+  if(q)itens=itens.filter(v=>normTxt(v.codigo).includes(q)||normTxt(v.cliente).includes(q));
+  renderVendasKpis(itens);
+  if(!itens.length){t.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text3)">Nenhuma venda encontrada nesse período</td></tr>`;return;}
+  t.innerHTML=itens.map(v=>{
+    const dt=new Date(v.criadoEm);
+    const dtStr=dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const qtdItens=(v.itens||[]).reduce((s,it)=>s+(it.qty||0),0);
+    return`<tr style="${v.devolvida?'opacity:.55':''}">
+      <td class="ts" style="font-family:monospace">${v.codigo}</td>
+      <td class="ts">${dtStr}</td>
+      <td>${v.cliente||'—'}</td>
+      <td class="ts">${v.operador||'—'}</td>
+      <td class="ts">${v.pagamento||'—'}</td>
+      <td class="ts" style="text-align:center">${qtdItens}</td>
+      <td class="fw6">R$ ${v.total.toFixed(2)}</td>
+      <td><span class="badge ${v.devolvida?'br':'bg2'}">${v.devolvida?'Devolvida':'Concluída'}</span></td>
+      <td><button class="btn bg btn-sm" onclick="abrirDetalheVenda(${v.id})"><i class="ti ti-eye"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+let vendaDetalheAtualId=null;
+function abrirDetalheVenda(id){
+  const v=VENDAS_DATA.find(x=>x.id===id);if(!v)return;
+  vendaDetalheAtualId=id;
+  const dt=new Date(v.criadoEm);
+  const dtStr=dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const titulo=document.getElementById('venda-detalhe-titulo');if(titulo)titulo.textContent='Venda '+v.codigo;
+  const info=document.getElementById('venda-detalhe-info');
+  const campos=[['Código',v.codigo],['Data/Hora',dtStr],['Operador',v.operador||'—'],['Cliente',v.cliente||'—'],['Forma de Pagamento',v.pagamento||'—'],['Desconto','R$ '+v.desconto.toFixed(2)],['Total','R$ '+v.total.toFixed(2)]];
+  if(info)info.innerHTML=campos.map(([l,val])=>`<div class="ff"><label>${l}</label><div style="font-size:13px;padding:4px 0">${val}</div></div>`).join('');
+  const itensTbl=document.getElementById('venda-detalhe-itens');
+  if(itensTbl)itensTbl.innerHTML=(v.itens||[]).map(it=>`<tr>
+    <td>${it.n}${it.avulso?' <span class="badge ba" style="font-size:9px">avulso</span>':''}${it.ofertaAtiva?' <span class="badge bg2" style="font-size:9px">🏷️ oferta</span>':''}</td>
+    <td class="ts">${it.qty}</td>
+    <td class="ts">R$ ${it.preco.toFixed(2)}</td>
+    <td class="fw6">R$ ${(it.qty*it.preco).toFixed(2)}</td>
+  </tr>`).join('');
+  const aviso=document.getElementById('venda-detalhe-devolvida-aviso');
+  const btnDev=document.getElementById('btn-devolver-venda');
+  if(v.devolvida){
+    if(aviso)aviso.style.display='block';
+    if(btnDev)btnDev.style.display='none';
+  }else{
+    if(aviso)aviso.style.display='none';
+    if(btnDev)btnDev.style.display='inline-flex';
+  }
+  openModal('modal-venda-detalhe');
+}
+async function devolverVendaAtual(){
+  if(vendaDetalheAtualId===null)return;
+  const v=VENDAS_DATA.find(x=>x.id===vendaDetalheAtualId);if(!v)return;
+  if(!confirm(`Tem certeza que deseja devolver a venda "${v.codigo}" (R$ ${v.total.toFixed(2)})? Os itens de estoque voltam automaticamente, e o valor sai do caixa.`))return;
+  try{
+    const resp=await fetch(API_BASE+'/vendas/'+v.id+'/devolver',{method:'POST',headers:authHeaders()});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao devolver venda');}
+    // Sem furo no caixa: registra a saída local também, igual devolução manual
+    MOVS_CAIXA.unshift({desc:'Devolução venda '+v.codigo,dt:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),val:v.total,tp:'s',pay:v.pagamento,codigo:v.codigo+'-DEV',operador:(typeof currentUser!=='undefined'&&currentUser&&currentUser.n)?currentUser.n:'Administrador'});
+    saveData();renderCaixa();
+    await carregarProdutos();
+    await carregarVendas();
+    toast(`✅ Venda "${v.codigo}" devolvida! Estoque e caixa atualizados.`,'success');
+    closeModal('modal-venda-detalhe');
+  }catch(e){
+    toast('Erro ao devolver venda: '+e.message,'error');
+  }
+}
+function exportarVendasCSV(){
+  if(!VENDAS_DATA.length){toast('Nenhuma venda pra exportar','error');return;}
+  const headers=['Código','Data','Cliente','Operador','Pagamento','Total','Status'];
+  const rows=[headers,...VENDAS_DATA.map(v=>[v.codigo,new Date(v.criadoEm).toLocaleString('pt-BR'),v.cliente,v.operador,v.pagamento,v.total.toFixed(2),v.devolvida?'Devolvida':'Concluída'].map(x=>JSON.stringify(x??'')))];
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`vendas-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('CSV de vendas exportado!','success');
+}
+
+// ======= OFERTAS =======
+let ofertaProdutoSelecionadoId=null;
+function carregarOfertasNaTela(){
+  renderOfertasTable();
+}
+function renderOfertasTable(){
+  const t=document.getElementById('ofertas-tbl');if(!t)return;
+  const hoje=new Date().toISOString().slice(0,10);
+  const itens=PRODS.filter(p=>p.ofertaPreco&&p.ofertaInicio&&p.ofertaFim);
+  if(!itens.length){t.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)"><i class="ti ti-discount-2" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma oferta cadastrada ainda</td></tr>`;return;}
+  t.innerHTML=itens.map(p=>{
+    let status,badgeClass;
+    if(hoje<p.ofertaInicio){status='Agendada';badgeClass='ba';}
+    else if(hoje>p.ofertaFim){status='Expirada';badgeClass='br';}
+    else{status='Ativa agora';badgeClass='bg2';}
+    return`<tr>
+      <td><div class="td-n">${p.n}</div><div class="td-s">${p.sku}</div></td>
+      <td class="ts" style="text-decoration:line-through;opacity:.7">R$ ${p.preco.toFixed(2)}</td>
+      <td class="fw6" style="color:var(--amber)">R$ ${p.ofertaPreco.toFixed(2)}</td>
+      <td class="ts">${p.ofertaInicio.split('-').reverse().join('/')}</td>
+      <td class="ts">${p.ofertaFim.split('-').reverse().join('/')}</td>
+      <td><span class="badge ${badgeClass}">${status}</span></td>
+      <td><button class="btn bg btn-sm" onclick="openOfertaEditar(${p.id})"><i class="ti ti-edit"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+function openOfertaNovo(){
+  ofertaProdutoSelecionadoId=null;
+  const title=document.getElementById('modal-oferta-title');if(title)title.textContent='Nova Oferta';
+  document.getElementById('oferta-busca-produto').value='';
+  document.getElementById('oferta-produto-resultados').innerHTML='';
+  document.getElementById('oferta-produto-selecionado').style.display='none';
+  document.getElementById('oferta-preco').value='';
+  document.getElementById('oferta-inicio').value='';
+  document.getElementById('oferta-fim').value='';
+  document.getElementById('btn-excluir-oferta').style.display='none';
+  openModal('modal-oferta');
+}
+function openOfertaEditar(produtoId){
+  const p=PRODS.find(x=>x.id===produtoId);if(!p)return;
+  ofertaProdutoSelecionadoId=produtoId;
+  const title=document.getElementById('modal-oferta-title');if(title)title.textContent='Editar Oferta';
+  document.getElementById('oferta-busca-produto').value='';
+  document.getElementById('oferta-produto-resultados').innerHTML='';
+  document.getElementById('oferta-produto-selecionado').style.display='block';
+  document.getElementById('oferta-produto-nome').textContent=p.n;
+  document.getElementById('oferta-produto-preco-normal').textContent='R$ '+p.preco.toFixed(2);
+  document.getElementById('oferta-preco').value=p.ofertaPreco||'';
+  document.getElementById('oferta-inicio').value=p.ofertaInicio||'';
+  document.getElementById('oferta-fim').value=p.ofertaFim||'';
+  document.getElementById('btn-excluir-oferta').style.display='inline-flex';
+  openModal('modal-oferta');
+}
+function buscarProdutoOferta(q){
+  const wrap=document.getElementById('oferta-produto-resultados');if(!wrap)return;
+  if(!q||q.length<2){wrap.innerHTML='';return;}
+  const nq=normTxt(q);
+  const achados=PRODS.filter(p=>normTxt(p.n).includes(nq)||normTxt(p.sku).includes(nq)).slice(0,8);
+  if(!achados.length){wrap.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text3)">Nenhum produto encontrado</div>';return;}
+  wrap.innerHTML=achados.map(p=>`<div style="padding:8px;border:1px solid var(--border);border-radius:var(--radius-xs);margin-top:4px;cursor:pointer;font-size:12px" onclick="selecionarProdutoOferta(${p.id})"><strong>${p.n}</strong><br><span style="color:var(--text3)">${p.sku} · R$ ${p.preco.toFixed(2)}</span></div>`).join('');
+}
+function selecionarProdutoOferta(id){
+  const p=PRODS.find(x=>x.id===id);if(!p)return;
+  ofertaProdutoSelecionadoId=id;
+  document.getElementById('oferta-produto-resultados').innerHTML='';
+  document.getElementById('oferta-busca-produto').value='';
+  document.getElementById('oferta-produto-selecionado').style.display='block';
+  document.getElementById('oferta-produto-nome').textContent=p.n;
+  document.getElementById('oferta-produto-preco-normal').textContent='R$ '+p.preco.toFixed(2);
+}
+async function salvarOferta(){
+  if(!ofertaProdutoSelecionadoId){toast('Selecione um produto','error');return;}
+  const p=PRODS.find(x=>x.id===ofertaProdutoSelecionadoId);if(!p)return;
+  const preco=parseFloat(document.getElementById('oferta-preco')?.value||0);
+  const inicio=document.getElementById('oferta-inicio')?.value;
+  const fim=document.getElementById('oferta-fim')?.value;
+  if(!preco||preco<=0){toast('Informe o preço de oferta','error');return;}
+  if(!inicio||!fim){toast('Informe o período de validade da oferta','error');return;}
+  if(fim<inicio){toast('A data final não pode ser antes da data inicial','error');return;}
+  const payload={
+    nome:p.n,sku:p.sku,marca:p.marca,categoria:p.cat,subcategoria:p.subcat,
+    fornecedor_id:p.fornecedor_id,custo:p.custo,preco:p.preco,estoque:p.est,estoque_minimo:p.min,
+    compat:p.compat,loc:p.loc,codigo_barras:p.ean,compatibilidade:p.compatEstruturada||[],
+    oferta_preco:preco,oferta_inicio:inicio,oferta_fim:fim
+  };
+  try{
+    const resp=await fetch(API_BASE+'/produtos/'+p.id,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar oferta');}
+    await carregarProdutos();
+    renderOfertasTable();
+    toast(`✅ Oferta de "${p.n.substring(0,30)}" salva!`,'success');
+    closeModal('modal-oferta');
+  }catch(e){
+    toast('Erro ao salvar oferta: '+e.message,'error');
+  }
+}
+async function removerOfertaAtual(){
+  if(!ofertaProdutoSelecionadoId)return;
+  const p=PRODS.find(x=>x.id===ofertaProdutoSelecionadoId);if(!p)return;
+  if(!confirm(`Remover a oferta de "${p.n}"?`))return;
+  const payload={
+    nome:p.n,sku:p.sku,marca:p.marca,categoria:p.cat,subcategoria:p.subcat,
+    fornecedor_id:p.fornecedor_id,custo:p.custo,preco:p.preco,estoque:p.est,estoque_minimo:p.min,
+    compat:p.compat,loc:p.loc,codigo_barras:p.ean,compatibilidade:p.compatEstruturada||[],
+    oferta_preco:null,oferta_inicio:null,oferta_fim:null
+  };
+  try{
+    const resp=await fetch(API_BASE+'/produtos/'+p.id,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    if(!resp.ok)throw new Error('Erro ao remover oferta');
+    await carregarProdutos();
+    renderOfertasTable();
+    toast('Oferta removida!','info');
+    closeModal('modal-oferta');
+  }catch(e){
+    toast('Erro ao remover oferta: '+e.message,'error');
+  }
+}
 function pdvSwitchTab(tab){
   const paneCat=document.getElementById('pdv-pane-catalogo');
   const paneAv=document.getElementById('pdv-pane-avulso');
@@ -4138,8 +4501,10 @@ function addAvulsoToCart(){
 function addToCart(id){
   const p=PRODS.find(x=>x.id===id);if(!p)return;
   const ex=cart.find(c=>c.id===id);
-  if(ex)ex.qty++;else cart.push({...p,qty:1});
-  updateCart();toast(p.n.substring(0,25)+'… adicionado','success');
+  const emOferta=ofertaAtivaHoje(p);
+  if(ex)ex.qty++;else cart.push({...p,qty:1,preco:emOferta?p.ofertaPreco:p.preco,ofertaAtiva:emOferta,precoOriginal:p.preco});
+  updateCart();
+  toast(p.n.substring(0,25)+(emOferta?'… adicionado (preço de oferta 🏷️)':'… adicionado'),'success');
 }
 function changeQty(id,d){const i=cart.find(c=>c.id===id);if(!i)return;i.qty+=d;if(i.qty<=0)cart=cart.filter(c=>c.id!==id);updateCart();}
 function selectPay(el,m){
@@ -4259,7 +4624,7 @@ function finalizeSale(){
   const hoje=new Date().toLocaleDateString('pt-BR');
   const recebidoVal=payUsado==='cash'?(parseFloat(document.getElementById('cash-received')?.value||0)||0):null;
   const trocoVal=recebidoVal!==null?parseFloat((recebidoVal-tot).toFixed(2)):null;
-  const itensSnapshot=cart.map(it=>({id:it.id,n:it.n,qty:it.qty,preco:it.preco}));
+  const itensSnapshot=cart.map(it=>({id:it.id,n:it.n,qty:it.qty,preco:it.preco,avulso:!!it.avulso,ofertaAtiva:!!it.ofertaAtiva}));
   const numVenda='V'+Date.now().toString().slice(-8);
   cart.forEach(it=>{
     if(it.avulso)return;
@@ -4301,6 +4666,10 @@ function finalizeSale(){
   pdvSelectedCliente=null;
   const cli=document.getElementById('cart-cli');if(cli)cli.textContent='Selecionar cliente';
   MOVS_CAIXA.unshift({desc:'Venda PDV'+(clienteNomeAtual?' — '+clienteNomeAtual:''),dt:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),val:tot,tp:'e',pay:payLabels[payUsado]||payUsado,codigo:numVenda,operador:operadorVenda,cliente:clienteNomeAtual,itens:itensSnapshot,devolvido:false,valorDevolvido:0});
+  fetch(API_BASE+'/vendas',{method:'POST',headers:authHeaders(),body:JSON.stringify({
+    codigo:numVenda,cliente_nome:clienteNomeAtual,operador:operadorVenda,
+    forma_pagamento:payLabels[payUsado]||payUsado,subtotal,desconto:discAmt,total:tot,itens:itensSnapshot
+  })}).catch(()=>toast('⚠️ Venda registrada localmente, mas falhou ao sincronizar o histórico com o servidor','error'));
   renderCaixa();
   saveData();
   toast(`✅ Venda R$ ${tot.toFixed(2)} — ${payLabels[payUsado]||payUsado} — NF-e emitida!`,'success');
@@ -4623,6 +4992,11 @@ function clearProdModal(){
 
 function cancelProdModal(){prodEditId=null;closeModal('modal-produto');}
 
+function ofertaAtivaHoje(p){
+  if(!p||!p.ofertaPreco||!p.ofertaInicio||!p.ofertaFim)return false;
+  const hoje=new Date().toISOString().slice(0,10);
+  return hoje>=p.ofertaInicio&&hoje<=p.ofertaFim;
+}
 function mapProdutoFromApi(row){
   const compatEstruturada=(row.compatibilidade||[]).map(c=>({montadora:c.montadora||'',modelo:c.modelo||'',anoIni:c.ano_ini||'',anoFim:c.ano_fim||'',motor:c.motor||''}));
   const est=parseInt(row.estoque)||0,min=parseInt(row.estoque_minimo)||5;
@@ -4633,7 +5007,10 @@ function mapProdutoFromApi(row){
     marca:row.marca||'',cat:row.categoria||'',subcat:row.subcategoria||'',
     fornecedor_id:row.fornecedor_id||null,forn:(FORNECEDORES_DATA.find(f=>f.id===row.fornecedor_id)||{}).nome||'',
     custo,preco,mg:custo>0?parseFloat((((preco-custo)/preco)*100).toFixed(1)):0,
-    est,min,curva:est>=min*4?'A':est>=min?'B':'C'
+    est,min,curva:est>=min*4?'A':est>=min?'B':'C',
+    ofertaPreco:row.oferta_preco?parseFloat(row.oferta_preco):null,
+    ofertaInicio:row.oferta_inicio||null,ofertaFim:row.oferta_fim||null,
+    similares:(row.similares||[]).map(s=>({id:s.id,nome:s.nome,marca:s.marca,sku:s.sku,estoque:parseInt(s.estoque)||0}))
   };
 }
 async function carregarProdutos(q){
@@ -4721,10 +5098,76 @@ async function excluirProdutoAtual(){
 
 // ======= TABS MODAL PRODUTO =======
 function prodTab(id,el){
-  ['id','compat','estoque','fotos'].forEach(t=>{const e=document.getElementById('ptab-'+t);if(e)e.classList.toggle('active',t===id);});
+  ['id','compat','estoque','fotos','similar'].forEach(t=>{const e=document.getElementById('ptab-'+t);if(e)e.classList.toggle('active',t===id);});
   document.querySelectorAll('.pmt').forEach(t=>t.classList.remove('active'));
   if(el)el.classList.add('active');
   if(id==='fotos')setTimeout(enumCameras,200);
+  if(id==='similar')renderSimilaresTab();
+}
+function renderSimilaresTab(){
+  const semProd=document.getElementById('similar-sem-produto');
+  const conteudo=document.getElementById('similar-conteudo');
+  if(prodEditId===null){
+    if(semProd)semProd.style.display='block';
+    if(conteudo)conteudo.style.display='none';
+    return;
+  }
+  if(semProd)semProd.style.display='none';
+  if(conteudo)conteudo.style.display='block';
+  const busca=document.getElementById('similar-busca');if(busca)busca.value='';
+  const res=document.getElementById('similar-resultados');if(res)res.innerHTML='';
+  renderSimilaresLista();
+}
+function renderSimilaresLista(){
+  const wrap=document.getElementById('similar-lista');if(!wrap)return;
+  const p=PRODS.find(x=>x.id===prodEditId);if(!p)return;
+  const similares=p.similares||[];
+  if(!similares.length){wrap.innerHTML='<div style="padding:10px;font-size:12px;color:var(--text3);text-align:center">Nenhum produto similar vinculado ainda.</div>';return;}
+  wrap.innerHTML=similares.map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600">${s.nome}</div>
+        <div style="font-size:11px;color:var(--text3)">${s.marca||'—'} · ${s.sku||'—'} · <span style="color:${s.estoque>0?'var(--green)':'var(--red)'}">${s.estoque} un. em estoque</span></div>
+      </div>
+      <button class="btn ber btn-sm" onclick="desvincularSimilar(${s.id})" title="Desvincular"><i class="ti ti-unlink"></i></button>
+    </div>
+  `).join('');
+}
+function buscarProdutoSimilar(q){
+  const wrap=document.getElementById('similar-resultados');if(!wrap)return;
+  if(!q||q.length<2){wrap.innerHTML='';return;}
+  const p=PRODS.find(x=>x.id===prodEditId);if(!p)return;
+  const jaVinculados=(p.similares||[]).map(s=>s.id);
+  const nq=normTxt(q);
+  const achados=PRODS.filter(x=>x.id!==prodEditId&&!jaVinculados.includes(x.id)&&(normTxt(x.n).includes(nq)||normTxt(x.sku).includes(nq))).slice(0,8);
+  if(!achados.length){wrap.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text3)">Nenhum produto encontrado</div>';return;}
+  wrap.innerHTML=achados.map(x=>`<div style="padding:8px;border:1px solid var(--border);border-radius:var(--radius-xs);margin-top:4px;cursor:pointer;font-size:12px" onclick="vincularSimilar(${x.id})"><strong>${x.n}</strong><br><span style="color:var(--text3)">${x.marca||'—'} · ${x.sku||'—'} · ${x.est} un.</span></div>`).join('');
+}
+async function vincularSimilar(similarId){
+  if(prodEditId===null)return;
+  try{
+    const resp=await fetch(API_BASE+'/produtos/'+prodEditId+'/similar',{method:'POST',headers:authHeaders(),body:JSON.stringify({similar_id:similarId})});
+    if(!resp.ok)throw new Error('Erro ao vincular');
+    await carregarProdutos();
+    document.getElementById('similar-busca').value='';
+    document.getElementById('similar-resultados').innerHTML='';
+    renderSimilaresLista();
+    toast('Produto similar vinculado!','success');
+  }catch(e){
+    toast('Erro ao vincular: '+e.message,'error');
+  }
+}
+async function desvincularSimilar(similarId){
+  if(prodEditId===null)return;
+  try{
+    const resp=await fetch(API_BASE+'/produtos/'+prodEditId+'/similar/'+similarId,{method:'DELETE',headers:authHeaders()});
+    if(!resp.ok)throw new Error('Erro ao desvincular');
+    await carregarProdutos();
+    renderSimilaresLista();
+    toast('Desvinculado','info');
+  }catch(e){
+    toast('Erro ao desvincular: '+e.message,'error');
+  }
 }
 function updateSubcats(cat){
   const sel=document.getElementById('modal-subcat');if(!sel)return;
@@ -6178,9 +6621,11 @@ function updateCart(){
     if(badge)badge.classList.toggle('show',discAuthApproved&&disc>10);
     if(discEl)discEl.style.borderColor=discAuthApproved&&disc>10?'var(--green)':'var(--border)';
   }
-  // Desconto diferenciado pra óleo/lubrificante — normalmente 0%, só até 5% se o vendedor ativar
-  const subOleo=cart.reduce((a,c)=>a+(c.cat==='Lubrificantes'?c.preco*c.qty:0),0);
-  const subOutros=sub-subOleo;
+  // Itens em oferta: preço já é final, nunca recebem desconto adicional
+  const subOferta=cart.reduce((a,c)=>a+(c.ofertaAtiva?c.preco*c.qty:0),0);
+  // Desconto diferenciado pra óleo/lubrificante — normalmente 0%, só até 5% se o vendedor ativar (não se estiver em oferta)
+  const subOleo=cart.reduce((a,c)=>a+(!c.ofertaAtiva&&c.cat==='Lubrificantes'?c.preco*c.qty:0),0);
+  const subOutros=sub-subOleo-subOferta;
   const oilToggle=document.getElementById('oil-disc-toggle');
   const oilWrap=document.getElementById('oil-disc-wrap');
   if(oilWrap)oilWrap.style.display=subOleo>0?'flex':'none';
@@ -6202,15 +6647,15 @@ function updateCart(){
     if(!cart.length){
       ci.innerHTML='<div class="empty" style="padding:20px"><i class="ti ti-shopping-cart-off" style="font-size:32px"></i><p style="font-size:12px">Carrinho vazio</p></div>';
     }else{
-      ci.innerHTML=cart.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px">
-        <div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.n.substring(0,26)}</div><div style="font-size:10px;color:var(--text3)">R$ ${c.preco.toFixed(2)} un.</div></div>
+      ci.innerHTML=cart.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg2);border:1px solid ${c.ofertaAtiva?'var(--amber)':'var(--border)'};border-radius:var(--radius-sm);margin-bottom:6px">
+        <div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.n.substring(0,26)}${c.ofertaAtiva?' <span style="color:var(--amber);font-size:9px">🏷️ OFERTA</span>':''}</div><div style="font-size:10px;color:var(--text3)">${c.ofertaAtiva?`<span style="text-decoration:line-through;opacity:.6">R$ ${(c.precoOriginal||0).toFixed(2)}</span> `:''}R$ ${c.preco.toFixed(2)} un.</div></div>
         <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-          <button style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center" onclick="changeQty(${c.id},-1)">−</button>
+          <button style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center" onclick="changeQty(${JSON.stringify(c.id)},-1)">−</button>
           <span style="font-size:12px;font-weight:600;min-width:20px;text-align:center">${c.qty}</span>
-          <button style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center" onclick="changeQty(${c.id},1)">+</button>
+          <button style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center" onclick="changeQty(${JSON.stringify(c.id)},1)">+</button>
         </div>
         <div style="font-size:12px;font-weight:700;color:var(--amber);min-width:58px;text-align:right">R$ ${(c.preco*c.qty).toFixed(2)}</div>
-        <i class="ti ti-x" style="font-size:13px;color:var(--text3);cursor:pointer;opacity:.7" onclick="cart=cart.filter(x=>x.id!==${c.id});updateCart()"></i>
+        <i class="ti ti-x" style="font-size:13px;color:var(--text3);cursor:pointer;opacity:.7" onclick="cart=cart.filter(x=>x.id!==${JSON.stringify(c.id)});updateCart()"></i>
       </div>`).join('');
     }
   }
@@ -7385,7 +7830,7 @@ function salvarVeiculo(){
 
 
 function finTab(id,el){
-  ['pagar','receber','fluxo'].forEach(t=>{const e=document.getElementById('fin-tab-'+t);if(e)e.style.display=t===id?'block':'none';});
+  ['pagar','pagas','receber','fluxo'].forEach(t=>{const e=document.getElementById('fin-tab-'+t);if(e)e.style.display=t===id?'block':'none';});
   document.querySelectorAll('.fin-tab').forEach(t=>t.classList.remove('active'));
   if(el)el.classList.add('active');
   if(id==='fluxo')setTimeout(initCharts,80);
@@ -7437,8 +7882,9 @@ function renderFinanceiro(){
     `;}).join('');
   };
 
-  renderLista('contas-pagar-list',CONTAS_PAGAR,'fin-pagar-status','fin-pagar-periodo');
+  renderLista('contas-pagar-list',CONTAS_PAGAR.filter(c=>c.status!=='pago'),'fin-pagar-status','fin-pagar-periodo');
   renderLista('contas-receber-list',CONTAS_RECEBER,'fin-receber-status');
+  renderContasPagasList();
 
   // KPIs
   const pend_p=CONTAS_PAGAR.filter(c=>c.status==='pendente'||c.status==='vencido').reduce((s,c)=>s+c.valor,0);
@@ -7455,6 +7901,106 @@ function renderFinanceiro(){
   if(br)br.textContent=CONTAS_RECEBER.filter(c=>c.status==='pendente'||c.status==='vencido').length;
 }
 
+function getContasPagarFiltradas(){
+  const hoje=new Date().toISOString().slice(0,10);
+  const filt=document.getElementById('fin-pagar-status')?.value||'';
+  const periodo=document.getElementById('fin-pagar-periodo')?.value||'';
+  let items=CONTAS_PAGAR.filter(c=>c.status!=='pago');
+  if(filt)items=items.filter(c=>c.status===filt);
+  if(periodo){
+    items=items.filter(c=>{
+      if(!c.venc)return false;
+      const diffDias=diffDiasISO(c.venc,hoje);
+      if(periodo==='hoje')return diffDias===0;
+      if(periodo==='semana')return diffDias>=0&&diffDias<=7;
+      if(periodo==='mes')return diffDias>=0&&diffDias<=30;
+      if(periodo==='atrasado')return diffDias<0;
+      return true;
+    });
+  }
+  return items.slice().sort((a,b)=>(a.venc||'9999-99-99').localeCompare(b.venc||'9999-99-99'));
+}
+function imprimirContasPagar(){
+  const itens=getContasPagarFiltradas();
+  if(!itens.length){toast('Nenhuma conta encontrada com os filtros atuais','error');return;}
+  const fmtVal=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fmtDate=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
+  const agora=new Date().toLocaleDateString('pt-BR');
+  const total=itens.reduce((s,c)=>s+(c.valor||0),0);
+  const periodoSel=document.getElementById('fin-pagar-periodo');
+  const statusSel=document.getElementById('fin-pagar-status');
+  const periodoTxt=periodoSel&&periodoSel.selectedIndex>=0?periodoSel.options[periodoSel.selectedIndex].text:'Qualquer data';
+  const statusTxt=statusSel&&statusSel.selectedIndex>=0?statusSel.options[statusSel.selectedIndex].text:'Todos';
+  const html=`
+    <div style="font-family:Arial,sans-serif;color:#000">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:16px;font-weight:800">🔧 AutoPeças Central</div>
+        <div style="font-size:11px;color:#666">Contas a Pagar — ${agora}</div>
+        <div style="font-size:10px;color:#999;margin-top:2px">Filtro aplicado: ${statusTxt} · ${periodoTxt}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr style="border-bottom:1px solid #ccc;text-align:left">
+          <th style="padding:4px">Descrição</th><th style="padding:4px">Fornecedor/Parte</th><th style="padding:4px;text-align:center">Vencimento</th><th style="padding:4px;text-align:center">Status</th><th style="padding:4px;text-align:right">Valor</th>
+        </tr></thead>
+        <tbody>
+          ${itens.map(c=>`<tr style="border-bottom:1px solid #eee">
+            <td style="padding:4px">${c.desc}</td>
+            <td style="padding:4px">${c.parte}${c.parc?' (parc. '+c.parc+')':''}</td>
+            <td style="padding:4px;text-align:center">${fmtDate(c.venc)}</td>
+            <td style="padding:4px;text-align:center;${c.status==='vencido'?'color:#c00;font-weight:700':''}">${c.status}</td>
+            <td style="padding:4px;text-align:right">${fmtVal(c.valor)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div style="border-top:2px solid #000;margin-top:10px;padding-top:8px;text-align:right;font-size:14px;font-weight:800">TOTAL: ${fmtVal(total)} — ${itens.length} conta${itens.length>1?'s':''}</div>
+    </div>`;
+  const area=document.getElementById('contaspagar-print-area');
+  if(area)area.innerHTML=html;
+  openModal('modal-contaspagar-print');
+}
+function handleImprimirContasPagar(){
+  document.body.classList.add('printing-cp');
+  setTimeout(()=>{
+    try{window.print();}catch(e){toast('Impressão bloqueada neste ambiente: '+e.message,'error');}
+    setTimeout(()=>document.body.classList.remove('printing-cp'),600);
+  },150);
+}
+function renderContasPagasList(){
+  const el=document.getElementById('contas-pagas-list');if(!el)return;
+  const periodo=document.getElementById('fin-pagas-periodo')?.value||'';
+  const hoje=new Date().toISOString().slice(0,10);
+  const fmtVal=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fmtDate=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
+  let items=CONTAS_PAGAR.filter(c=>c.status==='pago');
+  if(periodo){
+    items=items.filter(c=>{
+      if(!c.dataPagamento)return false;
+      const diasAtras=diffDiasISO(hoje,c.dataPagamento);
+      if(periodo==='semana')return diasAtras>=0&&diasAtras<=7;
+      if(periodo==='mes')return diasAtras>=0&&diasAtras<=30;
+      return true;
+    });
+  }
+  // Mais recentemente pago primeiro
+  items=items.slice().sort((a,b)=>(b.dataPagamento||'').localeCompare(a.dataPagamento||''));
+  const badge=document.getElementById('fin-badge-pagas');if(badge)badge.textContent=items.length;
+  if(!items.length){el.innerHTML=`<div class="empty" style="padding:20px;margin:0"><i class="ti ti-receipt-off"></i><p>Nenhuma conta paga nesse período</p></div>`;return;}
+  el.innerHTML=items.map(c=>`
+    <div class="conta-row">
+      <div class="conta-status cs-pago"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.desc}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${c.parte}${c.parc?' · Parcela '+c.parc:''} · Vencia: ${fmtDate(c.venc)}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;margin-right:10px">
+        <div style="font-family:var(--font-head);font-size:14px;font-weight:700">${fmtVal(c.valor)}</div>
+        <div style="font-size:11px;color:var(--green)"><i class="ti ti-check"></i> Pago em: ${fmtDate(c.dataPagamento)}</div>
+      </div>
+      <span class="conta-badge cb-pago">pago</span>
+      <div style="width:42px"></div>
+    </div>
+  `).join('');
+}
 function marcarPago(id,listId){
   const arr=listId.includes('pagar')?CONTAS_PAGAR:CONTAS_RECEBER;
   const c=arr.find(x=>x.id===id);
@@ -9125,6 +9671,8 @@ function nav(id,el){
   if(id==='orcamentos')setTimeout(renderOrcamentos,50);
   if(id==='relatorios')setTimeout(()=>{selectReport(activeReport,document.querySelector('.rep-type-card.active'));},80);
   if(id==='produtos')setTimeout(()=>carregarProdutos(),50);
+  if(id==='vendas')setTimeout(()=>carregarVendas(),50);
+  if(id==='ofertas')setTimeout(()=>renderOfertasTable(),50);
   if(id==='estoque'){setTimeout(()=>{renderMov();atualizarKpisEstoque();},50);}
   if(id==='inventario')setTimeout(renderInventario,50);
   if(id==='dashboard')setTimeout(()=>carregarDashboard(),50);
