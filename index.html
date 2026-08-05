@@ -933,16 +933,16 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       <div class="screen active" id="screen-dashboard">
         <div class="ph"><div class="phl"><h1>Dashboard Executivo</h1><p id="dash-date"></p></div><div class="flx g2b"><select style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);padding:7px 12px;border-radius:var(--radius-sm);font-size:13px;outline:none"><option>Maio 2025</option><option>Abril 2025</option></select><button class="btn bp btn-sm" onclick="toast('Relatório exportado!','success')"><i class="ti ti-download"></i>Exportar</button></div></div>
         <div class="g4 mb14">
-          <div class="kpi ca"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Faturamento (Mês)</div><div class="kv">R$ 184.720</div><div class="kc up"><i class="ti ti-arrow-up"></i>+12,4%</div></div>
-          <div class="kpi cg"><div class="ki"><i class="ti ti-trending-up"></i></div><div class="kl">Lucro Bruto</div><div class="kv">R$ 52.340</div><div class="kc up"><i class="ti ti-arrow-up"></i>Margem 28,3%</div></div>
-          <div class="kpi cb"><div class="ki"><i class="ti ti-clipboard-check"></i></div><div class="kl">OS Abertas</div><div class="kv">47</div><div class="kc mu"><i class="ti ti-minus"></i>+3 hoje</div></div>
-          <div class="kpi cr"><div class="ki"><i class="ti ti-alert-triangle"></i></div><div class="kl">Estoque Crítico</div><div class="kv">23 itens</div><div class="kc dn"><i class="ti ti-alert-triangle"></i>Ação necessária</div></div>
+          <div class="kpi ca"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Faturamento (Mês)</div><div class="kv" id="dash-fat">—</div><div class="kc up" id="dash-fat-trend"><i class="ti ti-info-circle"></i>Carregando…</div></div>
+          <div class="kpi cg"><div class="ki"><i class="ti ti-trending-up"></i></div><div class="kl">Lucro Bruto</div><div class="kv" id="dash-lucro">—</div><div class="kc up" id="dash-lucro-trend"><i class="ti ti-info-circle"></i>Carregando…</div></div>
+          <div class="kpi cb"><div class="ki"><i class="ti ti-clipboard-check"></i></div><div class="kl">OS Abertas</div><div class="kv" id="dash-os">—</div><div class="kc mu" id="dash-os-trend"><i class="ti ti-info-circle"></i>Carregando…</div></div>
+          <div class="kpi cr"><div class="ki"><i class="ti ti-alert-triangle"></i></div><div class="kl">Estoque Crítico</div><div class="kv" id="dash-estoque">—</div><div class="kc dn" id="dash-estoque-trend"><i class="ti ti-info-circle"></i>Carregando…</div></div>
         </div>
         <div class="g4 mb14">
-          <div class="kpi cp"><div class="ki"><i class="ti ti-users"></i></div><div class="kl">Clientes Ativos</div><div class="kv">1.284</div><div class="kc up"><i class="ti ti-arrow-up"></i>+28</div></div>
-          <div class="kpi ct2"><div class="ki"><i class="ti ti-car-suv"></i></div><div class="kl">Veículos Cadastrados</div><div class="kv">2.847</div><div class="kc up"><i class="ti ti-arrow-up"></i>+12 hoje</div></div>
-          <div class="kpi ca"><div class="ki"><i class="ti ti-cash-register"></i></div><div class="kl">Caixa Atual</div><div class="kv">R$ 12.480</div><div class="kc up"><i class="ti ti-circle-filled" style="font-size:8px;animation:pulse 1.5s infinite;color:var(--green)"></i>Aberto</div></div>
-          <div class="kpi cr"><div class="ki"><i class="ti ti-shield-check"></i></div><div class="kl">Garantias Vencendo</div><div class="kv">2 garantias</div><div class="kc dn"><i class="ti ti-calendar"></i>Nos próximos 7 dias</div></div>
+          <div class="kpi cp"><div class="ki"><i class="ti ti-users"></i></div><div class="kl">Clientes Ativos</div><div class="kv" id="dash-clientes">—</div><div class="kc up" id="dash-clientes-trend"><i class="ti ti-info-circle"></i>Carregando…</div></div>
+          <div class="kpi ct2"><div class="ki"><i class="ti ti-car-suv"></i></div><div class="kl">Veículos Cadastrados</div><div class="kv" id="dash-veiculos">—</div><div class="kc up" id="dash-veiculos-trend"><i class="ti ti-info-circle"></i>Carregando…</div></div>
+          <div class="kpi ca"><div class="ki"><i class="ti ti-cash-register"></i></div><div class="kl">Caixa Atual</div><div class="kv" id="dash-caixa">—</div><div class="kc up" id="dash-caixa-trend"><i class="ti ti-info-circle"></i>Carregando…</div></div>
+          <div class="kpi cr"><div class="ki"><i class="ti ti-shield-check"></i></div><div class="kl">Garantias Vencendo</div><div class="kv" id="dash-garantias">—</div><div class="kc dn" id="dash-garantias-trend"><i class="ti ti-info-circle"></i>Módulo ainda não conectado</div></div>
         </div>
         <div class="g2 mb14">
           <div class="card"><div class="ch"><div><div class="ct">Faturamento × Meta</div><div class="cs">Últimos 6 meses</div></div><span class="badge bg2"><i class="ti ti-arrow-up"></i>+12,4%</span></div><div style="position:relative;height:220px"><canvas id="ch-fat"></canvas></div></div>
@@ -1148,6 +1148,11 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
         <div class="ph"><div class="phl"><h1>PDV — Ponto de Venda</h1><p>Venda rápida com NF-e integrada</p></div><span class="badge bg2" id="pdv-caixa-badge"><i class="ti ti-circle-filled" style="font-size:8px;animation:pulse 1.5s infinite"></i>Caixa Aberto · Operador: Admin</span></div>
         <div style="display:grid;grid-template-columns:1fr 340px;height:calc(100vh - 110px);gap:14px">
           <div style="display:flex;flex-direction:column;gap:10px;overflow:hidden">
+            <div class="flx g2b">
+              <button class="btn bp btn-sm" id="pdv-tab-catalogo" onclick="pdvSwitchTab('catalogo')" style="flex:1"><i class="ti ti-list"></i>Catálogo</button>
+              <button class="btn bs btn-sm" id="pdv-tab-avulso" onclick="pdvSwitchTab('avulso')" style="flex:1"><i class="ti ti-tag"></i>Venda Rápida</button>
+            </div>
+            <div id="pdv-pane-catalogo" style="display:flex;flex-direction:column;gap:10px;overflow:hidden;flex:1">
             <div class="sfield"><i class="ti ti-search"></i><input type="text" id="pdv-search" placeholder="Buscar produto, SKU, código de barras…" oninput="filterPDV(this.value)"></div>
             <div class="flx g2b" style="flex-wrap:wrap">
               <span class="tag" style="cursor:pointer" onclick="filterPDV('')">Todos</span>
@@ -1157,21 +1162,38 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
               <span class="tag" style="cursor:pointer" onclick="filterPDV('Suspensão')">Suspensão</span>
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;overflow-y:auto;flex:1" id="pdv-grid"></div>
+            </div>
+            <div id="pdv-pane-avulso" style="display:none;flex-direction:column;gap:12px;overflow-y:auto;flex:1;padding:4px">
+              <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;max-width:420px">
+                <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px"><i class="ti ti-tag" style="color:var(--amber)"></i>Item avulso / não cadastrado</div>
+                <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Pra produtos soltos na loja ou ainda sem cadastro — vende na hora sem precisar cadastrar antes.</div>
+                <div class="ff mb14"><label>Nome do item *</label><input type="text" id="avulso-nome" placeholder="Ex: Parafuso avulso, serviço rápido…"></div>
+                <div class="fg t">
+                  <div class="ff sp2"><label>Valor unitário (R$) *</label><input type="number" id="avulso-valor" placeholder="0,00" min="0" step="0.01"></div>
+                  <div class="ff sp2"><label>Quantidade</label><input type="number" id="avulso-qtd" value="1" min="1" step="1"></div>
+                </div>
+                <button class="btn bp" style="width:100%;margin-top:6px" onclick="addAvulsoToCart()"><i class="ti ti-plus"></i>Adicionar ao Carrinho</button>
+              </div>
+            </div>
           </div>
-          <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden">
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden">
             <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
               <div class="flx ic g2b"><div class="ki ca" style="margin:0;width:28px;height:28px"><i class="ti ti-shopping-cart" style="font-size:14px"></i></div><span class="ct">Carrinho</span><span class="badge ba mla" id="cart-cnt">0</span></div>
               <div style="display:flex;align-items:center;gap:8px;margin-top:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer" onclick="openPDVClientModal()">
                 <i class="ti ti-user-circle" style="color:var(--text3)"></i><span style="font-size:12px;color:var(--text2);flex:1" id="cart-cli">Selecionar cliente</span><i class="ti ti-chevron-right" style="font-size:13px;color:var(--text3)"></i>
               </div>
             </div>
-            <div style="flex:1;overflow-y:auto;padding:10px;min-height:160px" id="cart-items"><div class="empty" style="padding:20px"><i class="ti ti-shopping-cart-off" style="font-size:32px"></i><p style="font-size:12px">Carrinho vazio</p></div></div>
+            <div style="flex:1;overflow-y:auto;padding:10px;min-height:80px" id="cart-items"><div class="empty" style="padding:20px"><i class="ti ti-shopping-cart-off" style="font-size:32px"></i><p style="font-size:12px">Carrinho vazio</p></div></div>
             <div style="border-top:1px solid var(--border);padding:12px 14px 0;display:flex;flex-direction:column">
               <div style="overflow-y:auto;max-height:min(38vh,320px);padding-bottom:10px">
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="tm">Subtotal</span><span id="cart-sub">R$ 0,00</span></div>
               <div class="disc-row">
                 <input type="number" placeholder="Desconto %" id="pdv-disc" min="0" max="20" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:5px 8px;color:var(--text1);font-size:12px;font-family:var(--font-body);outline:none;flex:1;width:100%" oninput="updateCart()">
                 <span style="font-size:11px;color:var(--text3);white-space:nowrap" id="disc-v">-R$ 0,00</span>
+              </div>
+              <div id="oil-disc-wrap" style="display:none;align-items:center;gap:6px;margin-bottom:6px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:var(--radius-xs);padding:6px 8px">
+                <input type="checkbox" id="oil-disc-toggle" onchange="updateCart()" style="cursor:pointer">
+                <label for="oil-disc-toggle" style="font-size:10.5px;color:var(--text2);cursor:pointer;flex:1"><i class="ti ti-droplet" style="color:var(--amber);font-size:11px"></i> Óleo/lubrificante normalmente não tem desconto — <strong>ativar até 5%</strong> nesse item</label>
               </div>
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">
                 <div class="disc-warning" id="disc-warning"><i class="ti ti-lock" style="font-size:11px"></i> Limite 10% — <button style="background:none;border:none;color:var(--amber);cursor:pointer;font-size:10px;padding:0;text-decoration:underline" onclick="requestDiscountAuth()">Autorizar supervisor (máx 20%)</button></div>
@@ -1231,7 +1253,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
                 </div>
               </div>
               </div>
-              <div style="padding:10px 0 12px">
+              <div style="padding:10px 0 12px;position:sticky;bottom:0;background:var(--card);z-index:2">
                 <button style="width:100%;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;font-family:var(--font-head);cursor:pointer;transition:all var(--tr);display:flex;align-items:center;justify-content:center;gap:8px" id="finalize-btn" onclick="finalizeSale()" disabled><i class="ti ti-check"></i>Finalizar Venda</button>
               </div>
             </div>
@@ -3127,7 +3149,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
         </div>
         <div class="ff"><label>Categoria *</label>
           <div class="sel-row">
-            <select id="sel-cat" onchange="updateSubcats(this.value)"><option value="">Selecione</option><option>Freios</option><option>Motor</option><option>Suspensão</option><option>Elétrica</option><option>Filtros</option><option>Transmissão</option><option>Carroceria</option></select>
+            <select id="sel-cat" onchange="updateSubcats(this.value)"><option value="">Selecione</option><option>Freios</option><option>Motor</option><option>Suspensão</option><option>Elétrica</option><option>Filtros</option><option>Transmissão</option><option>Carroceria</option><option>Lubrificantes</option></select>
             <input type="text" class="add-opt-inp" id="inp-cat" placeholder="Nova categoria…" onkeydown="if(event.key==='Enter')confirmAddOpt('cat')">
             <button type="button" id="btn-add-cat" onclick="toggleAddOpt('cat')" title="Adicionar nova categoria" style="flex-shrink:0;width:22px;height:22px;background:var(--bg2);border:1px solid var(--border);color:var(--amber);border-radius:5px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center">+</button>
             <button class="btn bp btn-sm" id="btn-save-cat" style="display:none;flex-shrink:0" onclick="confirmAddOpt('cat')"><i class="ti ti-check"></i></button>
@@ -3186,7 +3208,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--amber);margin-bottom:10px">Calculadora de Margem</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
           <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Custo (R$)</label><input type="number" id="m-custo" placeholder="0,00" step="0.01" oninput="calcPreco()" style="width:100%;background:var(--bg1);border:1px solid var(--border);color:var(--text1);padding:8px 10px;border-radius:var(--radius-xs);font-size:15px;font-family:var(--font-head);outline:none"></div>
-          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Margem sobre custo (%) <span style="color:var(--amber);font-size:10px">↑ 67% sugerido</span></label><input type="number" id="m-margem" value="67" placeholder="67" step="0.1" oninput="calcPreco()" style="width:100%;background:var(--bg1);border:1px solid var(--border);color:var(--text1);padding:8px 10px;border-radius:var(--radius-xs);font-size:15px;font-family:var(--font-head);outline:none"></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Margem sobre custo (%) <span style="color:var(--amber);font-size:10px">↑ 76% sugerido</span></label><input type="number" id="m-margem" value="76" placeholder="76" step="0.1" oninput="calcPreco()" style="width:100%;background:var(--bg1);border:1px solid var(--border);color:var(--text1);padding:8px 10px;border-radius:var(--radius-xs);font-size:15px;font-family:var(--font-head);outline:none"></div>
           <div><label style="font-size:11px;color:var(--amber);display:block;margin-bottom:4px;font-weight:600">Preço de Venda (R$) <span style="font-size:10px;color:var(--text3);font-weight:400">= custo × (1 + margem%)</span></label><input type="number" id="m-preco" placeholder="Auto-calc." step="0.01" oninput="calcMargem()" style="width:100%;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);color:var(--amber);padding:8px 10px;border-radius:var(--radius-xs);font-size:15px;font-weight:700;font-family:var(--font-head);outline:none"></div>
         </div>
       </div>
@@ -4031,6 +4053,81 @@ function renderPDV(filter=''){
   </div>`).join('');
 }
 function filterPDV(v){renderPDV(v);}
+async function carregarDashboard(){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const setHtml=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v;};
+  try{
+    const resp=await fetch(API_BASE+'/dashboard',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar dashboard');
+    const d=await resp.json();
+    const receita=parseFloat(d?.financeiro?.receita_mes)||0;
+    const despesa=parseFloat(d?.financeiro?.despesa_mes)||0;
+    const lucro=receita-despesa;
+    const margem=receita>0?((lucro/receita)*100).toFixed(1):'0.0';
+    set('dash-fat','R$ '+receita.toLocaleString('pt-BR',{minimumFractionDigits:2}));
+    setHtml('dash-fat-trend','<i class="ti ti-info-circle"></i>Baseado em lançamentos pagos no mês');
+    set('dash-lucro','R$ '+lucro.toLocaleString('pt-BR',{minimumFractionDigits:2}));
+    setHtml('dash-lucro-trend',`<i class="ti ti-percentage"></i>Margem ${margem}%`);
+    const osAbertas=parseInt(d?.os?.abertas)||0;
+    const osAndamento=parseInt(d?.os?.andamento)||0;
+    set('dash-os',String(osAbertas+osAndamento));
+    setHtml('dash-os-trend',`<i class="ti ti-clock"></i>${osAndamento} em andamento`);
+    const estZerados=parseInt(d?.produtos?.zerados)||0;
+    const estMinimos=parseInt(d?.produtos?.minimos)||0;
+    set('dash-estoque',(estZerados+estMinimos)+' itens');
+    setHtml('dash-estoque-trend',estZerados+estMinimos>0?`<i class="ti ti-alert-triangle"></i>${estZerados} zerados, ${estMinimos} no mínimo`:`<i class="ti ti-check"></i>Estoque saudável`);
+    const totalClientes=parseInt(d?.clientes?.total)||CLIENTES_DATA.length;
+    set('dash-clientes',totalClientes.toLocaleString('pt-BR'));
+    setHtml('dash-clientes-trend','<i class="ti ti-database"></i>Total cadastrado');
+  }catch(e){
+    set('dash-fat','—');set('dash-lucro','—');set('dash-os','—');set('dash-estoque','—');set('dash-clientes','—');
+    setHtml('dash-fat-trend','<i class="ti ti-alert-triangle"></i>Erro ao carregar');
+    toast('Erro ao carregar dados do dashboard: '+e.message,'error');
+  }
+  // Veículos: aproximado pelos clientes que têm placa cadastrada (dado local já carregado)
+  const comVeiculo=CLIENTES_DATA.filter(c=>c.placa&&c.placa.trim()).length;
+  set('dash-veiculos',String(comVeiculo));
+  setHtml('dash-veiculos-trend','<i class="ti ti-info-circle"></i>Clientes com veículo cadastrado');
+  // Caixa: já é real localmente (sistema de caixa de hoje)
+  if(typeof calcCaixaTotais==='function'){
+    const{saldoEsperado}=calcCaixaTotais();
+    set('dash-caixa','R$ '+saldoEsperado.toLocaleString('pt-BR',{minimumFractionDigits:2}));
+    setHtml('dash-caixa-trend',(typeof caixaAberto!=='undefined'&&caixaAberto)?'<i class="ti ti-circle-filled" style="font-size:8px;animation:pulse 1.5s infinite;color:var(--green)"></i>Aberto':'<i class="ti ti-lock"></i>Fechado');
+  }
+  // Garantias: módulo ainda não migrado — mostra estado honesto em vez de número fictício
+  set('dash-garantias','—');
+}
+function pdvSwitchTab(tab){
+  const paneCat=document.getElementById('pdv-pane-catalogo');
+  const paneAv=document.getElementById('pdv-pane-avulso');
+  const btnCat=document.getElementById('pdv-tab-catalogo');
+  const btnAv=document.getElementById('pdv-tab-avulso');
+  if(tab==='avulso'){
+    if(paneCat)paneCat.style.display='none';
+    if(paneAv)paneAv.style.display='flex';
+    if(btnCat){btnCat.className='btn bs btn-sm';}
+    if(btnAv){btnAv.className='btn bp btn-sm';}
+  }else{
+    if(paneCat)paneCat.style.display='flex';
+    if(paneAv)paneAv.style.display='none';
+    if(btnCat){btnCat.className='btn bp btn-sm';}
+    if(btnAv){btnAv.className='btn bs btn-sm';}
+  }
+}
+function addAvulsoToCart(){
+  const nome=(document.getElementById('avulso-nome')?.value||'').trim();
+  const valor=parseFloat(document.getElementById('avulso-valor')?.value||0)||0;
+  const qtd=Math.max(1,parseInt(document.getElementById('avulso-qtd')?.value||1)||1);
+  if(!nome){toast('Informe o nome do item','error');return;}
+  if(valor<=0){toast('Informe o valor do item','error');return;}
+  cart.push({id:'avulso_'+Date.now(),n:nome,preco:valor,qty:qtd,avulso:true});
+  updateCart();
+  toast(`"${nome.substring(0,25)}" adicionado ao carrinho!`,'success');
+  document.getElementById('avulso-nome').value='';
+  document.getElementById('avulso-valor').value='';
+  document.getElementById('avulso-qtd').value=1;
+  document.getElementById('avulso-nome').focus();
+}
 function addToCart(id){
   const p=PRODS.find(x=>x.id===id);if(!p)return;
   const ex=cart.find(c=>c.id===id);
@@ -4158,6 +4255,7 @@ function finalizeSale(){
   const itensSnapshot=cart.map(it=>({id:it.id,n:it.n,qty:it.qty,preco:it.preco}));
   const numVenda='V'+Date.now().toString().slice(-8);
   cart.forEach(it=>{
+    if(it.avulso)return;
     const prod=PRODS.find(p=>p.id===it.id);
     if(prod){
       prod.est=Math.max(0,(prod.est||0)-it.qty);
@@ -4166,14 +4264,10 @@ function finalizeSale(){
   });
   const clienteNomeAtual=pdvSelectedCliente?pdvSelectedCliente.nome:'';
   const operadorVenda=(typeof currentUser!=='undefined'&&currentUser&&currentUser.n)?currentUser.n:'Administrador';
-  // Contabiliza a venda pro vendedor logado (comissão) — automático, não depende de seleção manual
-  if(typeof currentUser!=='undefined'&&currentUser&&currentUser.perfil==='vendedor'&&currentUser.vinculoIdx!==null&&currentUser.vinculoIdx!==undefined){
-    const s=SELLERS[currentUser.vinculoIdx];
-    if(s){
-      s.real=parseFloat(((s.real||0)+tot).toFixed(2));
-      s.vend=(s.vend||0)+1;
-      s.ticket=Math.round(s.real/s.vend);
-    }
+  // Contabiliza a venda pro vendedor logado (comissão) — automático, direto pelo login real
+  if(typeof currentUser!=='undefined'&&currentUser&&currentUser.perfil==='vendedor'&&currentUser.id){
+    fetch(API_BASE+'/usuarios/'+currentUser.id+'/registrar-venda',{method:'POST',headers:authHeaders(),body:JSON.stringify({valor:tot,referencia:'PDV '+numVenda})})
+      .catch(()=>toast('⚠️ Venda registrada, mas houve falha ao sincronizar a comissão do vendedor','error'));
   }
   // Registra a compra no histórico do cliente ou do mecânico (se comprou como mecânico)
   if(pdvSelectedCliente){
@@ -4185,8 +4279,10 @@ function finalizeSale(){
       if(m){
         if(!Array.isArray(m.compras))m.compras=[];
         m.compras.push({data:hoje,valor:parseFloat(tot.toFixed(2)),itens:cart.reduce((a,c)=>a+c.qty,0),pagamento:payLabels[payUsado]||payUsado});
-        // Soma ao faturamento do mecânico — é esse campo que gera a comissão dele
+        // Soma ao faturamento do mecânico de verdade, no banco — é esse valor que gera a comissão dele
         m.fat=parseFloat(((m.fat||0)+tot).toFixed(2));
+        fetch(API_BASE+'/usuarios/'+m.id+'/registrar-venda',{method:'POST',headers:authHeaders(),body:JSON.stringify({valor:tot,referencia:'PDV '+numVenda})})
+          .catch(()=>toast('⚠️ Venda registrada, mas houve falha ao sincronizar a comissão do mecânico','error'));
       }
     }
   }
@@ -4250,7 +4346,7 @@ function selectPDVCliente(tipo,id){
 let prodFilters={q:'',cat:'',marca:'',curva:'',est:''};
 let prodViewMode='list';
 let selectedProdId=null;
-const SUBCATS={Freios:['Pastilhas','Discos','Lonas','Pinças','Cilindros','Fluido','Outros'],Motor:['Velas','Correias','Bomba D\'água','Arrefecimento','Pistões','Juntas','Outros'],Suspensão:['Amortecedores','Molas','Pivôs','Buchas','Rolamentos','Barras','Outros'],Elétrica:['Sensores','Cabos','Alternadores','Velas','Módulos','Relés','Outros'],Filtros:['Filtro de Ar','Filtro de Óleo','Filtro de Combustível','Filtro de Cabine','Outros'],Transmissão:['Embreagem','Câmbio','Diferencial','Cardan','Outros'],Carroceria:['Espelhos','Vidros','Faróis','Lanternas','Outros']};
+const SUBCATS={Freios:['Pastilhas','Discos','Lonas','Pinças','Cilindros','Fluido','Outros'],Motor:['Velas','Correias','Bomba D\'água','Arrefecimento','Pistões','Juntas','Outros'],Suspensão:['Amortecedores','Molas','Pivôs','Buchas','Rolamentos','Barras','Outros'],Elétrica:['Sensores','Cabos','Alternadores','Velas','Módulos','Relés','Outros'],Filtros:['Filtro de Ar','Filtro de Óleo','Filtro de Combustível','Filtro de Cabine','Outros'],Transmissão:['Embreagem','Câmbio','Diferencial','Cardan','Outros'],Carroceria:['Espelhos','Vidros','Faróis','Lanternas','Outros'],Lubrificantes:['Óleo de Motor','Óleo de Câmbio','Graxa','Aditivo','Fluido de Freio','Outros']};
 
 // ======= MOTOR DE BUSCA INTELIGENTE =======
 // Normaliza texto: minúsculas + sem acentos
@@ -4510,7 +4606,7 @@ function fillProdModal(p){
 
 function clearProdModal(){
   ['inp-nome-tecnico','inp-nome-popular','inp-sku','inp-ean','inp-ncm','inp-oem','inp-refcross','inp-obs','inp-loc','m-custo','m-preco','inp-compat-livre'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  const mm=document.getElementById('m-margem');if(mm)mm.value='67';
+  const mm=document.getElementById('m-margem');if(mm)mm.value='76';
   const mn=document.getElementById('inp-est-min');if(mn)mn.value='5';
   const ma=document.getElementById('inp-est-atual');if(ma)ma.value='0';
   ['sel-marca','sel-cat','sel-forn'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
@@ -6075,7 +6171,14 @@ function updateCart(){
     if(badge)badge.classList.toggle('show',discAuthApproved&&disc>10);
     if(discEl)discEl.style.borderColor=discAuthApproved&&disc>10?'var(--green)':'var(--border)';
   }
-  const discAmt=sub*disc/100;
+  // Desconto diferenciado pra óleo/lubrificante — normalmente 0%, só até 5% se o vendedor ativar
+  const subOleo=cart.reduce((a,c)=>a+(c.cat==='Lubrificantes'?c.preco*c.qty:0),0);
+  const subOutros=sub-subOleo;
+  const oilToggle=document.getElementById('oil-disc-toggle');
+  const oilWrap=document.getElementById('oil-disc-wrap');
+  if(oilWrap)oilWrap.style.display=subOleo>0?'flex':'none';
+  const discOleoPct=(oilToggle&&oilToggle.checked)?Math.min(disc,5):0;
+  const discAmt=(subOutros*disc/100)+(subOleo*discOleoPct/100);
   // Quando arredondamento ativo, usa o valor-alvo exato (sem erro de float)
   const tot=roundingApplied&&roundingTarget>0 ? roundingTarget : parseFloat((sub-discAmt).toFixed(2));
   const s=document.getElementById('cart-sub');if(s)s.textContent='R$ '+sub.toFixed(2);
@@ -6843,7 +6946,7 @@ function updateTaxPreview(){
   rows.innerHTML=parsedNFe.items.slice(0,5).map(it=>{
     const custoOriginal=it.vUnCom;
     const custoComImposto=parseFloat((custoOriginal*(1+pct/100)).toFixed(2));
-    const precoSugerido=parseFloat((custoComImposto*(1+0.67)).toFixed(2));
+    const precoSugerido=parseFloat((custoComImposto*(1+0.76)).toFixed(2));
     return`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(245,158,11,.1)">
       <span style="color:var(--text2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.xProd.substring(0,35)}</span>
       <span style="white-space:nowrap;margin-left:10px;font-family:monospace;font-size:11px">
@@ -6892,43 +6995,66 @@ function initTaxPanel(){
 }
 
 
-function confirmNFeEntry(){
+async function confirmNFeEntry(){
   if(!parsedNFe){toast('Nenhuma NF-e carregada','error');return;}
   const d=parsedNFe;
   const taxPct=getNFeTaxPct();
   const applyTax=v=>parseFloat((v*(1+taxPct/100)).toFixed(2));
-  const calcPV=custo=>parseFloat((custo*(1+0.67)).toFixed(2));
-  let updated=0,created=0;
-  const nextId=()=>Math.max(0,...PRODS.map(p=>p.id))+1;
+  const calcPV=custo=>parseFloat((custo*(1+0.76)).toFixed(2));
   const today=new Date().toLocaleDateString('pt-BR');
-  const newIds=[];
-  d.items.forEach(it=>{
-    const custoFinal=taxPct>0?applyTax(it.vUnCom):it.vUnCom;
-    const precoFinal=calcPV(custoFinal);
-    if(it.matched&&it.matched.prod){
-      it.matched.prod.est=Math.round(it.matched.prod.est+it.qCom);
-      movimentarEstoque(it.matched.prod.id,'entrada',Math.round(it.qCom),'Entrada NF-e');
-      it.matched.prod.custo=custoFinal;
-      it.matched.prod.preco=precoFinal;
-      it.matched.prod.mg=67;
-      updated++;
-    }else{
-      const id=nextId();
-      PRODS.push({
-        id,n:it.xProd.substring(0,60),pop:it.xProd.split(' ').slice(0,4).join(' '),
-        sku:'NF-'+it.cProd.substring(0,8).toUpperCase().replace(/\s/g,''),
-        ean:it.cEAN!=='SEM GTIN'?it.cEAN:'',ncm:it.NCM,oem:it.cProd,refcross:'',
-        marca:d.emitFant||d.emitNome.split(' ')[0],
-        cat:'Motor',subcat:'Outros',compat:'A cadastrar',compatLivre:'',
-        custo:custoFinal,preco:precoFinal,mg:67,
-        est:Math.round(it.qCom),min:Math.ceil(it.qCom*0.2)||3,curva:'C',loc:'A?-P?',forn:d.emitNome,
-        obs:`Auto-cadastrado via NF-e ${d.nNF} em ${today}.${taxPct>0?' Imposto '+taxPct.toFixed(1)+'% incluso no custo.':''}`
-      });
-      newIds.push(id);created++;
+  const btn=document.getElementById('nfe-confirm-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Processando…';}
+
+  let updated=0,created=0,erros=0;
+  try{
+    for(const it of d.items){
+      const custoFinal=taxPct>0?applyTax(it.vUnCom):it.vUnCom;
+      const precoFinal=calcPV(custoFinal);
+      try{
+        if(it.matched&&it.matched.prod){
+          const prod=it.matched.prod;
+          const payload={
+            nome:prod.n,sku:prod.sku,marca:prod.marca,categoria:prod.cat,subcategoria:prod.subcat,
+            fornecedor_id:prod.fornecedor_id||null,custo:custoFinal,preco:precoFinal,
+            estoque:Math.round((prod.est||0)+it.qCom),estoque_minimo:prod.min,
+            compat:prod.compat,loc:prod.loc,codigo_barras:prod.ean,
+            compatibilidade:prod.compatEstruturada||[]
+          };
+          const resp=await fetch(API_BASE+'/produtos/'+prod.id,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+          if(!resp.ok)throw new Error('Falha ao atualizar '+prod.n);
+          await movimentarEstoque(prod.id,'entrada',Math.round(it.qCom),'Entrada NF-e '+d.nNF);
+          updated++;
+        }else{
+          const fornecedorMatch=FORNECEDORES_DATA.find(f=>(f.cnpj||'').replace(/\D/g,'')===(d.emitCNPJ||'').replace(/\D/g,''));
+          const payload={
+            nome:it.xProd.substring(0,60),sku:it.cProd.trim(),
+            marca:'',categoria:'Motor',subcategoria:'Outros',
+            fornecedor_id:fornecedorMatch?fornecedorMatch.id:null,
+            custo:custoFinal,preco:precoFinal,estoque:Math.round(it.qCom),
+            estoque_minimo:Math.ceil(it.qCom*0.2)||3,compat:'A cadastrar',loc:'',
+            codigo_barras:it.cEAN!=='SEM GTIN'?it.cEAN:'',
+            observacoes:`Auto-cadastrado via NF-e ${d.nNF} em ${today}. Fornecedor (emitente): ${d.emitNome}${fornecedorMatch?'':' — NÃO vinculado, cadastre esse fornecedor pra linkar automaticamente da próxima vez.'}${taxPct>0?' Imposto '+taxPct.toFixed(1)+'% incluso no custo.':''}`
+          };
+          const resp=await fetch(API_BASE+'/produtos',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+          if(!resp.ok)throw new Error('Falha ao cadastrar '+it.xProd);
+          created++;
+        }
+      }catch(errItem){
+        erros++;
+        console.error(errItem);
+      }
     }
-  });
+    await carregarProdutos();
+  }catch(e){
+    toast('Erro ao processar NF-e: '+e.message,'error');
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-check"></i>Confirmar Entrada';}
+    return;
+  }
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-check"></i>Confirmar Entrada';}
+
   const taxMsg=taxPct>0?` · Imposto ${taxPct.toFixed(1)}% aplicado`:'';
-  toast(`\u2705 NF-e ${d.nNF} confirmada! ${updated} atualizado(s) \u00b7 ${created} cadastrado(s) \u00b7 R$ ${d.vNF.toFixed(2)}${taxMsg}`,'success');
+  const errMsg=erros>0?` · ⚠️ ${erros} item(ns) com erro`:'';
+  toast(`\u2705 NF-e ${d.nNF} confirmada! ${updated} atualizado(s) \u00b7 ${created} cadastrado(s) \u00b7 R$ ${d.vNF.toFixed(2)}${taxMsg}${errMsg}`,erros>0?'error':'success');
   // Lançar duplicatas em Contas a Pagar
   if(d.dups&&d.dups.length){
     d.dups.forEach((dup,i)=>{
@@ -6938,6 +7064,8 @@ function confirmNFeEntry(){
       );
     });
     setTimeout(()=>toast(`\ud83d\udccb ${d.dups.length} duplicata(s) lan\u00e7ada(s) em Contas a Pagar!`,'info'),1200);
+  }else{
+    setTimeout(()=>toast('\u2139\ufe0f Essa NF-e não trouxe duplicatas/boleto pra lançar em Contas a Pagar (fatura à vista ou XML sem essa seção).','info'),1200);
   }
   setTimeout(()=>{
     resetNFe();parsedNFe=null;nfeTaxEnabled=false;
@@ -6946,13 +7074,6 @@ function confirmNFeEntry(){
     nav('produtos',document.querySelector('.ni[onclick*=\"produtos\"]'));
     setTimeout(()=>{
       renderProd();
-      if(newIds.length){
-        setTimeout(()=>{
-          const rows=document.querySelectorAll('#prod-tbl tr');
-          rows.forEach(row=>{const txt=row.textContent||'';if(PRODS.filter(p=>newIds.includes(p.id)&&txt.includes(p.sku)).length){row.style.background='rgba(245,158,11,.18)';row.style.transition='background 2s';setTimeout(()=>row.style.background='',2500);}});
-          rows[rows.length-1]?.scrollIntoView({behavior:'smooth',block:'center'});
-        },200);
-      }
       const hist=document.getElementById('nfe-hist-list');
       if(hist){
         const row=document.createElement('div');row.className='nfe-hist-row';row.style.animation='fadeUp .3s ease';
@@ -8807,6 +8928,7 @@ function aplicarSessaoLogada(usuario){
   if(typeof carregarVendedores==='function')carregarVendedores();
   if(typeof carregarUsuarios==='function')carregarUsuarios();
   if(typeof carregarProdutos==='function')carregarProdutos();
+  if(typeof carregarDashboard==='function')setTimeout(()=>carregarDashboard(),300);
 }
 
 async function verificarSessaoSalva(){
@@ -8981,6 +9103,7 @@ function nav(id,el){
   if(id==='produtos')setTimeout(()=>carregarProdutos(),50);
   if(id==='estoque'){setTimeout(()=>{renderMov();atualizarKpisEstoque();},50);}
   if(id==='inventario')setTimeout(renderInventario,50);
+  if(id==='dashboard')setTimeout(()=>carregarDashboard(),50);
   if(id==='clientes')setTimeout(()=>carregarClientes(),50);
   if(id==='compras')setTimeout(renderCompras,50);
   if(id==='financeiro')setTimeout(renderFinanceiro,50);
