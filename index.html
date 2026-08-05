@@ -1819,8 +1819,15 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
         <div id="fin-tab-pagar">
           <div class="card">
             <div class="ch">
-              <div class="ct">Contas a Pagar</div>
+              <div class="ct">Contas a Pagar <span style="font-size:11px;color:var(--text3);font-weight:400">— ordenado por vencimento</span></div>
               <div class="flx g2b">
+                <select id="fin-pagar-periodo" onchange="renderFinanceiro()" style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);padding:5px 10px;border-radius:var(--radius-sm);font-size:12px;outline:none">
+                  <option value="">Qualquer data</option>
+                  <option value="hoje">Vence hoje</option>
+                  <option value="semana">Próximos 7 dias</option>
+                  <option value="mes">Próximos 30 dias</option>
+                  <option value="atrasado">Atrasados</option>
+                </select>
                 <select id="fin-pagar-status" onchange="renderFinanceiro()" style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);padding:5px 10px;border-radius:var(--radius-sm);font-size:12px;outline:none">
                   <option value="">Todos</option><option value="pendente">Pendentes</option><option value="vencido">Vencidos</option><option value="pago">Pagos</option>
                 </select>
@@ -7389,12 +7396,29 @@ function renderFinanceiro(){
   const fmtVal=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
   const fmtDate=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
 
-  const renderLista=(containerId,data,statusSelId)=>{
+  const renderLista=(containerId,data,statusSelId,periodoSelId)=>{
     const el=document.getElementById(containerId);if(!el)return;
     const filt=document.getElementById(statusSelId)?.value||'';
-    const items=filt?data.filter(c=>c.status===filt):data;
+    let items=filt?data.filter(c=>c.status===filt):data.slice();
+    const periodo=periodoSelId?(document.getElementById(periodoSelId)?.value||''):'';
+    if(periodo){
+      items=items.filter(c=>{
+        if(!c.venc)return false;
+        const diffDias=diffDiasISO(c.venc,hoje);
+        if(periodo==='hoje')return diffDias===0;
+        if(periodo==='semana')return diffDias>=0&&diffDias<=7;
+        if(periodo==='mes')return diffDias>=0&&diffDias<=30;
+        if(periodo==='atrasado')return diffDias<0&&c.status!=='pago'&&c.status!=='recebido';
+        return true;
+      });
+    }
+    // Ordena sempre por data de vencimento — do mais próximo pro mais distante
+    items=items.slice().sort((a,b)=>(a.venc||'9999-99-99').localeCompare(b.venc||'9999-99-99'));
     if(!items.length){el.innerHTML=`<div class="empty" style="padding:20px;margin:0"><i class="ti ti-check-circle" style="color:var(--green)"></i><p>Nenhuma conta encontrada</p></div>`;return;}
-    el.innerHTML=items.map(c=>`
+    el.innerHTML=items.map(c=>{
+      const diffDias=c.venc?diffDiasISO(c.venc,hoje):null;
+      const vencendoLogo=diffDias!==null&&diffDias>=0&&diffDias<=3&&c.status!=='pago'&&c.status!=='recebido';
+      return`
       <div class="conta-row">
         <div class="conta-status cs-${c.status}"></div>
         <div style="flex:1;min-width:0">
@@ -7403,17 +7427,17 @@ function renderFinanceiro(){
         </div>
         <div style="text-align:right;flex-shrink:0;margin-right:10px">
           <div style="font-family:var(--font-head);font-size:14px;font-weight:700">${fmtVal(c.valor)}</div>
-          <div style="font-size:11px;color:${c.status==='vencido'?'var(--red)':'var(--text3)'}">Venc: ${fmtDate(c.venc)}</div>
+          <div style="font-size:11px;color:${c.status==='vencido'||diffDias<0?'var(--red)':vencendoLogo?'var(--amber)':'var(--text3)'}">Venc: ${fmtDate(c.venc)}${vencendoLogo?' · '+(diffDias===0?'hoje':'em '+diffDias+'d'):''}</div>
         </div>
         <span class="conta-badge cb-${c.status}">${c.status}</span>
         ${c.status==='pendente'||c.status==='vencido'?`
           <button class="btn bsuc btn-sm" onclick="marcarPago('${c.id}','${containerId}')" title="Marcar como pago/recebido" style="margin-left:6px"><i class="ti ti-check"></i></button>
         `:'<div style="width:42px"></div>'}
       </div>
-    `).join('');
+    `;}).join('');
   };
 
-  renderLista('contas-pagar-list',CONTAS_PAGAR,'fin-pagar-status');
+  renderLista('contas-pagar-list',CONTAS_PAGAR,'fin-pagar-status','fin-pagar-periodo');
   renderLista('contas-receber-list',CONTAS_RECEBER,'fin-receber-status');
 
   // KPIs
