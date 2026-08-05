@@ -2241,19 +2241,19 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 </div>
 
 <div class="mov" id="modal-venda-detalhe" onclick="closeModal('modal-venda-detalhe')">
-  <div class="modal wide" onclick="event.stopPropagation()" style="max-width:560px">
+  <div class="modal wide" onclick="event.stopPropagation()" style="max-width:600px">
     <div class="mhd"><span class="mtit"><i class="ti ti-receipt" style="color:var(--amber)"></i> <span id="venda-detalhe-titulo">Detalhe da Venda</span></span><button class="mcl" onclick="closeModal('modal-venda-detalhe')"><i class="ti ti-x"></i></button></div>
     <div class="mbd" style="max-height:70vh;overflow-y:auto">
       <div id="venda-detalhe-info" class="fg" style="margin-bottom:14px"></div>
-      <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--amber);margin-bottom:8px">ITENS DA VENDA</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--amber);margin-bottom:8px">ITENS DA VENDA <span style="color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">— marque o que for devolver</span></div>
       <div class="tw"><table>
-        <thead><tr><th>Produto</th><th>Qtd</th><th>Preço Un.</th><th>Subtotal</th></tr></thead>
+        <thead><tr><th style="width:26px"></th><th>Produto</th><th>Vendido</th><th>Já devolvido</th><th style="width:90px">Devolver agora</th><th>Preço Un.</th></tr></thead>
         <tbody id="venda-detalhe-itens"></tbody>
       </table></div>
-      <div id="venda-detalhe-devolvida-aviso" style="display:none;margin-top:14px;padding:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-sm);font-size:12px;color:var(--red)"><i class="ti ti-alert-triangle"></i> Essa venda já foi devolvida.</div>
+      <div id="venda-detalhe-devolvida-aviso" style="display:none;margin-top:14px;padding:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-sm);font-size:12px;color:var(--red)"><i class="ti ti-alert-triangle"></i> Essa venda já foi totalmente devolvida.</div>
     </div>
     <div class="mft">
-      <button class="btn ber" id="btn-devolver-venda" onclick="devolverVendaAtual()"><i class="ti ti-arrow-back-up"></i>Registrar Devolução</button>
+      <button class="btn ber" id="btn-devolver-venda" onclick="devolverVendaAtual()"><i class="ti ti-arrow-back-up"></i>Devolver Selecionados</button>
       <button class="btn bg" onclick="closeModal('modal-venda-detalhe')">Fechar</button>
     </div>
   </div>
@@ -4244,7 +4244,8 @@ async function carregarVendas(periodo){
     VENDAS_DATA.push(...rows.map(r=>({
       id:r.id,codigo:r.codigo,cliente:r.cliente_nome||'',operador:r.operador||'',
       pagamento:r.forma_pagamento,subtotal:parseFloat(r.subtotal)||0,desconto:parseFloat(r.desconto)||0,
-      total:parseFloat(r.total)||0,itens:r.itens||[],devolvida:r.devolvida,criadoEm:r.criado_em
+      total:parseFloat(r.total)||0,itens:r.itens||[],devolvida:r.devolvida,criadoEm:r.criado_em,
+      itensDevolvidos:r.itens_devolvidos||[],comissaoUsuarioId:r.comissao_usuario_id||null
     })));
     renderVendasTable();
   }catch(e){toast('Erro ao carregar vendas: '+e.message,'error');}
@@ -4287,7 +4288,7 @@ function renderVendasTable(){
       <td class="ts">${v.pagamento||'—'}</td>
       <td class="ts" style="text-align:center">${qtdItens}</td>
       <td class="fw6">R$ ${v.total.toFixed(2)}</td>
-      <td><span class="badge ${v.devolvida?'br':'bg2'}">${v.devolvida?'Devolvida':'Concluída'}</span></td>
+      <td><span class="badge ${v.devolvida?'br':(v.itensDevolvidos&&v.itensDevolvidos.length?'ba':'bg2')}">${v.devolvida?'Devolvida':(v.itensDevolvidos&&v.itensDevolvidos.length?'Parcial':'Concluída')}</span></td>
       <td><button class="btn bg btn-sm" onclick="abrirDetalheVenda(${v.id})"><i class="ti ti-eye"></i></button></td>
     </tr>`;
   }).join('');
@@ -4302,13 +4303,21 @@ function abrirDetalheVenda(id){
   const info=document.getElementById('venda-detalhe-info');
   const campos=[['Código',v.codigo],['Data/Hora',dtStr],['Operador',v.operador||'—'],['Cliente',v.cliente||'—'],['Forma de Pagamento',v.pagamento||'—'],['Desconto','R$ '+v.desconto.toFixed(2)],['Total','R$ '+v.total.toFixed(2)]];
   if(info)info.innerHTML=campos.map(([l,val])=>`<div class="ff"><label>${l}</label><div style="font-size:13px;padding:4px 0">${val}</div></div>`).join('');
+  const jaDevolvidoMap={};
+  (v.itensDevolvidos||[]).forEach(d=>{jaDevolvidoMap[d.id]=(jaDevolvidoMap[d.id]||0)+d.qty;});
   const itensTbl=document.getElementById('venda-detalhe-itens');
-  if(itensTbl)itensTbl.innerHTML=(v.itens||[]).map(it=>`<tr>
-    <td>${it.n}${it.avulso?' <span class="badge ba" style="font-size:9px">avulso</span>':''}${it.ofertaAtiva?' <span class="badge bg2" style="font-size:9px">🏷️ oferta</span>':''}</td>
-    <td class="ts">${it.qty}</td>
-    <td class="ts">R$ ${it.preco.toFixed(2)}</td>
-    <td class="fw6">R$ ${(it.qty*it.preco).toFixed(2)}</td>
-  </tr>`).join('');
+  if(itensTbl)itensTbl.innerHTML=(v.itens||[]).map((it,i)=>{
+    const jaDev=jaDevolvidoMap[it.id]||0;
+    const restante=it.qty-jaDev;
+    return`<tr style="${restante<=0?'opacity:.45':''}">
+      <td>${restante>0?`<input type="checkbox" class="venda-dev-chk" data-idx="${i}">`:'<i class="ti ti-check" style="color:var(--green)"></i>'}</td>
+      <td>${it.n}${it.avulso?' <span class="badge ba" style="font-size:9px">avulso</span>':''}${it.ofertaAtiva?' <span class="badge bg2" style="font-size:9px">🏷️ oferta</span>':''}</td>
+      <td class="ts">${it.qty}</td>
+      <td class="ts">${jaDev>0?jaDev:'—'}</td>
+      <td>${restante>0?`<input type="number" class="venda-dev-qtd" data-idx="${i}" value="${restante}" min="1" max="${restante}" style="width:56px;background:var(--bg2);border:1px solid var(--border);color:var(--text1);padding:4px 6px;border-radius:var(--radius-xs);font-size:12px">`:'—'}</td>
+      <td class="ts">R$ ${it.preco.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
   const aviso=document.getElementById('venda-detalhe-devolvida-aviso');
   const btnDev=document.getElementById('btn-devolver-venda');
   if(v.devolvida){
@@ -4323,16 +4332,31 @@ function abrirDetalheVenda(id){
 async function devolverVendaAtual(){
   if(vendaDetalheAtualId===null)return;
   const v=VENDAS_DATA.find(x=>x.id===vendaDetalheAtualId);if(!v)return;
-  if(!confirm(`Tem certeza que deseja devolver a venda "${v.codigo}" (R$ ${v.total.toFixed(2)})? Os itens de estoque voltam automaticamente, e o valor sai do caixa.`))return;
+  const checks=document.querySelectorAll('.venda-dev-chk:checked');
+  if(!checks.length){toast('Marque pelo menos um item pra devolver','error');return;}
+  const itensParaDevolver=[];
+  let valorEstimado=0;
+  checks.forEach(chk=>{
+    const idx=parseInt(chk.dataset.idx);
+    const it=v.itens[idx];
+    const qtdInput=document.querySelector(`.venda-dev-qtd[data-idx="${idx}"]`);
+    const qtd=Math.max(1,parseInt(qtdInput?.value||1));
+    itensParaDevolver.push({id:it.id,qty:qtd});
+    valorEstimado+=qtd*it.preco;
+  });
+  const ehParcial=itensParaDevolver.length<v.itens.length||itensParaDevolver.some((it,i)=>it.qty<v.itens.find(x=>x.id===it.id)?.qty);
+  if(!confirm(`Devolver ${ehParcial?'esses itens selecionados':'a venda inteira'} de "${v.codigo}" (≈R$ ${valorEstimado.toFixed(2)})? O estoque volta automaticamente pros itens de catálogo, e o valor sai do caixa.`))return;
   try{
-    const resp=await fetch(API_BASE+'/vendas/'+v.id+'/devolver',{method:'POST',headers:authHeaders()});
+    const resp=await fetch(API_BASE+'/vendas/'+v.id+'/devolver',{method:'POST',headers:authHeaders(),body:JSON.stringify({itens:itensParaDevolver})});
     if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao devolver venda');}
+    const resultado=await resp.json();
+    const valorReal=resultado.valorDevolvidoAgora||valorEstimado;
     // Sem furo no caixa: registra a saída local também, igual devolução manual
-    MOVS_CAIXA.unshift({desc:'Devolução venda '+v.codigo,dt:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),val:v.total,tp:'s',pay:v.pagamento,codigo:v.codigo+'-DEV',operador:(typeof currentUser!=='undefined'&&currentUser&&currentUser.n)?currentUser.n:'Administrador'});
+    MOVS_CAIXA.unshift({desc:(ehParcial?'Devolução parcial venda ':'Devolução venda ')+v.codigo,dt:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),val:valorReal,tp:'s',pay:v.pagamento,codigo:v.codigo+'-DEV',operador:(typeof currentUser!=='undefined'&&currentUser&&currentUser.n)?currentUser.n:'Administrador'});
     saveData();renderCaixa();
     await carregarProdutos();
     await carregarVendas();
-    toast(`✅ Venda "${v.codigo}" devolvida! Estoque e caixa atualizados.`,'success');
+    toast(`✅ Devolução de "${v.codigo}" registrada (R$ ${valorReal.toFixed(2)})! Estoque, caixa e comissão atualizados.`,'success');
     closeModal('modal-venda-detalhe');
   }catch(e){
     toast('Erro ao devolver venda: '+e.message,'error');
@@ -4636,8 +4660,10 @@ function finalizeSale(){
   });
   const clienteNomeAtual=pdvSelectedCliente?pdvSelectedCliente.nome:'';
   const operadorVenda=(typeof currentUser!=='undefined'&&currentUser&&currentUser.n)?currentUser.n:'Administrador';
+  let comissaoUsuarioId=null;
   // Contabiliza a venda pro vendedor logado (comissão) — automático, direto pelo login real
   if(typeof currentUser!=='undefined'&&currentUser&&currentUser.perfil==='vendedor'&&currentUser.id){
+    comissaoUsuarioId=currentUser.id;
     fetch(API_BASE+'/usuarios/'+currentUser.id+'/registrar-venda',{method:'POST',headers:authHeaders(),body:JSON.stringify({valor:tot,referencia:'PDV '+numVenda})})
       .catch(()=>toast('⚠️ Venda registrada, mas houve falha ao sincronizar a comissão do vendedor','error'));
   }
@@ -4649,6 +4675,7 @@ function finalizeSale(){
     }else if(pdvSelectedCliente.tipo==='mecanico'){
       const m=MECHS[pdvSelectedCliente.id];
       if(m){
+        comissaoUsuarioId=m.id;
         if(!Array.isArray(m.compras))m.compras=[];
         m.compras.push({data:hoje,valor:parseFloat(tot.toFixed(2)),itens:cart.reduce((a,c)=>a+c.qty,0),pagamento:payLabels[payUsado]||payUsado});
         // Soma ao faturamento do mecânico de verdade, no banco — é esse valor que gera a comissão dele
@@ -4668,7 +4695,8 @@ function finalizeSale(){
   MOVS_CAIXA.unshift({desc:'Venda PDV'+(clienteNomeAtual?' — '+clienteNomeAtual:''),dt:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),val:tot,tp:'e',pay:payLabels[payUsado]||payUsado,codigo:numVenda,operador:operadorVenda,cliente:clienteNomeAtual,itens:itensSnapshot,devolvido:false,valorDevolvido:0});
   fetch(API_BASE+'/vendas',{method:'POST',headers:authHeaders(),body:JSON.stringify({
     codigo:numVenda,cliente_nome:clienteNomeAtual,operador:operadorVenda,
-    forma_pagamento:payLabels[payUsado]||payUsado,subtotal,desconto:discAmt,total:tot,itens:itensSnapshot
+    forma_pagamento:payLabels[payUsado]||payUsado,subtotal,desconto:discAmt,total:tot,itens:itensSnapshot,
+    comissao_usuario_id:comissaoUsuarioId
   })}).catch(()=>toast('⚠️ Venda registrada localmente, mas falhou ao sincronizar o histórico com o servidor','error'));
   renderCaixa();
   saveData();
@@ -4888,6 +4916,16 @@ function openProdDrawer(id){
     <div class="pdd-section">Compatibilidade Veicular</div>
     <div><span class="compat-tag"><i class="ti ti-car" style="font-size:11px"></i>${p.compat}</span></div>
     ${p.compatLivre?`<div style="margin-top:8px;font-size:12px;color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:8px 10px;line-height:1.6;white-space:pre-wrap">${p.compatLivre}</div>`:''}
+    <div class="pdd-section">Produtos Similares <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(mesmo item, outra marca)</span></div>
+    ${(p.similares&&p.similares.length)?`<div style="display:flex;flex-direction:column;gap:6px">${p.similares.map(s=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer" onclick="openProdDrawer(${s.id})">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600">${s.nome}</div>
+          <div style="font-size:11px;color:var(--text3)">${s.marca||'—'} · ${s.sku||'—'} · <span style="color:${s.estoque>0?'var(--green)':'var(--red)'}">${s.estoque} un.</span></div>
+        </div>
+        <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
+      </div>
+    `).join('')}</div>`:'<div style="font-size:12px;color:var(--text3)">—</div>'}
     <div class="pdd-section">Financeiro</div>
     <div class="flx ic g2b" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text3)">Custo</span><span style="font-family:monospace;font-size:13px">R$ ${p.custo.toFixed(2)}</span></div>
     <div class="flx ic g2b" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text3)">Lucro unitário</span><span style="font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--green)">R$ ${(p.preco-p.custo).toFixed(2)}</span></div>
@@ -5009,7 +5047,8 @@ function mapProdutoFromApi(row){
     custo,preco,mg:custo>0?parseFloat((((preco-custo)/preco)*100).toFixed(1)):0,
     est,min,curva:est>=min*4?'A':est>=min?'B':'C',
     ofertaPreco:row.oferta_preco?parseFloat(row.oferta_preco):null,
-    ofertaInicio:row.oferta_inicio||null,ofertaFim:row.oferta_fim||null,
+    ofertaInicio:row.oferta_inicio?String(row.oferta_inicio).slice(0,10):null,
+    ofertaFim:row.oferta_fim?String(row.oferta_fim).slice(0,10):null,
     similares:(row.similares||[]).map(s=>({id:s.id,nome:s.nome,marca:s.marca,sku:s.sku,estoque:parseInt(s.estoque)||0}))
   };
 }
