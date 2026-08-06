@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- redeploy -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -4683,7 +4683,7 @@ let lastReceiptHTML='';
 let lastReceiptNum='cupom';
 function baixarCupom(){
   if(!lastReceiptHTML){toast('Nenhum cupom gerado ainda','error');return;}
-  const doc=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cupom ${lastReceiptNum}</title>
+  const doc=`<!DOCTYPE html><!-- redeploy --><html><head><meta charset="UTF-8"><title>Cupom ${lastReceiptNum}</title>
     <style>
       body{margin:0;padding:16px;font-family:'Courier New',monospace;background:#fff;color:#000}
       .receipt{width:270px;margin:0 auto}
@@ -6826,7 +6826,7 @@ function printLabel(){
     </div>
   </div>`;
   const win=window.open('','_blank','width=400,height=600');
-  win.document.write(`<!DOCTYPE html><html><head>
+  win.document.write(`<!DOCTYPE html><!-- redeploy --><html><head>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Text&display=swap" rel="stylesheet">
     <style>
       body{margin:0;padding:10px;font-family:Arial,sans-serif;background:#fff}
@@ -7432,7 +7432,7 @@ function printOrc(id){
   const disc=subtotal>0&&o.val<subtotal?((1-o.val/subtotal)*100).toFixed(1):0;
   const totalFinal=o.val||subtotal;
 
-  const html=`<!DOCTYPE html><html lang="pt-BR"><head>
+  const html=`<!DOCTYPE html><!-- redeploy --><html lang="pt-BR"><head>
     <meta charset="UTF-8">
     <title>Orçamento ${o.id}</title>
     <style>
@@ -9628,7 +9628,7 @@ function imprimirRelatorioInv(id){
       <td style="text-align:center">${diff===null?'Pendente':diff===0?'OK':'Divergente'}</td>
     </tr>`;
   }).join('');
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório ${inv.id}</title>
+  const html=`<!DOCTYPE html><!-- redeploy --><html><head><meta charset="UTF-8"><title>Relatório ${inv.id}</title>
   <style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px}
   h1{font-size:18px;color:#F59E0B}h2{font-size:13px;color:#666;margin-bottom:16px}
   table{width:100%;border-collapse:collapse}th{background:#F59E0B;color:#fff;padding:7px 8px;font-size:11px;text-align:left}
