@@ -206,6 +206,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 .cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
 .cal-header div{text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:6px;text-transform:uppercase;letter-spacing:.4px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-grid-semana .cal-day{min-height:280px}
 .cal-day{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);min-height:90px;padding:6px;cursor:pointer;transition:border-color var(--tr);position:relative}
 .cal-day:hover{border-color:var(--amber)}
 .cal-day.today{border-color:var(--amber);background:rgba(245,158,11,.05)}
@@ -526,6 +527,9 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
   body.printing-cp>*:not(#modal-contaspagar-print){display:none!important}
   body.printing-cp #modal-contaspagar-print{position:static!important;background:#fff!important;display:block!important}
   body.printing-cp #modal-contaspagar-print .modal{box-shadow:none!important;border:none!important;max-width:100%!important;margin:0!important}
+  body.printing-rel>*:not(#modal-relatorio-print){display:none!important}
+  body.printing-rel #modal-relatorio-print{position:static!important;background:#fff!important;display:block!important}
+  body.printing-rel #modal-relatorio-print .modal{box-shadow:none!important;border:none!important;max-width:100%!important;margin:0!important}
 }
 .receipt{width:270px;margin:0 auto;font-family:'Courier New',monospace;color:#000}
 .rc-logo{font-size:15px;font-weight:800;text-align:center}
@@ -977,16 +981,16 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
           </div>
           <div class="cal-sidebar">
             <div class="cs-today card">
-              <h3><i class="ti ti-calendar" style="font-size:14px"></i> Hoje — 14 de maio de 2025</h3>
+              <h3><i class="ti ti-calendar" style="font-size:14px"></i> <span id="cal-today-label">Hoje</span></h3>
               <div id="cal-today-events"></div>
             </div>
             <div class="card">
               <div class="ch"><div class="ct">Estatísticas</div></div>
-              <div class="fr"><span class="lbl"><i class="ti ti-clipboard-list"></i>OS Agendadas</span><span class="val">7</span></div>
-              <div class="fr"><span class="lbl"><i class="ti ti-refresh"></i>Revisões</span><span class="val">3</span></div>
-              <div class="fr"><span class="lbl"><i class="ti ti-package"></i>Entregas</span><span class="val">2</span></div>
-              <div class="fr"><span class="lbl"><i class="ti ti-user-check"></i>Confirmados</span><span class="val text-green">9</span></div>
-              <div class="fr"><span class="lbl"><i class="ti ti-clock"></i>Pendentes</span><span class="val text-amber">3</span></div>
+              <div class="fr"><span class="lbl"><i class="ti ti-clipboard-list"></i>OS Agendadas</span><span class="val" id="cal-stat-os">0</span></div>
+              <div class="fr"><span class="lbl"><i class="ti ti-refresh"></i>Revisões</span><span class="val" id="cal-stat-rev">0</span></div>
+              <div class="fr"><span class="lbl"><i class="ti ti-package"></i>Entregas</span><span class="val" id="cal-stat-ent">0</span></div>
+              <div class="fr"><span class="lbl"><i class="ti ti-user-check"></i>Confirmados</span><span class="val text-green" id="cal-stat-conf">0</span></div>
+              <div class="fr"><span class="lbl"><i class="ti ti-clock"></i>Pendentes</span><span class="val text-amber" id="cal-stat-pend">0</span></div>
             </div>
           </div>
         </div>
@@ -994,7 +998,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
       <!-- ===== OS DETALHADA ===== -->
       <div class="screen" id="screen-os">
-        <div class="ph"><div class="phl"><h1>Ordens de Serviço</h1><p>Gestão completa com checklist, peças e assinatura digital</p></div><div class="flx g2b"><button class="btn bs btn-sm" onclick="exportCSV('os')"><i class="ti ti-file-spreadsheet"></i>CSV</button><button class="btn bs btn-sm"><i class="ti ti-filter"></i>Filtrar</button><button class="btn bp" onclick="openModal('modal-os-new')"><i class="ti ti-plus"></i>Nova OS</button></div></div>
+        <div class="ph"><div class="phl"><h1>Ordens de Serviço</h1><p>Gestão completa com checklist, peças e assinatura digital</p></div><div class="flx g2b"><button class="btn bs btn-sm" onclick="exportCSV('os')"><i class="ti ti-file-spreadsheet"></i>CSV</button><button class="btn bp" onclick="openModal('modal-os-new')"><i class="ti ti-plus"></i>Nova OS</button></div></div>
         <div class="os-detail-wrap">
           <!-- Lista de OS -->
           <div>
@@ -1494,7 +1498,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
           </div>
         </div>
       </div>
-      <div class="screen" id="screen-estoque"><div class="ph"><div class="phl"><h1>Estoque</h1></div><button class="btn bp"><i class="ti ti-plus"></i>Entrada</button></div>
+      <div class="screen" id="screen-estoque"><div class="ph"><div class="phl"><h1>Estoque</h1></div><button class="btn bp" onclick="openEntradaEstoque()"><i class="ti ti-plus"></i>Entrada</button></div>
       <div class="g4 mb14">
         <div class="kpi cb" style="cursor:pointer;transition:transform .15s,box-shadow .15s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(0,0,0,.15)'" onmouseout="this.style.transform='';this.style.boxShadow=''" onclick="filtrarEstoqueKpi('todos')" title="Ver todos os produtos">
           <div class="ki"><i class="ti ti-package"></i></div><div class="kl">Valor em Estoque</div><div class="kv" id="kpi-val-est">R$ 0</div>
@@ -2103,7 +2107,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
           <div class="card">
             <div class="ch"><div id="rep-chart-title" class="ct">Faturamento por Mês — 2025</div><div class="flx g2b">
               <button class="btn bs btn-sm" onclick="exportCSV(activeReport)"><i class="ti ti-file-spreadsheet"></i>CSV</button>
-              <button class="btn bs btn-sm" onclick="printOS(null)"><i class="ti ti-file-type-pdf"></i>PDF</button>
+              <button class="btn bs btn-sm" onclick="printRelatorio()"><i class="ti ti-file-type-pdf"></i>PDF</button>
             </div></div>
             <div style="position:relative;height:240px"><canvas id="ch-rep-main"></canvas></div>
           </div>
@@ -2192,7 +2196,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
       <!-- Controles -->
       <div class="cam-controls">
-        <button class="btn bs btn-sm" onclick="switchCameraFacing()" id="btn-flip" style="display:none">
+        <button class="btn bs btn-sm" onclick="switchCameraFacing()" id="btn-flip" title="Virar câmera (frontal/traseira)">
           <i class="ti ti-camera-rotate"></i>
         </button>
         <button class="btn bs btn-sm" onclick="retakePhoto()" id="btn-retake" style="display:none">
@@ -2255,6 +2259,41 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     <div class="mft">
       <button class="btn ber" id="btn-devolver-venda" onclick="devolverVendaAtual()"><i class="ti ti-arrow-back-up"></i>Devolver Selecionados</button>
       <button class="btn bg" onclick="closeModal('modal-venda-detalhe')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="mov" id="modal-entrada-estoque" onclick="closeModal('modal-entrada-estoque')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="mhd"><span class="mtit"><i class="ti ti-package-import" style="color:var(--green)"></i> Entrada Manual de Estoque</span><button class="mcl" onclick="closeModal('modal-entrada-estoque')"><i class="ti ti-x"></i></button></div>
+    <div class="mbd">
+      <div class="ff mb14"><label>Produto *</label>
+        <input type="text" id="entrada-busca-produto" placeholder="Digite pra buscar…" oninput="buscarProdutoEntrada(this.value)" autocomplete="off">
+        <div id="entrada-produto-resultados" style="max-height:160px;overflow-y:auto;margin-top:4px"></div>
+      </div>
+      <div id="entrada-produto-selecionado" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:600" id="entrada-produto-nome"></div>
+        <div style="font-size:11px;color:var(--text3)">Estoque atual: <span id="entrada-produto-estoque-atual"></span></div>
+      </div>
+      <div class="ff mb14"><label>Quantidade *</label><input type="number" id="entrada-qtd" placeholder="0" min="1" step="1"></div>
+      <div class="ff"><label>Motivo (opcional)</label><input type="text" id="entrada-motivo" placeholder="Ex: Ajuste de contagem, compra avulsa…"></div>
+    </div>
+    <div class="mft">
+      <button class="btn bg" onclick="closeModal('modal-entrada-estoque')">Cancelar</button>
+      <button class="btn bp" onclick="salvarEntradaEstoque()"><i class="ti ti-check"></i>Confirmar Entrada</button>
+    </div>
+  </div>
+</div>
+
+<div class="mov" id="modal-relatorio-print" onclick="closeModal('modal-relatorio-print')">
+  <div class="modal wide" onclick="event.stopPropagation()" style="max-width:640px">
+    <div class="mhd no-print"><span class="mtit"><i class="ti ti-file-type-pdf" style="color:var(--amber)"></i> Relatório</span><button class="mcl" onclick="closeModal('modal-relatorio-print')"><i class="ti ti-x"></i></button></div>
+    <div class="mbd" style="max-height:70vh;overflow-y:auto">
+      <div id="relatorio-print-area"></div>
+    </div>
+    <div class="mft no-print">
+      <button class="btn bg" onclick="closeModal('modal-relatorio-print')">Fechar</button>
+      <button class="btn bp" onclick="handleImprimirRelatorio()"><i class="ti ti-printer"></i>Imprimir / Salvar PDF</button>
     </div>
   </div>
 </div>
@@ -3626,24 +3665,43 @@ function osTimerLabel(o){
 }
 
 // ======= CALENDAR =======
-let calYear=2025,calMonth=4; // 0-indexed (4=May)
+const _hojeReal=new Date();
+let calYear=_hojeReal.getFullYear(),calMonth=_hojeReal.getMonth();
+let calViewMode='mes';
 function renderCal(){
   const months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('cal-month-title').textContent=months[calMonth]+' '+calYear;
   const g=document.getElementById('cal-grid');if(!g)return;
-  const first=new Date(calYear,calMonth,1);
-  const last=new Date(calYear,calMonth+1,0);
   const today=new Date();
   let cells=[];
-  for(let i=0;i<first.getDay();i++)cells.push({d:new Date(calYear,calMonth,-(first.getDay()-i-1)),other:true});
-  for(let d=1;d<=last.getDate();d++)cells.push({d:new Date(calYear,calMonth,d),other:false});
-  while(cells.length%7!==0)cells.push({d:new Date(calYear,calMonth+1,cells.length-last.getDate()-first.getDay()+1),other:true});
+  if(calViewMode==='semana'){
+    // Constrói a semana (dom→sáb) que contém "hoje + offset de semanas"
+    const base=new Date(today);base.setDate(base.getDate()+calWeekOffset*7);
+    const domingo=new Date(base);domingo.setDate(base.getDate()-base.getDay());
+    for(let i=0;i<7;i++){
+      const d=new Date(domingo);d.setFullYear(domingo.getFullYear(),domingo.getMonth(),domingo.getDate()+i);
+      cells.push({d,other:d.getMonth()!==today.getMonth()&&calWeekOffset===0?false:false});
+    }
+    const fim=new Date(domingo);fim.setDate(domingo.getDate()+6);
+    const mesIni=months[domingo.getMonth()],mesFim=months[fim.getMonth()];
+    document.getElementById('cal-month-title').textContent=mesIni===mesFim
+      ?`${domingo.getDate()}–${fim.getDate()} de ${mesIni} ${domingo.getFullYear()}`
+      :`${domingo.getDate()} ${mesIni} – ${fim.getDate()} ${mesFim} ${fim.getFullYear()}`;
+    g.classList.add('cal-grid-semana');
+  }else{
+    document.getElementById('cal-month-title').textContent=months[calMonth]+' '+calYear;
+    g.classList.remove('cal-grid-semana');
+    const first=new Date(calYear,calMonth,1);
+    const last=new Date(calYear,calMonth+1,0);
+    for(let i=0;i<first.getDay();i++)cells.push({d:new Date(calYear,calMonth,-(first.getDay()-i-1)),other:true});
+    for(let d=1;d<=last.getDate();d++)cells.push({d:new Date(calYear,calMonth,d),other:false});
+    while(cells.length%7!==0)cells.push({d:new Date(calYear,calMonth+1,cells.length-last.getDate()-first.getDay()+1),other:true});
+  }
   g.innerHTML=cells.map(c=>{
     const day=c.d.getDate();
     const isToday=c.d.toDateString()===today.toDateString();
     const evs=(!c.other&&CAL_EVENTS[day])||[];
-    const shown=evs.slice(0,2);
-    const more=evs.length-2;
+    const shown=evs.slice(0,calViewMode==='semana'?8:2);
+    const more=evs.length-shown.length;
     return`<div class="cal-day${c.other?' other-month':''}${isToday?' today':''}" onclick="calDayClick(${day},${c.other?1:0})">
       <div class="cal-day-num">${day}</div>
       ${shown.map(e=>`<div class="cal-event ${e.c}">${e.h} ${e.t}</div>`).join('')}
@@ -3651,18 +3709,53 @@ function renderCal(){
     </div>`;
   }).join('');
   renderTodayEvents();
+  renderCalStats();
+}
+function renderCalStats(){
+  const hoje=new Date();
+  const todosEventos=Object.values(CAL_EVENTS).flat();
+  const os=todosEventos.filter(e=>e.c==='ce-os').length;
+  const rev=todosEventos.filter(e=>e.c==='ce-rev').length;
+  const ent=todosEventos.filter(e=>e.c==='ce-ent').length;
+  const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setTxt('cal-stat-os',os);
+  setTxt('cal-stat-rev',rev);
+  setTxt('cal-stat-ent',ent);
+  // Sem campo de status por evento nos dados atuais — mostra o total como "confirmados" até a Agenda ter status real
+  setTxt('cal-stat-conf',todosEventos.length);
+  setTxt('cal-stat-pend',0);
+  const lbl=document.getElementById('cal-today-label');
+  if(lbl)lbl.textContent='Hoje — '+hoje.toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
 }
 function renderTodayEvents(){
   const c=document.getElementById('cal-today-events');if(!c)return;
-  const evs=CAL_EVENTS[14]||[];
+  const evs=CAL_EVENTS[new Date().getDate()]||[];
   if(!evs.length){c.innerHTML='<div class="tm ts">Sem agendamentos hoje</div>';return;}
   const cc={'ce-os':'sd-blue','ce-rev':'sd-warn','ce-ent':'sd-ok'};
   c.innerHTML=evs.map(e=>`<div class="cs-event"><div class="cs-time">${e.h}</div><div class="status-dot ${cc[e.c]||'sd-blue'}" style="margin-top:5px"></div><div class="cs-info"><div class="cs-title">${e.t}</div></div></div>`).join('');
 }
-function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
-function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
-function calGoToday(){calYear=2025;calMonth=4;renderCal();}
-function calChangeView(v){toast('Visão '+v+' — em desenvolvimento','info');}
+function calPrev(){
+  if(calViewMode==='semana'){calWeekOffset--;renderCal();return;}
+  calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();
+}
+function calNext(){
+  if(calViewMode==='semana'){calWeekOffset++;renderCal();return;}
+  calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();
+}
+function calGoToday(){
+  const hoje=new Date();
+  calYear=hoje.getFullYear();calMonth=hoje.getMonth();calWeekOffset=0;
+  renderCal();
+}
+let calWeekOffset=0;
+function calChangeView(v){
+  calViewMode=v;
+  calWeekOffset=0;
+  document.querySelectorAll('.ph .btn.bs.btn-sm').forEach(b=>{
+    if(b.getAttribute('onclick')?.includes("calChangeView"))b.classList.toggle('bp',b.getAttribute('onclick')===`calChangeView('${v}')`);
+  });
+  renderCal();
+}
 function calDayClick(d,other){if(!other&&CAL_EVENTS[d])toast(CAL_EVENTS[d].length+' agendamento(s) em '+d+'/'+((calMonth+1)+'').padStart(2,'0'),'info');}
 
 // ======= OS =======
@@ -5593,7 +5686,7 @@ function hideSearchDrop(){const d=document.getElementById('search-drop');if(d)d.
 function renderDash(){
   const dt=document.getElementById('dash-date');if(dt)dt.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const dda=document.getElementById('dash-agenda');
-  if(dda){const evs=CAL_EVENTS[14]||[];const cc={'ce-os':'var(--blue)','ce-rev':'var(--amber)','ce-ent':'var(--green)'};dda.innerHTML=evs.slice(0,5).map(e=>`<div class="flx ic g2b" style="padding:7px 0;border-bottom:1px solid var(--border)"><div class="status-dot" style="background:${cc[e.c]||'var(--blue)'}"></div><span class="ts" style="color:var(--text3);min-width:30px">${e.h}</span><span class="ts" style="flex:1">${e.t}</span></div>`).join('');}
+  if(dda){const evs=CAL_EVENTS[new Date().getDate()]||[];const cc={'ce-os':'var(--blue)','ce-rev':'var(--amber)','ce-ent':'var(--green)'};dda.innerHTML=evs.slice(0,5).map(e=>`<div class="flx ic g2b" style="padding:7px 0;border-bottom:1px solid var(--border)"><div class="status-dot" style="background:${cc[e.c]||'var(--blue)'}"></div><span class="ts" style="color:var(--text3);min-width:30px">${e.h}</span><span class="ts" style="flex:1">${e.t}</span></div>`).join('')||'<div class="ts" style="color:var(--text3);padding:8px 0">Sem agendamentos hoje</div>';}
   const dos=document.getElementById('dash-os');
   if(dos){const sc={andamento:'bb',concluida:'bg2',aberta:'ba',aguardando:'br'};const sl={andamento:'Em andamento',concluida:'Concluída',aberta:'Em aberto',aguardando:'Aguard. aprovação'};dos.innerHTML=OS_DATA.slice(0,4).map(o=>`<tr><td class="fw6 ta">${o.id}</td><td><div class="td-n">${o.cli}</div><div class="td-s">${o.vei}</div></td><td class="ts tm">${o.svcs[0]}</td><td class="ts">${o.mec.split(' ')[0]}</td><td><span class="badge ${sc[o.st]}">${sl[o.st]}</span></td><td class="fw6 tg">R$ ${o.val}</td></tr>`).join('');}
   const da=document.getElementById('dash-alerts');
@@ -5657,7 +5750,7 @@ function filtrarEstoqueKpi(tipo){
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-function atualizarKpisEstoque(){
+async function atualizarKpisEstoque(){
   const total=PRODS.reduce((s,p)=>s+p.est*p.custo,0);
   const low=PRODS.filter(p=>p.est>0&&p.est<=p.min).length;
   const out=PRODS.filter(p=>p.est===0).length;
@@ -5667,6 +5760,23 @@ function atualizarKpisEstoque(){
   if(kv)kv.textContent='R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
   if(kl)kl.textContent=low;
   if(ko)ko.textContent=out;
+  // Giro de estoque real: valor vendido nos últimos 30 dias ÷ valor em estoque atual
+  const kg=document.getElementById('kpi-giro-est');
+  if(kg){
+    try{
+      const resp=await fetch(API_BASE+'/vendas?periodo=mes',{headers:authHeaders()});
+      if(resp.ok){
+        const vendasMes=await resp.json();
+        const totalVendidoMes=vendasMes.filter(v=>!v.devolvida).reduce((s,v)=>s+(parseFloat(v.total)||0),0);
+        const giro=total>0?(totalVendidoMes/total):0;
+        kg.textContent=giro.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'×';
+      }else{
+        kg.textContent='—';
+      }
+    }catch(e){
+      kg.textContent='—';
+    }
+  }
 }
 
 
@@ -5839,11 +5949,113 @@ const REP_DATA={
   os:{title:'OS por Status — 2025',type:'doughnut',labels:['Concluída','Em Andamento','Em Aberto','Aguard.'],data:[312,47,28,9],color:'#3B82F6',tbl:[['Concluídas','312','R$ 218.400','Histórico'],['Em Andamento','47','R$ 48.200','Ativas'],['Em Aberto','28','R$ 19.800','Pendentes'],['Aguardando','9','R$ 8.100','Aprovação']]},
   estoque:{title:'Valor em Estoque por Categoria',type:'bar',labels:['Freios','Motor','Suspensão','Filtros','Elétrica'],data:[84200,72400,65800,42100,28600],color:'#10B981',tbl:[['Freios','R$ 84.200','187 itens','A'],['Motor','R$ 72.400','243 itens','A'],['Suspensão','R$ 65.800','156 itens','B'],['Filtros','R$ 42.100','312 itens','B'],['Elétrica','R$ 28.600','98 itens','C']]},
 };
+let entradaProdutoSelecionadoId=null;
+function openEntradaEstoque(){
+  entradaProdutoSelecionadoId=null;
+  document.getElementById('entrada-busca-produto').value='';
+  document.getElementById('entrada-produto-resultados').innerHTML='';
+  document.getElementById('entrada-produto-selecionado').style.display='none';
+  document.getElementById('entrada-qtd').value='';
+  document.getElementById('entrada-motivo').value='';
+  openModal('modal-entrada-estoque');
+}
+function buscarProdutoEntrada(q){
+  const wrap=document.getElementById('entrada-produto-resultados');if(!wrap)return;
+  if(!q||q.length<2){wrap.innerHTML='';return;}
+  const nq=normTxt(q);
+  const achados=PRODS.filter(p=>normTxt(p.n).includes(nq)||normTxt(p.sku).includes(nq)).slice(0,8);
+  if(!achados.length){wrap.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text3)">Nenhum produto encontrado</div>';return;}
+  wrap.innerHTML=achados.map(p=>`<div style="padding:8px;border:1px solid var(--border);border-radius:var(--radius-xs);margin-top:4px;cursor:pointer;font-size:12px" onclick="selecionarProdutoEntrada(${p.id})"><strong>${p.n}</strong><br><span style="color:var(--text3)">${p.sku} · ${p.est} un. em estoque</span></div>`).join('');
+}
+function selecionarProdutoEntrada(id){
+  const p=PRODS.find(x=>x.id===id);if(!p)return;
+  entradaProdutoSelecionadoId=id;
+  document.getElementById('entrada-produto-resultados').innerHTML='';
+  document.getElementById('entrada-busca-produto').value='';
+  document.getElementById('entrada-produto-selecionado').style.display='block';
+  document.getElementById('entrada-produto-nome').textContent=p.n;
+  document.getElementById('entrada-produto-estoque-atual').textContent=p.est+' un.';
+}
+async function salvarEntradaEstoque(){
+  if(!entradaProdutoSelecionadoId){toast('Selecione um produto','error');return;}
+  const qtd=parseInt(document.getElementById('entrada-qtd')?.value||0);
+  if(!qtd||qtd<=0){toast('Informe uma quantidade válida','error');return;}
+  const motivo=(document.getElementById('entrada-motivo')?.value||'').trim()||'Entrada manual';
+  const p=PRODS.find(x=>x.id===entradaProdutoSelecionadoId);
+  const ok=await movimentarEstoque(entradaProdutoSelecionadoId,'entrada',qtd,motivo);
+  if(ok){
+    await carregarProdutos();
+    atualizarKpisEstoque();
+    toast(`✅ Entrada de ${qtd} un. em "${p?.n||'produto'}" registrada!`,'success');
+    closeModal('modal-entrada-estoque');
+  }
+}
+function getRepDataDinamico(type){
+  if(type==='estoque'&&Array.isArray(PRODS)&&PRODS.length){
+    const porCategoria={};
+    PRODS.forEach(p=>{
+      const cat=p.cat||'Sem categoria';
+      if(!porCategoria[cat])porCategoria[cat]={valor:0,itens:0};
+      porCategoria[cat].valor+=(p.custo||0)*(p.est||0);
+      porCategoria[cat].itens+=(p.est||0);
+    });
+    const entries=Object.entries(porCategoria).sort((a,b)=>b[1].valor-a[1].valor).slice(0,8);
+    if(!entries.length)return REP_DATA.estoque;
+    return{
+      title:'Valor em Estoque por Categoria',type:'bar',
+      labels:entries.map(e=>e[0]),
+      data:entries.map(e=>parseFloat(e[1].valor.toFixed(2))),
+      color:'#10B981',
+      tbl:entries.map(([cat,v])=>[cat,'R$ '+v.valor.toLocaleString('pt-BR',{minimumFractionDigits:2}),v.itens+' un.','—'])
+    };
+  }
+  if(type==='fornecedores'&&Array.isArray(FORNECEDORES_DATA)&&FORNECEDORES_DATA.length){
+    const entries=FORNECEDORES_DATA.slice(0,8);
+    return{
+      title:'Fornecedores Cadastrados',type:'bar',
+      labels:entries.map(f=>(f.nome||'').substring(0,15)),
+      data:entries.map(f=>f.rating||0),
+      color:'#F59E0B',
+      tbl:entries.map(f=>[f.nome||'—',f.cnpj||'—',f.cat||'—',f.status||'ativo'])
+    };
+  }
+  return REP_DATA[type];
+}
+function printRelatorio(){
+  const d=getRepDataDinamico(activeReport);
+  if(!d){toast('Esse relatório ainda não tem dados pra imprimir','error');return;}
+  const agora=new Date().toLocaleDateString('pt-BR');
+  const html=`
+    <div style="font-family:Arial,sans-serif;color:#000">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:16px;font-weight:800">🔧 AutoPeças Central</div>
+        <div style="font-size:11px;color:#666">${d.title} — ${agora}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr style="border-bottom:1px solid #ccc;text-align:left">
+          <th style="padding:4px">Período/Categoria</th><th style="padding:4px">Valor</th><th style="padding:4px">Qtd</th><th style="padding:4px">Var %/Status</th>
+        </tr></thead>
+        <tbody>
+          ${d.tbl.map(r=>`<tr style="border-bottom:1px solid #eee">${r.map(c=>`<td style="padding:4px">${c}</td>`).join('')}</tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  const area=document.getElementById('relatorio-print-area');
+  if(area)area.innerHTML=html;
+  openModal('modal-relatorio-print');
+}
+function handleImprimirRelatorio(){
+  document.body.classList.add('printing-rel');
+  setTimeout(()=>{
+    try{window.print();}catch(e){toast('Impressão bloqueada neste ambiente: '+e.message,'error');}
+    setTimeout(()=>document.body.classList.remove('printing-rel'),600);
+  },150);
+}
 function selectReport(type,el){
   activeReport=type;
   document.querySelectorAll('.rep-type-card').forEach(c=>c.classList.remove('active'));
   if(el)el.classList.add('active');
-  const d=REP_DATA[type];
+  const d=getRepDataDinamico(type);
   if(d){
     document.getElementById('rep-chart-title').textContent=d.title;
     document.getElementById('rep-table-title').textContent='Detalhamento — '+d.title.split(' ')[0];
@@ -6250,6 +6462,7 @@ let camActiveSlot='0';
 let camHasCaptured=false;
 let camDevices=[];
 let camCurrentDeviceId=null;
+let camCurrentFacing='environment';
 const photoSlots={0:null,1:null,2:null,3:null,4:null,5:null};
 
 // Enumerate cameras on page load and when fotos tab is opened
@@ -6304,14 +6517,14 @@ async function startCamera(){
       width:{ideal:1280,max:1920},
       height:{ideal:720,max:1080},
       frameRate:{ideal:30},
-      facingMode:'environment'
+      facingMode:camCurrentFacing
     },
     audio:false
   };
   // Prefer specific device if selected
   const sel=document.getElementById('cam-device-select');
   const deviceId=sel?.value||camCurrentDeviceId;
-  if(deviceId)constraints.video.deviceId={exact:deviceId};
+  if(deviceId){delete constraints.video.facingMode;constraints.video.deviceId={exact:deviceId};}
 
   try{
     camStream=await navigator.mediaDevices.getUserMedia(constraints);
@@ -6409,6 +6622,16 @@ function closeCamera(){
   camHasCaptured=false;
 }
 
+async function switchCameraFacing(){
+  camCurrentFacing=camCurrentFacing==='environment'?'user':'environment';
+  camCurrentDeviceId=null; // limpa dispositivo específico pra deixar o facingMode escolher
+  const sel=document.getElementById('cam-device-select');
+  if(sel)sel.value='';
+  toast(camCurrentFacing==='user'?'📱 Câmera frontal':'📷 Câmera traseira','info');
+  if(document.getElementById('cam-modal')?.style.display==='block'){
+    await startCamera();
+  }
+}
 async function switchCamera(deviceId){
   camCurrentDeviceId=deviceId;
   if(document.getElementById('cam-modal')?.style.display==='block'){
