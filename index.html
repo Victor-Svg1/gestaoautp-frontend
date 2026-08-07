@@ -10,13 +10,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
-  --bg0:#070C18;--bg1:#0D1526;--bg2:#111D35;--bg3:#162040;--card:#131D34;
-  --border:#1E2E50;--border2:#243660;
+  --bg0:#F0F4F8;--bg1:#FFFFFF;--bg2:#F1F5F9;--bg3:#E2E8F0;--card:#FFFFFF;
+  --border:#E2E8F0;--border2:#CBD5E1;
   --amber:#F59E0B;--amber2:#D97706;--amber-soft:rgba(245,158,11,.12);
   --blue:#3B82F6;--blue2:#2563EB;
   --teal:#14B8A6;--green:#10B981;--green2:#059669;
   --red:#EF4444;--purple:#8B5CF6;--orange:#F97316;
-  --text1:#F1F5F9;--text2:#94A3B8;--text3:#64748B;
+  --text1:#0F172A;--text2:#475569;--text3:#94A3B8;
   --sidebar:264px;--radius:12px;--radius-sm:8px;--radius-xs:6px;
   --font-head:'Sora',sans-serif;--font-body:'DM Sans',sans-serif;
   --tr:.2s cubic-bezier(.4,0,.2,1);
@@ -834,7 +834,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 </style>
 </head>
 <body>
-<div id="app">
+<div id="app" style="display:none">
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sb">
@@ -851,11 +851,11 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       <div class="ns">OFICINA</div>
       <div class="ni" onclick="nav('os',this)"><div class="nic"><i class="ti ti-clipboard-list"></i></div><span class="nl">Ordens de Serviço</span></div>
       <div class="ni" onclick="nav('veiculos',this)"><div class="nic"><i class="ti ti-car-suv"></i></div><span class="nl">Veículos</span></div>
-      <div class="ni" onclick="nav('garantias',this)"><div class="nic"><i class="ti ti-shield-check"></i></div><span class="nl">Garantias</span><span class="nb b">2</span></div>
+      <div class="ni" onclick="nav('garantias',this)"><div class="nic"><i class="ti ti-shield-check"></i></div><span class="nl">Garantias</span><span class="nb b" id="sidebar-gar-badge" style="display:none">0</span></div>
 
       <div class="ns">VENDAS</div>
       <div class="ni" onclick="nav('pdv',this)"><div class="nic"><i class="ti ti-device-desktop-dollar"></i></div><span class="nl">PDV</span><span class="nb b">PDV</span></div>
-      <div class="ni" onclick="nav('orcamentos',this)"><div class="nic"><i class="ti ti-file-description"></i></div><span class="nl">Orçamentos</span><span class="nb">5</span></div>
+      <div class="ni" onclick="nav('orcamentos',this)"><div class="nic"><i class="ti ti-file-description"></i></div><span class="nl">Orçamentos</span><span class="nb" id="sidebar-orc-badge" style="display:none">0</span></div>
       <div class="ni" onclick="nav('vendas',this)"><div class="nic"><i class="ti ti-receipt-2"></i></div><span class="nl">Vendas</span></div>
       <div class="ni" onclick="nav('ofertas',this)"><div class="nic"><i class="ti ti-discount-2"></i></div><span class="nl">Ofertas</span></div>
       <div class="ni" onclick="nav('nfe',this)"><div class="nic"><i class="ti ti-file-invoice"></i></div><span class="nl">NF-e / Fiscal</span></div>
@@ -894,9 +894,9 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       <div class="ni" onclick="nav('config',this)"><div class="nic"><i class="ti ti-settings"></i></div><span class="nl">Configurações</span></div>
     </nav>
     <div class="sb-foot">
-      <div class="comp-sw" onclick="toast('Empresa: AutoPeças Central','info')">
+      <div class="comp-sw" onclick="nav('config',null)" id="sidebar-empresa-sw">
         <i class="ti ti-building" style="color:var(--amber);font-size:15px"></i>
-        <span class="nl ts" style="font-size:12px">AutoPeças Central</span>
+        <span class="nl ts" style="font-size:12px" id="sidebar-empresa-nome">Minha Loja</span>
         <i class="ti ti-selector nl ts" style="font-size:13px;color:var(--text3)"></i>
       </div>
       <div class="su">
@@ -1030,12 +1030,12 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
       <!-- ===== VEÍCULOS ===== -->
       <div class="screen" id="screen-veiculos">
-        <div class="ph"><div class="phl"><h1>Veículos</h1><p>Cadastro completo com histórico de serviços</p></div><div class="flx g2b"><button class="btn bp" onclick="openModal('modal-veiculo')"><i class="ti ti-plus"></i>Cadastrar Veículo</button></div></div>
+        <div class="ph"><div class="phl"><h1>Veículos</h1><p>Cadastro completo com histórico de serviços</p></div><div class="flx g2b"><button class="btn bp" onclick="abrirModalVeiculo()"><i class="ti ti-plus"></i>Cadastrar Veículo</button></div></div>
         <div class="g4 mb14">
-          <div class="kpi ca"><div class="ki"><i class="ti ti-car-suv"></i></div><div class="kl">Total Cadastrados</div><div class="kv">2.847</div></div>
-          <div class="kpi cg"><div class="ki"><i class="ti ti-tool"></i></div><div class="kl">Com OS Ativa</div><div class="kv">47</div></div>
-          <div class="kpi cb"><div class="ki"><i class="ti ti-calendar-check"></i></div><div class="kl">Revisão Prevista</div><div class="kv">18</div></div>
-          <div class="kpi cp"><div class="ki"><i class="ti ti-building-factory"></i></div><div class="kl">Marcas</div><div class="kv">24</div></div>
+          <div class="kpi ca"><div class="ki"><i class="ti ti-car-suv"></i></div><div class="kl">Total Cadastrados</div><div class="kv" id="veh-kpi-total">0</div></div>
+          <div class="kpi cg"><div class="ki"><i class="ti ti-tool"></i></div><div class="kl">Com OS Ativa</div><div class="kv" id="veh-kpi-os-ativa">—</div></div>
+          <div class="kpi cb"><div class="ki"><i class="ti ti-calendar-check"></i></div><div class="kl">Revisão Prevista</div><div class="kv" id="veh-kpi-revisao">—</div></div>
+          <div class="kpi cp"><div class="ki"><i class="ti ti-building-factory"></i></div><div class="kl">Marcas</div><div class="kv" id="veh-kpi-marcas">0</div></div>
         </div>
         <div class="g2">
           <div>
@@ -1050,12 +1050,12 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
       <!-- ===== GARANTIAS ===== -->
       <div class="screen" id="screen-garantias">
-        <div class="ph"><div class="phl"><h1>Garantias</h1><p>Controle de garantias de peças e serviços</p></div><div class="flx g2b"><button class="btn bp" onclick="openModal('modal-garantia')"><i class="ti ti-plus"></i>Nova Garantia</button></div></div>
+        <div class="ph"><div class="phl"><h1>Garantias</h1><p>Controle de garantias de peças e serviços</p></div><div class="flx g2b"><button class="btn bp" onclick="abrirModalGarantia()"><i class="ti ti-plus"></i>Nova Garantia</button></div></div>
         <div class="g4 mb14">
-          <div class="kpi cg"><div class="ki"><i class="ti ti-shield-check"></i></div><div class="kl">Garantias Ativas</div><div class="kv">142</div></div>
-          <div class="kpi ca"><div class="ki"><i class="ti ti-clock"></i></div><div class="kl">Vencendo (7 dias)</div><div class="kv">2</div></div>
-          <div class="kpi cr"><div class="ki"><i class="ti ti-shield-x"></i></div><div class="kl">Expiradas</div><div class="kv">28</div></div>
-          <div class="kpi cb"><div class="ki"><i class="ti ti-refresh"></i></div><div class="kl">Acionadas</div><div class="kv">7</div></div>
+          <div class="kpi cg"><div class="ki"><i class="ti ti-shield-check"></i></div><div class="kl">Garantias Ativas</div><div class="kv" id="gar-kpi-ativas">0</div></div>
+          <div class="kpi ca"><div class="ki"><i class="ti ti-clock"></i></div><div class="kl">Vencendo (7 dias)</div><div class="kv" id="gar-kpi-vencendo">0</div></div>
+          <div class="kpi cr"><div class="ki"><i class="ti ti-shield-x"></i></div><div class="kl">Expiradas</div><div class="kv" id="gar-kpi-expiradas">0</div></div>
+          <div class="kpi cb"><div class="ki"><i class="ti ti-refresh"></i></div><div class="kl">Acionadas</div><div class="kv" id="gar-kpi-acionadas">0</div></div>
         </div>
         <div class="g2">
           <div>
@@ -1142,12 +1142,12 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
       <!-- ===== COMISSÕES ===== -->
       <div class="screen" id="screen-comissoes">
-        <div class="ph"><div class="phl"><h1>Comissões</h1><p>Cálculo e gestão de comissões de vendedores e mecânicos</p></div><div class="flx g2b"><select style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);padding:8px 12px;border-radius:var(--radius-sm);font-size:13px;outline:none"><option>Maio 2025</option><option>Abril 2025</option></select><button class="btn bp" onclick="toast('Pagamentos processados!','success')"><i class="ti ti-coin"></i>Processar Pagamentos</button></div></div>
+        <div class="ph"><div class="phl"><h1>Comissões</h1><p>Cálculo e gestão de comissões de vendedores e mecânicos</p></div><div class="flx g2b"><button class="btn bp" onclick="processarTodosPagamentos()"><i class="ti ti-coin"></i>Processar Pagamentos Pendentes</button></div></div>
         <div class="g4 mb14">
-          <div class="kpi ca"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Total a Pagar</div><div class="kv">R$ 8.420</div></div>
-          <div class="kpi cg"><div class="ki"><i class="ti ti-check"></i></div><div class="kl">Já Pago</div><div class="kv">R$ 3.200</div></div>
-          <div class="kpi cb"><div class="ki"><i class="ti ti-clock"></i></div><div class="kl">Pendente</div><div class="kv">R$ 5.220</div></div>
-          <div class="kpi cp"><div class="ki"><i class="ti ti-users"></i></div><div class="kl">Colaboradores</div><div class="kv">7</div></div>
+          <div class="kpi ca"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Total a Pagar</div><div class="kv" id="comm-kpi-total">R$ 0</div></div>
+          <div class="kpi cg"><div class="ki"><i class="ti ti-check"></i></div><div class="kl">Já Pago</div><div class="kv" id="comm-kpi-pago">R$ 0</div></div>
+          <div class="kpi cb"><div class="ki"><i class="ti ti-clock"></i></div><div class="kl">Pendente</div><div class="kv" id="comm-kpi-pendente">R$ 0</div></div>
+          <div class="kpi cp"><div class="ki"><i class="ti ti-users"></i></div><div class="kl">Colaboradores</div><div class="kv" id="comm-kpi-colab">0</div></div>
         </div>
         <div class="tabs">
           <div class="tab active" onclick="commTab('vendedores',this)"><i class="ti ti-award"></i>Vendedores</div>
@@ -1602,7 +1602,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
         <div class="ph">
           <div class="phl"><h1>Pedidos de Compra</h1><p>Gestão de pedidos e entrada de mercadorias</p></div>
           <div class="flx g2b" id="compras-actions">
-            <button class="btn bp" onclick="openModal('modal-compra')"><i class="ti ti-plus"></i>Novo Pedido</button>
+            <button class="btn bp" onclick="abrirModalCompra()"><i class="ti ti-plus"></i>Novo Pedido</button>
           </div>
         </div>
 
@@ -1941,7 +1941,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
           </div>
         </div>
       </div>
-      <div class="screen" id="screen-dre"><div class="ph"><div class="phl"><h1>DRE Gerencial</h1></div><button class="btn bp btn-sm" onclick="toast('PDF gerado!','success')"><i class="ti ti-download"></i>PDF</button></div><div class="g2"><div class="card"><div class="fr" style="font-size:15px;font-weight:700"><span class="lbl">RECEITA BRUTA</span><span class="val ta">R$ 184.720</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Devoluções</span><span class="val tr">R$ (4.230)</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Impostos</span><span class="val tr">R$ (14.778)</span></div><div class="fr" style="font-weight:700"><span class="lbl">= RECEITA LÍQUIDA</span><span class="val">R$ 165.712</span></div><div class="divider"></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) CMV</span><span class="val tr">R$ (99.432)</span></div><div class="fr" style="font-weight:700;color:var(--green)"><span class="lbl">= LUCRO BRUTO</span><span class="val tg">R$ 66.280 (40,0%)</span></div><div class="divider"></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Salários</span><span class="val tr">R$ (22.400)</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Aluguel</span><span class="val tr">R$ (8.000)</span></div><div class="fr" style="font-size:16px;font-weight:700"><span class="lbl">= RESULTADO OP.</span><span class="val tg">R$ 28.840 (15,6%)</span></div></div><div class="flex" style="flex-direction:column;gap:14px"><div class="card"><div class="ch"><div class="ct">Evolução Margens</div></div><div style="position:relative;height:180px"><canvas id="ch-dre-mar"></canvas></div></div><div class="card"><div class="ch"><div class="ct">Despesas</div></div><div style="position:relative;height:180px"><canvas id="ch-dre-desp"></canvas></div></div></div></div></div>
+      <div class="screen" id="screen-dre"><div class="ph"><div class="phl"><h1>DRE Gerencial</h1><p>Referente ao mês atual — calculado a partir dos dados reais do sistema</p></div><button class="btn bp btn-sm" onclick="imprimirDRE()"><i class="ti ti-printer"></i>Imprimir</button></div><div class="g2"><div class="card"><div class="fr" style="font-size:15px;font-weight:700"><span class="lbl">RECEITA BRUTA</span><span class="val ta" id="dre-receita-bruta">R$ 0</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Devoluções</span><span class="val tr" id="dre-devolucoes">R$ (0)</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Impostos <span style="font-size:9px;color:var(--text3)">(config. pendente)</span></span><span class="val tr" id="dre-impostos">—</span></div><div class="fr" style="font-weight:700"><span class="lbl">= RECEITA LÍQUIDA</span><span class="val" id="dre-receita-liquida">R$ 0</span></div><div class="divider"></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) CMV <span style="font-size:9px;color:var(--text3)">(estimado c/ custo atual)</span></span><span class="val tr" id="dre-cmv">R$ (0)</span></div><div class="fr" style="font-weight:700;color:var(--green)"><span class="lbl">= LUCRO BRUTO</span><span class="val tg" id="dre-lucro-bruto">R$ 0 (0,0%)</span></div><div class="divider"></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Salários (Folha)</span><span class="val tr" id="dre-salarios">R$ (0)</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Aluguel</span><span class="val tr" id="dre-aluguel">R$ (0)</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Outras Despesas</span><span class="val tr" id="dre-outras">R$ (0)</span></div><div class="fr" style="font-size:16px;font-weight:700"><span class="lbl">= RESULTADO OP.</span><span class="val tg" id="dre-resultado">R$ 0 (0,0%)</span></div></div><div class="flex" style="flex-direction:column;gap:14px"><div class="card"><div class="ch"><div class="ct">Margens do Mês Atual</div></div><div style="position:relative;height:180px"><canvas id="ch-dre-mar"></canvas></div></div><div class="card"><div class="ch"><div class="ct">Despesas</div></div><div style="position:relative;height:180px"><canvas id="ch-dre-desp"></canvas></div></div></div></div></div>
       <div class="screen" id="screen-clientes"><div class="ph"><div class="phl"><h1>Clientes</h1></div><button class="btn bp" onclick="openClienteNovo()"><i class="ti ti-user-plus"></i>Novo</button></div><div class="card"><div class="tw"><table><thead><tr><th>Cliente</th><th>Documento</th><th>Telefone</th><th>Veículos</th><th>Último Serviço</th><th>Limite Crédito</th><th>Total</th><th>Ações</th></tr></thead><tbody id="cli-tbl"></tbody></table></div></div></div>
 
       <div class="screen" id="screen-credito">
@@ -2080,13 +2080,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
       <!-- ===== RELATÓRIOS ===== -->
       <div class="screen" id="screen-relatorios">
-        <div class="ph"><div class="phl"><h1>Relatórios</h1><p>Central de relatórios e exportações</p></div><div class="flx g2b">
-          <select style="background:var(--bg2);border:1px solid var(--border);color:var(--text1);padding:7px 12px;border-radius:var(--radius-sm);font-size:13px;outline:none">
-            <option>Maio 2025</option><option>Abril 2025</option><option>2025 (anual)</option>
-          </select>
-          <button class="btn bs btn-sm" onclick="toast('Agendando relatório automático…','success')"><i class="ti ti-calendar-repeat"></i>Automatizar</button>
-          <button class="btn bp btn-sm" onclick="toast('Exportando…','success')"><i class="ti ti-download"></i>Exportar</button>
-        </div></div>
+        <div class="ph"><div class="phl"><h1>Relatórios</h1><p>Central de relatórios e exportações — use o CSV/PDF de cada relatório abaixo</p></div></div>
         <div class="rep-type-grid">
           <div class="rep-type-card active" onclick="selectReport('vendas',this)">
             <div class="rep-ic" style="background:rgba(245,158,11,.12)"><i class="ti ti-trending-up" style="color:var(--amber)"></i></div>
@@ -2568,9 +2562,9 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
         </div>
         <div class="nfe-grid nfe-g23" style="margin-bottom:8px">
           <div class="nfe-field"><label>Razão Social <span class="nfe-required">*</span></label>
-            <input id="emit-xnome" value="AutoPeças Central Ltda."></div>
+            <input id="emit-xnome" placeholder="Razão social da empresa"></div>
           <div class="nfe-field"><label>Nome Fantasia</label>
-            <input id="emit-xfant" value="AutoPeças Central"></div>
+            <input id="emit-xfant" placeholder="Nome fantasia"></div>
         </div>
         <div class="nfe-grid nfe-g3" style="margin-bottom:8px">
           <div class="nfe-field" style="grid-column:1/3"><label>Logradouro <span class="nfe-required">*</span></label>
@@ -3249,7 +3243,11 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       </div>
 
       <!-- Proprietário -->
-      <div class="ff sp2"><label>Proprietário / Cliente</label><input id="vei-proprietario" placeholder="Nome do cliente"></div>
+      <div class="ff sp2"><label>Proprietário / Cliente * <span style="color:var(--text3);font-size:10px">— precisa já estar cadastrado</span></label>
+        <input id="vei-proprietario-busca" placeholder="Buscar cliente pelo nome…" oninput="buscarClienteVeiculo(this.value)" autocomplete="off">
+        <div id="vei-cliente-resultados" style="max-height:140px;overflow-y:auto;margin-top:4px"></div>
+        <div id="vei-cliente-selecionado" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;margin-top:6px;font-size:12px"></div>
+      </div>
       <div class="ff"><label>Renavam</label><input id="vei-renavam" placeholder="00000000000" style="font-family:monospace"></div>
       <div class="ff"><label>Chassi (VIN)</label><input id="vei-chassi" placeholder="9BWZZZ377VT004251" style="font-family:monospace;text-transform:uppercase" maxlength="17"></div>
 
@@ -3290,8 +3288,20 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
 <div class="mov" id="modal-garantia" onclick="closeModal('modal-garantia')"><div class="modal" onclick="event.stopPropagation()">
   <div class="mhd"><span class="mtit">Registrar Garantia</span><button class="mcl" onclick="closeModal('modal-garantia')"><i class="ti ti-x"></i></button></div>
-  <div class="mbd"><div class="fg t"><div class="ff sp2"><label>OS Vinculada</label><select><option>#2847 — José Alves Santos</option><option>#2846 — Maria Oliveira</option></select></div><div class="ff sp2"><label>Produto / Serviço</label><input placeholder="Pastilha de freio Fras-le…"></div><div class="ff"><label>Tipo de Garantia</label><select><option>Peça (Fabricante)</option><option>Serviço (Oficina)</option><option>Mão de Obra</option></select></div><div class="ff"><label>Prazo (dias)</label><input type="number" value="90"></div><div class="ff"><label>Data de Início</label><input type="date"></div><div class="ff"><label>Data de Vencimento</label><input type="date"></div><div class="ff sp2"><label>Condições</label><textarea placeholder="Condições de cobertura da garantia…"></textarea></div></div></div>
-  <div class="mft"><button class="btn bg" onclick="closeModal('modal-garantia')"><i class="ti ti-x"></i>Cancelar</button><button class="btn bp" onclick="closeModal('modal-garantia');toast('Garantia registrada!','success')"><i class="ti ti-shield-check"></i>Registrar</button></div>
+  <div class="mbd"><div class="fg t">
+    <div class="ff sp2"><label>Cliente *</label>
+      <input id="gar-cliente-busca" placeholder="Buscar cliente…" oninput="buscarClienteGarantia(this.value)" autocomplete="off">
+      <div id="gar-cliente-resultados" style="max-height:140px;overflow-y:auto;margin-top:4px"></div>
+      <div id="gar-cliente-selecionado" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;margin-top:6px;font-size:12px"></div>
+    </div>
+    <div class="ff sp2"><label>Produto / Serviço *</label><input id="gar-produto" placeholder="Pastilha de freio Fras-le…"></div>
+    <div class="ff"><label>Tipo de Garantia</label><select id="gar-tipo"><option value="peca">Peça (Fabricante)</option><option value="servico">Serviço (Oficina)</option><option value="mao_obra">Mão de Obra</option></select></div>
+    <div class="ff"><label>Prazo (dias)</label><input type="number" id="gar-prazo" value="90" oninput="calcVencGarantia()"></div>
+    <div class="ff"><label>Data de Início</label><input type="date" id="gar-inicio" oninput="calcVencGarantia()"></div>
+    <div class="ff"><label>Data de Vencimento</label><input type="date" id="gar-venc"></div>
+    <div class="ff sp2"><label>Condições</label><textarea id="gar-condicoes" placeholder="Condições de cobertura da garantia…"></textarea></div>
+  </div></div>
+  <div class="mft"><button class="btn bg" onclick="closeModal('modal-garantia')"><i class="ti ti-x"></i>Cancelar</button><button class="btn bp" onclick="salvarGarantia()"><i class="ti ti-shield-check"></i>Registrar</button></div>
 </div></div>
 
 <div class="mov" id="modal-mov-detalhe" onclick="closeModal('modal-mov-detalhe')">
@@ -3581,10 +3591,23 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
   </div>
 </div></div>
 
-<div class="mov" id="modal-compra" onclick="closeModal('modal-compra')"><div class="modal" onclick="event.stopPropagation()">
+<div class="mov" id="modal-compra" onclick="closeModal('modal-compra')"><div class="modal wide" onclick="event.stopPropagation()" style="max-width:600px">
   <div class="mhd"><span class="mtit">Novo Pedido de Compra</span><button class="mcl" onclick="closeModal('modal-compra')"><i class="ti ti-x"></i></button></div>
-  <div class="mbd"><div class="fg t"><div class="ff sp2"><label>Fornecedor</label><select><option>Bosch do Brasil</option><option>Fras-le</option><option>Cofap</option><option>NGK</option></select></div><div class="ff"><label>Entrega Prevista</label><input type="date"></div><div class="ff"><label>Pagamento</label><select><option>28 dias</option><option>À vista</option><option>30/60</option></select></div></div></div>
-  <div class="mft"><button class="btn bg" onclick="closeModal('modal-compra')"><i class="ti ti-x"></i>Cancelar</button><button class="btn bp" onclick="closeModal('modal-compra');toast('Pedido enviado!','success')"><i class="ti ti-send"></i>Enviar</button></div>
+  <div class="mbd">
+    <div class="fg t mb14">
+      <div class="ff sp2"><label>Fornecedor *</label><select id="compra-fornecedor"></select></div>
+      <div class="ff"><label>Entrega Prevista</label><input type="date" id="compra-entrega"></div>
+      <div class="ff"><label>Pagamento</label><select id="compra-pagamento"><option>À vista</option><option>28 dias</option><option>30/60</option><option>30/60/90</option></select></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--amber);margin-bottom:6px">ITENS DO PEDIDO</div>
+    <div id="compra-itens-lista" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:6px;margin-bottom:6px">
+      <input type="text" id="compra-item-busca" placeholder="Buscar produto por nome ou SKU…" oninput="buscarProdutoCompra(this.value)" style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:6px 8px;color:var(--text1);font-size:12px;outline:none">
+    </div>
+    <div id="compra-item-resultados" style="max-height:140px;overflow-y:auto;margin-bottom:8px"></div>
+    <div style="text-align:right;font-size:14px;font-weight:700;color:var(--amber)">Total: <span id="compra-total">R$ 0,00</span></div>
+  </div>
+  <div class="mft"><button class="btn bg" onclick="closeModal('modal-compra')"><i class="ti ti-x"></i>Cancelar</button><button class="btn bp" onclick="salvarPedidoCompra()"><i class="ti ti-send"></i>Enviar Pedido</button></div>
 </div></div>
 
 <div class="mov" id="modal-cliente" onclick="closeModal('modal-cliente')"><div class="modal wide" onclick="event.stopPropagation()" style="max-width:660px">
@@ -3659,31 +3682,11 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 <script>
 // ======= DATA =======
 let FORNECEDORES_DATA=[];
-const ORC_DATA=[
-  {id:'ORC-028',cli:'José Alves Santos',vei:'VW Gol G5',val:420,desc:'Troca de pastilha + fluido DOT4',dt:'12/05/2025',val_dt:'19/05/2025',st:'aprovado'},
-  {id:'ORC-029',cli:'Maria Oliveira',vei:'Fiat Palio 1.4',val:1240,desc:'Amortecedor dianteiro par + alinhamento',dt:'12/05/2025',val_dt:'19/05/2025',st:'enviado'},
-  {id:'ORC-030',cli:'Auto Center Top',vei:'Toyota Corolla',val:2890,desc:'Revisão 100.000 km completa',dt:'11/05/2025',val_dt:'18/05/2025',st:'enviado'},
-  {id:'ORC-031',cli:'Carlos Eduardo',vei:'Chevrolet Onix',val:380,desc:'Diagnóstico eletrônico + scanner',dt:'10/05/2025',val_dt:'17/05/2025',st:'rascunho'},
-  {id:'ORC-032',cli:'Distribuidora Norte',vei:'Ford Ka 2019',val:680,desc:'Kit correia + bomba d\'água',dt:'10/05/2025',val_dt:'17/05/2025',st:'convertido'},
-  {id:'ORC-025',cli:'Ana Rodrigues',vei:'Honda Civic 2016',val:320,desc:'Troca de velas + scanner',dt:'05/05/2025',val_dt:'12/05/2025',st:'perdido'},
-  {id:'ORC-027',cli:'Posto Vitória',vei:'VW Saveiro',val:1480,desc:'Freio completo + pastilha + disco',dt:'09/05/2025',val_dt:'16/05/2025',st:'aprovado'},
-  {id:'ORC-026',cli:'Transportes JM',vei:'Ford Transit',val:3200,desc:'Revisão completa + pneus',dt:'08/05/2025',val_dt:'15/05/2025',st:'rascunho'},
-];
+let ORC_DATA=[];
 let PRODS=[];
 let OS_DATA=[];
-const VEICULOS=[
-  {placa:'NEQ-1A23',model:'VW Gol G5',ano:'2010/2011',motor:'1.0 Flex',cor:'Prata',chassi:'9BWZZZ377VT004251',cli:'José Alves Santos',km:45280,os:7,serv:['Freios','Óleo','Alinhamento'],ult:'12/05/2025'},
-  {placa:'PMC-2B34',model:'Fiat Palio 1.4',ano:'2015/2015',motor:'1.4 Flex',cor:'Branco',chassi:'9BD15822AB3234567',cli:'Maria Oliveira',km:78400,os:4,serv:['Óleo','Suspensão'],ult:'14/05/2025'},
-  {placa:'QNR-3C45',model:'Toyota Corolla',ano:'2018/2018',motor:'2.0 Flex',cor:'Preto',chassi:'9BFBZ3BEXJ3007123',cli:'Auto Center Top',km:112800,os:12,serv:['Freios','Amortecedor','Revisão'],ult:'14/05/2025'},
-  {placa:'RTS-4D56',model:'Chevrolet Onix',ano:'2020/2020',motor:'1.0 Turbo',cor:'Vermelho',chassi:'9BGEJ69P0JG289000',cli:'Carlos Eduardo',km:32100,os:2,serv:['Elétrica'],ult:'14/05/2025'},
-];
-const GARANTIAS=[
-  {id:'G-001',cli:'José Alves Santos',vei:'VW Gol G5',svc:'Pastilha de Freio Fras-le',tipo:'Peça',inicio:'10/03/2025',venc:'08/06/2025',diasR:25,st:'ativa'},
-  {id:'G-002',cli:'Maria Oliveira',vei:'Fiat Palio 1.4',svc:'Troca de Amortecedor Monroe',tipo:'Mão de Obra',inicio:'14/04/2025',venc:'13/07/2025',diasR:60,st:'ativa'},
-  {id:'G-003',cli:'Auto Center Top',vei:'Toyota Corolla',svc:'Kit Correia Dayco',tipo:'Peça',inicio:'01/02/2025',venc:'01/05/2025',diasR:-13,st:'vencida'},
-  {id:'G-004',cli:'Carlos Eduardo',vei:'Chevrolet Onix',svc:'Filtro de Ar Bosch',tipo:'Peça',inicio:'14/05/2025',venc:'12/08/2025',diasR:89,st:'ativa'},
-  {id:'G-005',cli:'Distribuidora Norte',vei:'Ford Ka',svc:'Diagnóstico Elétrico',tipo:'Serviço',inicio:'01/05/2025',venc:'30/05/2025',diasR:7,st:'vencendo'},
-];
+let VEICULOS=[];
+let GARANTIAS=[];
 const NOTIFS=[
   {t:'Garantia vencendo',d:'G-005 — Diagnóstico Elétrico — Ford Ka — 7 dias',ic:'ti-shield-check',bg:'rgba(245,158,11,.15)',fc:'var(--amber)',ti:'Agora',unr:true},
   {t:'OS Aguardando Aprovação',d:'OS #2845 — Auto Center Top — Amortecedor — R$ 890',ic:'ti-clipboard-list',bg:'rgba(239,68,68,.15)',fc:'var(--red)',ti:'14h32',unr:true},
@@ -4232,21 +4235,30 @@ function osTab(id,el){
 function toggleCK(el,i){el.classList.toggle('checked');const lbl=el.nextElementSibling.querySelector('.ck-label');if(lbl)lbl.classList.toggle('done');}
 
 // ======= VEÍCULOS =======
+function getVeiculosReais(){
+  return CLIENTES_DATA.filter(c=>c.placa&&c.placa.trim()).map(c=>({
+    placa:c.placa,model:[c.montadora,c.modelo].filter(Boolean).join(' ')||'Modelo não informado',
+    ano:c.ano||'—',motor:c.motor||'—',cor:c.cor||'—',cli:c.n,clienteIdx:CLIENTES_DATA.indexOf(c)
+  }));
+}
 function renderVeiculos(){
   const c=document.getElementById('veh-list');if(!c)return;
-  c.innerHTML=VEICULOS.map(v=>`<div class="veh-card" onclick="selectVeiculo('${v.placa}')">
+  const veiculos=getVeiculosReais();
+  const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setTxt('veh-kpi-total',veiculos.length.toLocaleString('pt-BR'));
+  const marcas=new Set(CLIENTES_DATA.filter(cl=>cl.placa&&cl.placa.trim()&&cl.montadora).map(cl=>cl.montadora));
+  setTxt('veh-kpi-marcas',marcas.size);
+  if(!veiculos.length){
+    c.innerHTML=`<div class="empty" style="padding:30px"><i class="ti ti-car-off" style="font-size:32px"></i><p>Nenhum veículo cadastrado ainda</p><p style="font-size:11px;color:var(--text3);margin-top:4px">O veículo é preenchido dentro do cadastro do Cliente</p></div>`;
+    return;
+  }
+  c.innerHTML=veiculos.map(v=>`<div class="veh-card" onclick="selectVeiculo('${v.placa}')">
     <div class="flx ic g2b" style="justify-content:space-between">
       <div class="veh-plate">${v.placa}</div>
       <span class="badge bb">${v.motor}</span>
     </div>
     <div class="veh-info">${v.model}</div>
-    <div class="veh-sub">${v.ano} · ${v.cor} · Chassi: ${v.chassi}</div>
-    <div class="veh-badges">${v.serv.map(s=>`<span class="tag">${s}</span>`).join('')}</div>
-    <div class="veh-stats">
-      <div class="veh-stat"><div class="v">${v.km.toLocaleString()}</div><div class="l">KM Atual</div></div>
-      <div class="veh-stat"><div class="v">${v.os}</div><div class="l">OS Totais</div></div>
-      <div class="veh-stat"><div class="v">${v.ult}</div><div class="l">Último Serviço</div></div>
-    </div>
+    <div class="veh-sub">${v.ano} · ${v.cor}</div>
     <div style="margin-top:10px;font-size:11px;color:var(--text3)">Proprietário: <span style="color:var(--text2);font-weight:500">${v.cli}</span></div>
   </div>`).join('');
 }
@@ -4256,14 +4268,8 @@ function filterVeiculos(q){
   });
 }
 function selectVeiculo(placa){
-  const v=VEICULOS.find(x=>x.placa===placa);if(!v)return;
+  const v=getVeiculosReais().find(x=>x.placa===placa);if(!v)return;
   const p=document.getElementById('veh-detail-panel');if(!p)return;
-  const hist=[
-    {ic:'ti-wrench',bg:'rgba(59,130,246,.15)',fc:'var(--blue)',t:'OS #2847 — Freios',d:'Troca de pastilha + fluido',dt:'12/05/2025',v:'R$ 420'},
-    {ic:'ti-droplet',bg:'rgba(16,185,129,.15)',fc:'var(--green)',t:'OS #2831 — Troca de Óleo',d:'Óleo 5W30 + filtro',dt:'28/02/2025',v:'R$ 180'},
-    {ic:'ti-steering-wheel',bg:'rgba(245,158,11,.15)',fc:'var(--amber)',t:'OS #2798 — Suspensão',d:'Alinhamento e balanceamento',dt:'15/01/2025',v:'R$ 120'},
-    {ic:'ti-refresh',bg:'rgba(139,92,246,.15)',fc:'var(--purple)',t:'Revisão Preventiva',d:'Revisão completa 40.000 km',dt:'10/10/2024',v:'R$ 680'},
-  ];
   p.innerHTML=`
     <div class="flx ic g2b mb14" style="justify-content:space-between">
       <div>
@@ -4271,8 +4277,8 @@ function selectVeiculo(placa){
         <div class="veh-sub">${v.model} · ${v.ano}</div>
       </div>
       <div class="flx g2b">
-        <button class="btn bp btn-sm" onclick="abrirModalNovaOS()"><i class="ti ti-clipboard-plus"></i>Nova OS</button>
-        <button class="btn bs btn-sm" onclick="toast('Editando veículo','info')"><i class="ti ti-edit"></i></button>
+        <button class="btn bp btn-sm" onclick="abrirModalNovoAgendamento()"><i class="ti ti-clipboard-plus"></i>Nova OS</button>
+        <button class="btn bs btn-sm" onclick="openClienteDetail(${v.clienteIdx})"><i class="ti ti-edit"></i></button>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
@@ -4280,67 +4286,163 @@ function selectVeiculo(placa){
         <div class="ts tm">Motor</div><div class="fw6">${v.motor}</div>
       </div>
       <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:10px">
-        <div class="ts tm">Combustível</div><div class="fw6">Flex</div>
-      </div>
-      <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:10px">
         <div class="ts tm">Cor</div><div class="fw6">${v.cor}</div>
       </div>
-      <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:10px">
-        <div class="ts tm">KM Atual</div><div class="fw6 ta" style="font-family:var(--font-head)">${v.km.toLocaleString()}</div>
-      </div>
     </div>
-    <div class="fr ts"><span class="lbl"><i class="ti ti-id"></i>Chassi</span><span class="val" style="font-family:monospace;font-size:11px">${v.chassi}</span></div>
     <div class="fr ts"><span class="lbl"><i class="ti ti-user"></i>Proprietário</span><span class="val">${v.cli}</span></div>
     <div class="divider"></div>
     <div class="flx ic g2b mb14" style="justify-content:space-between">
       <div class="ct">Histórico de Serviços</div>
-      <span class="badge ba">${v.os} OS</span>
     </div>
-    ${hist.map(h=>`<div class="hist-item">
-      <div class="hist-icon" style="background:${h.bg}"><i class="ti ${h.ic}" style="font-size:15px;color:${h.fc}"></i></div>
-      <div style="flex:1;min-width:0"><div class="td-n">${h.t}</div><div class="td-s">${h.d}</div><div class="td-s">${h.dt}</div></div>
-      <div class="fw6 tg ts">${h.v}</div>
-    </div>`).join('')}
-    <div class="divider"></div>
-    <div class="ai-insight" style="margin-bottom:0">
-      <div class="aic"><i class="ti ti-sparkles" style="font-size:14px"></i></div>
-      <div><div class="td-n">Análise IA</div><div class="td-s">Padrão de manutenção regular. Próxima revisão recomendada em 5.000 km. Pastilhas OK por mais 20.000 km.</div></div>
-    </div>
+    <div class="empty" style="padding:20px"><i class="ti ti-history-off" style="font-size:24px"></i><p style="font-size:12px">Histórico ainda não disponível — Ordens de Serviço não sincronizadas com veículos</p></div>
   `;
 }
 
 // ======= GARANTIAS =======
+async function carregarGarantias(){
+  try{
+    const resp=await fetch(API_BASE+'/garantias',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar garantias');
+    const rows=await resp.json();
+    const hojeISO=new Date().toISOString().slice(0,10);
+    GARANTIAS=rows.map(r=>{
+      const vencISO=String(r.data_venc).slice(0,10);
+      const diasR=Math.round((new Date(vencISO)-new Date(hojeISO))/86400000);
+      const st=r.status==='acionada'?'acionada':(diasR<0?'vencida':diasR<=7?'vencendo':'ativa');
+      return{
+        id:r.id,cli:r.cliente_nome,vei:r.veiculo||'—',svc:r.produto_servico,
+        tipo:{peca:'Peça',servico:'Serviço',mao_obra:'Mão de Obra'}[r.tipo]||r.tipo,
+        inicio:String(r.data_inicio).slice(0,10).split('-').reverse().join('/'),
+        venc:vencISO.split('-').reverse().join('/'),diasR,st
+      };
+    });
+    renderGarantias();
+    const badgeGar=document.getElementById('sidebar-gar-badge');
+    if(badgeGar){
+      const qtdVencendo=GARANTIAS.filter(g=>g.st==='vencendo').length;
+      badgeGar.textContent=qtdVencendo;
+      badgeGar.style.display=qtdVencendo>0?'':'none';
+    }
+    if(typeof initCharts==='function')setTimeout(initCharts,100);
+  }catch(e){toast('Erro ao carregar garantias: '+e.message,'error');}
+}
 function renderGarantias(filter='todas'){
   const c=document.getElementById('gar-list');if(!c)return;
+  const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setTxt('gar-kpi-ativas',GARANTIAS.filter(g=>g.st==='ativa').length);
+  setTxt('gar-kpi-vencendo',GARANTIAS.filter(g=>g.st==='vencendo').length);
+  setTxt('gar-kpi-expiradas',GARANTIAS.filter(g=>g.st==='vencida').length);
+  setTxt('gar-kpi-acionadas',GARANTIAS.filter(g=>g.st==='acionada').length);
   const items=GARANTIAS.filter(g=>{
     if(filter==='vencendo')return g.st==='vencendo'||g.st==='vencida';
-    if(filter==='acionadas')return false;
+    if(filter==='acionadas')return g.st==='acionada';
     return true;
   });
-  const stCl={ativa:'bg2',vencendo:'ba',vencida:'br'};
-  c.innerHTML=items.map(g=>`<div class="gar-card" onclick="toast('Garantia ${g.id} — ${g.svc}','info')">
-    <div class="gar-icon" style="background:${g.st==='ativa'?'rgba(16,185,129,.15)':g.st==='vencendo'?'rgba(245,158,11,.15)':'rgba(239,68,68,.15)'}">
-      <i class="ti ti-shield-check" style="color:${g.st==='ativa'?'var(--green)':g.st==='vencendo'?'var(--amber)':'var(--red)'}"></i>
-    </div>
-    <div class="gar-info" style="flex:1">
-      <div class="flx ic g2b" style="justify-content:space-between">
-        <div class="gar-title">${g.svc}</div>
-        <span class="badge ${stCl[g.st]}">${g.st}</span>
+  const stCl={ativa:'bg2',vencendo:'ba',vencida:'br',acionada:'bb'};
+  if(!items.length){
+    c.innerHTML=`<div class="empty" style="padding:30px"><i class="ti ti-shield-off" style="font-size:32px"></i><p>Nenhuma garantia encontrada</p></div>`;
+  }else{
+    c.innerHTML=items.map(g=>`<div class="gar-card" onclick="abrirDetalheGarantia(${g.id})">
+      <div class="gar-icon" style="background:${g.st==='ativa'?'rgba(16,185,129,.15)':g.st==='vencendo'?'rgba(245,158,11,.15)':g.st==='acionada'?'rgba(59,130,246,.15)':'rgba(239,68,68,.15)'}">
+        <i class="ti ti-shield-check" style="color:${g.st==='ativa'?'var(--green)':g.st==='vencendo'?'var(--amber)':g.st==='acionada'?'var(--blue)':'var(--red)'}"></i>
       </div>
-      <div class="gar-meta">${g.cli} · ${g.vei} · ${g.tipo}</div>
-      <div class="gar-expiry">
-        <i class="ti ti-calendar" style="font-size:13px;color:var(--text3)"></i>
-        <span class="ts tm">${g.inicio} → ${g.venc}</span>
-        <span class="ts fw6 mla ${g.diasR<0?'tr':g.diasR<14?'ta':'tg'}">${g.diasR<0?Math.abs(g.diasR)+' dias expirada':g.diasR+' dias restantes'}</span>
+      <div class="gar-info" style="flex:1">
+        <div class="flx ic g2b" style="justify-content:space-between">
+          <div class="gar-title">${g.svc}</div>
+          <span class="badge ${stCl[g.st]}">${g.st}</span>
+        </div>
+        <div class="gar-meta">${g.cli} · ${g.vei} · ${g.tipo}</div>
+        <div class="gar-expiry">
+          <i class="ti ti-calendar" style="font-size:13px;color:var(--text3)"></i>
+          <span class="ts tm">${g.inicio} → ${g.venc}</span>
+          <span class="ts fw6 mla ${g.diasR<0?'tr':g.diasR<14?'ta':'tg'}">${g.diasR<0?Math.abs(g.diasR)+' dias expirada':g.diasR+' dias restantes'}</span>
+        </div>
       </div>
-    </div>
-    <div class="flx" style="flex-direction:column;gap:4px">
-      <button class="btn bg btn-sm" onclick="toast('Acionando garantia ${g.id}…','info')"><i class="ti ti-refresh"></i></button>
-    </div>
-  </div>`).join('');
-  const venc=document.getElementById('gar-venc');if(venc)venc.innerHTML=GARANTIAS.filter(g=>g.diasR>=0&&g.diasR<=30).map(g=>`<div class="fr"><span class="lbl"><i class="ti ti-shield" style="color:${g.diasR<7?'var(--red)':'var(--amber)'}"></i>${g.cli}</span><span class="val ${g.diasR<7?'tr':'ta'}">${g.diasR}d</span></div>`).join('');
+      <div class="flx" style="flex-direction:column;gap:4px">
+        ${g.st!=='acionada'?`<button class="btn bg btn-sm" onclick="event.stopPropagation();acionarGarantia(${g.id})" title="Acionar garantia"><i class="ti ti-refresh"></i></button>`:''}
+      </div>
+    </div>`).join('');
+  }
+  const venc=document.getElementById('gar-venc');if(venc)venc.innerHTML=GARANTIAS.filter(g=>g.diasR>=0&&g.diasR<=30&&g.st!=='acionada').map(g=>`<div class="fr"><span class="lbl"><i class="ti ti-shield" style="color:${g.diasR<7?'var(--red)':'var(--amber)'}"></i>${g.cli}</span><span class="val ${g.diasR<7?'tr':'ta'}">${g.diasR}d</span></div>`).join('')||'<div class="ts" style="color:var(--text3);padding:8px 0">Nenhum vencimento nos próximos 30 dias</div>';
 }
 function filterGar(f){renderGarantias(f);}
+function abrirDetalheGarantia(id){
+  const g=GARANTIAS.find(x=>x.id===id);if(!g)return;
+  toast(`${g.svc} — ${g.cli} — ${g.tipo} — vence ${g.venc}`,'info');
+}
+let garSelectedClienteIdx=null;
+function abrirModalGarantia(){
+  garSelectedClienteIdx=null;
+  const sel=document.getElementById('gar-cliente-selecionado');if(sel){sel.style.display='none';sel.innerHTML='';}
+  const busca=document.getElementById('gar-cliente-busca');if(busca)busca.value='';
+  const res=document.getElementById('gar-cliente-resultados');if(res)res.innerHTML='';
+  ['gar-produto','gar-condicoes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const prazo=document.getElementById('gar-prazo');if(prazo)prazo.value=90;
+  const inicio=document.getElementById('gar-inicio');if(inicio)inicio.value=new Date().toISOString().slice(0,10);
+  calcVencGarantia();
+  openModal('modal-garantia');
+}
+function buscarClienteGarantia(q){
+  const wrap=document.getElementById('gar-cliente-resultados');if(!wrap)return;
+  if(!q||q.length<2){wrap.innerHTML='';return;}
+  const nq=normTxt(q);
+  const achados=CLIENTES_DATA.filter(c=>normTxt(c.n).includes(nq)).slice(0,8);
+  if(!achados.length){wrap.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text3)">Nenhum cliente encontrado</div>';return;}
+  wrap.innerHTML=achados.map(c=>`<div style="padding:8px;border:1px solid var(--border);border-radius:var(--radius-xs);margin-top:4px;cursor:pointer;font-size:12px" onclick="selecionarClienteGarantia(${CLIENTES_DATA.indexOf(c)})"><strong>${c.n}</strong>${c.placa?` — ${c.placa}`:''}</div>`).join('');
+}
+function selecionarClienteGarantia(idx){
+  garSelectedClienteIdx=idx;
+  const c=CLIENTES_DATA[idx];if(!c)return;
+  document.getElementById('gar-cliente-resultados').innerHTML='';
+  document.getElementById('gar-cliente-busca').value='';
+  const sel=document.getElementById('gar-cliente-selecionado');
+  sel.style.display='block';
+  sel.innerHTML=`<i class="ti ti-user-check" style="color:var(--green)"></i> Cliente: <strong>${c.n}</strong>${c.placa?' — '+c.placa:''}`;
+}
+function calcVencGarantia(){
+  const inicio=document.getElementById('gar-inicio')?.value;
+  const prazo=parseInt(document.getElementById('gar-prazo')?.value||0);
+  if(!inicio||!prazo)return;
+  const d=new Date(inicio+'T00:00:00');
+  d.setDate(d.getDate()+prazo);
+  const vencEl=document.getElementById('gar-venc');
+  if(vencEl)vencEl.value=d.toISOString().slice(0,10);
+}
+async function salvarGarantia(){
+  if(garSelectedClienteIdx===null){toast('Busque e selecione o cliente','error');return;}
+  const produto=(document.getElementById('gar-produto')?.value||'').trim();
+  const tipo=document.getElementById('gar-tipo')?.value||'peca';
+  const inicio=document.getElementById('gar-inicio')?.value;
+  const venc=document.getElementById('gar-venc')?.value;
+  const condicoes=(document.getElementById('gar-condicoes')?.value||'').trim();
+  if(!produto){toast('Informe o produto ou serviço','error');return;}
+  if(!inicio||!venc){toast('Informe as datas de início e vencimento','error');return;}
+  const c=CLIENTES_DATA[garSelectedClienteIdx];if(!c)return;
+  try{
+    const resp=await fetch(API_BASE+'/garantias',{method:'POST',headers:authHeaders(),body:JSON.stringify({
+      cliente_nome:c.n,veiculo:c.placa?[c.montadora,c.modelo].filter(Boolean).join(' '):null,
+      produto_servico:produto,tipo,data_inicio:inicio,data_venc:venc,condicoes
+    })});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao registrar garantia');}
+    toast(`✅ Garantia de "${produto.substring(0,30)}" registrada para ${c.n}!`,'success');
+    closeModal('modal-garantia');
+    await carregarGarantias();
+  }catch(e){
+    toast('Erro ao registrar garantia: '+e.message,'error');
+  }
+}
+async function acionarGarantia(id){
+  const g=GARANTIAS.find(x=>x.id===id);if(!g)return;
+  if(!confirm(`Confirma o acionamento da garantia "${g.svc}" de ${g.cli}?`))return;
+  try{
+    const resp=await fetch(API_BASE+'/garantias/'+id+'/status',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({status:'acionada'})});
+    if(!resp.ok)throw new Error('Erro ao acionar garantia');
+    toast('✅ Garantia acionada!','success');
+    await carregarGarantias();
+  }catch(e){
+    toast('Erro ao acionar garantia: '+e.message,'error');
+  }
+}
 
 // ======= CAIXA =======
 // ======= CONTROLE DE CAIXA (estado real) =======
@@ -4579,25 +4681,67 @@ function renderCaixa(){
 function renderComissoes(){
   const vg=document.getElementById('comm-vend-grid');
   const mg=document.getElementById('comm-mec-grid');
-  if(vg)vg.innerHTML=SELLERS.map(s=>{const comm=s.real*s.comm/100;const pago=s.pago;const pend=comm-pago;return`<div class="comm-card">
-    <div class="flx ic g2b mb14"><div class="comm-av" style="background:${s.bg}">${s.av}</div><div style="flex:1"><div class="td-n">${s.n}</div><div class="td-s">Vendedor · ${s.comm}% de comissão</div></div>${pago>0?`<span class="badge bg2">Pago</span>`:`<span class="badge ba">Pendente</span>`}</div>
+  let totalComissao=0,totalPago=0;
+  if(vg)vg.innerHTML=SELLERS.map(s=>{const comm=s.real*s.comm/100;const pago=s.pago;const pend=Math.max(0,comm-pago);totalComissao+=comm;totalPago+=pago;return`<div class="comm-card">
+    <div class="flx ic g2b mb14"><div class="comm-av" style="background:${s.bg}">${s.av}</div><div style="flex:1"><div class="td-n">${s.n}</div><div class="td-s">Vendedor · ${s.comm}% de comissão</div></div>${pend<=0.01?`<span class="badge bg2">Pago</span>`:`<span class="badge ba">Pendente</span>`}</div>
     <div class="fr ts"><span class="lbl">Vendas realizadas</span><span class="val">R$ ${s.real.toLocaleString()}</span></div>
     <div class="fr ts"><span class="lbl">Comissão (${s.comm}%)</span><span class="val fw6 ta">R$ ${comm.toFixed(2)}</span></div>
     <div class="fr ts"><span class="lbl">Já pago</span><span class="val tg">R$ ${pago.toFixed(2)}</span></div>
     <div class="fr ts" style="font-weight:700"><span class="lbl">Pendente</span><span class="val tr">R$ ${pend.toFixed(2)}</span></div>
-    <div class="comm-bar"><div class="comm-bar-label"><span>Meta: R$ ${(s.meta/1000).toFixed(0)}k</span><span class="tg">${Math.round(s.real/s.meta*100)}%</span></div><div class="pb"><div class="pf" style="width:${Math.min(100,Math.round(s.real/s.meta*100))}%;background:${s.real>=s.meta?'var(--green)':'var(--amber)'}"></div></div></div>
-    ${pend>0?`<button class="btn bsuc btn-sm" style="width:100%;margin-top:10px" onclick="toast('Pagamento de R$ ${pend.toFixed(2)} processado para ${s.n}!','success')"><i class="ti ti-coin"></i>Pagar R$ ${pend.toFixed(2)}</button>`:'<div class="badge bg2" style="display:block;text-align:center;margin-top:10px">✓ Comissão quitada</div>'}
+    <div class="comm-bar"><div class="comm-bar-label"><span>Meta: R$ ${(s.meta/1000).toFixed(0)}k</span><span class="tg">${s.meta>0?Math.round(s.real/s.meta*100):0}%</span></div><div class="pb"><div class="pf" style="width:${s.meta>0?Math.min(100,Math.round(s.real/s.meta*100)):0}%;background:${s.real>=s.meta?'var(--green)':'var(--amber)'}"></div></div></div>
+    ${pend>0.01?`<button class="btn bsuc btn-sm" style="width:100%;margin-top:10px" onclick="pagarComissao(${s.id},${pend.toFixed(2)},'${s.n.replace(/'/g,"\\'")}')"><i class="ti ti-coin"></i>Pagar R$ ${pend.toFixed(2)}</button>`:'<div class="badge bg2" style="display:block;text-align:center;margin-top:10px">✓ Comissão quitada</div>'}
   </div>`}).join('');
-  if(mg)mg.innerHTML=MECHS.map(m=>{const comm=m.fat*m.comm/100;const pago=m.pago;const pend=comm-pago;return`<div class="comm-card">
-    <div class="flx ic g2b mb14"><div class="comm-av" style="background:${m.bg}">${m.av}</div><div style="flex:1"><div class="td-n">${m.n}</div><div class="td-s">Mecânico · ${m.comm}% sobre OS</div></div>${pago>0?`<span class="badge bg2">Pago</span>`:`<span class="badge ba">Pendente</span>`}</div>
+  if(mg)mg.innerHTML=MECHS.map(m=>{const comm=m.fat*m.comm/100;const pago=m.pago;const pend=Math.max(0,comm-pago);totalComissao+=comm;totalPago+=pago;return`<div class="comm-card">
+    <div class="flx ic g2b mb14"><div class="comm-av" style="background:${m.bg}">${m.av}</div><div style="flex:1"><div class="td-n">${m.n}</div><div class="td-s">Mecânico · ${m.comm}% sobre OS</div></div>${pend<=0.01?`<span class="badge bg2">Pago</span>`:`<span class="badge ba">Pendente</span>`}</div>
     <div class="fr ts"><span class="lbl">OS realizadas</span><span class="val">${m.os} · ${m.horas}h</span></div>
     <div class="fr ts"><span class="lbl">Faturamento OS</span><span class="val">R$ ${m.fat.toLocaleString()}</span></div>
     <div class="fr ts"><span class="lbl">Comissão (${m.comm}%)</span><span class="val fw6 ta">R$ ${comm.toFixed(2)}</span></div>
     <div class="fr ts" style="font-weight:700"><span class="lbl">Pendente</span><span class="val tr">R$ ${pend.toFixed(2)}</span></div>
-    ${pend>0?`<button class="btn bsuc btn-sm" style="width:100%;margin-top:10px" onclick="toast('Pagamento de R$ ${pend.toFixed(2)} processado!','success')"><i class="ti ti-coin"></i>Pagar R$ ${pend.toFixed(2)}</button>`:'<div class="badge bg2" style="display:block;text-align:center;margin-top:10px">✓ Comissão quitada</div>'}
+    ${pend>0.01?`<button class="btn bsuc btn-sm" style="width:100%;margin-top:10px" onclick="pagarComissao(${m.id},${pend.toFixed(2)},'${m.n.replace(/'/g,"\\'")}')"><i class="ti ti-coin"></i>Pagar R$ ${pend.toFixed(2)}</button>`:'<div class="badge bg2" style="display:block;text-align:center;margin-top:10px">✓ Comissão quitada</div>'}
   </div>`}).join('');
+  const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setTxt('comm-kpi-total','R$ '+totalComissao.toLocaleString('pt-BR',{minimumFractionDigits:0}));
+  setTxt('comm-kpi-pago','R$ '+totalPago.toLocaleString('pt-BR',{minimumFractionDigits:0}));
+  setTxt('comm-kpi-pendente','R$ '+Math.max(0,totalComissao-totalPago).toLocaleString('pt-BR',{minimumFractionDigits:0}));
+  setTxt('comm-kpi-colab',SELLERS.length+MECHS.length);
   const ht=document.getElementById('comm-hist-tbl');
-  if(ht)ht.innerHTML=[...SELLERS.map(s=>({col:'Vendedor',n:s.n,base:s.real,pct:s.comm,comm:s.real*s.comm/100,pago:s.pago})),...MECHS.map(m=>({col:'Mecânico',n:m.n,base:m.fat,pct:m.comm,comm:m.fat*m.comm/100,pago:m.pago}))].map(r=>`<tr><td>Maio/2025</td><td>${r.n}</td><td><span class="badge ${r.col==='Vendedor'?'bb':'bt'}">${r.col}</span></td><td>R$ ${r.base.toLocaleString()}</td><td>${r.pct}%</td><td class="fw6 ta">R$ ${r.comm.toFixed(2)}</td><td><span class="badge ${r.pago>0?'bg2':'ba'}">${r.pago>0?'Pago':'Pendente'}</span></td></tr>`).join('');
+  const agora=new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+  if(ht)ht.innerHTML=[...SELLERS.map(s=>({col:'Vendedor',n:s.n,base:s.real,pct:s.comm,comm:s.real*s.comm/100,pago:s.pago})),...MECHS.map(m=>({col:'Mecânico',n:m.n,base:m.fat,pct:m.comm,comm:m.fat*m.comm/100,pago:m.pago}))].map(r=>`<tr><td>${agora}</td><td>${r.n}</td><td><span class="badge ${r.col==='Vendedor'?'bb':'bt'}">${r.col}</span></td><td>R$ ${r.base.toLocaleString()}</td><td>${r.pct}%</td><td class="fw6 ta">R$ ${r.comm.toFixed(2)}</td><td><span class="badge ${r.pago>=r.comm-0.01?'bg2':'ba'}">${r.pago>=r.comm-0.01?'Pago':'Pendente'}</span></td></tr>`).join('');
+}
+async function pagarComissao(usuarioId,valor,nome){
+  if(!confirm(`Confirma o pagamento de R$ ${valor.toFixed(2)} de comissão pra ${nome}?`))return;
+  try{
+    const resp=await fetch(API_BASE+'/usuarios/'+usuarioId+'/comissao-paga',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({valor})});
+    if(!resp.ok)throw new Error('Erro ao registrar pagamento');
+    toast(`✅ Pagamento de R$ ${valor.toFixed(2)} registrado para ${nome}!`,'success');
+    await Promise.all([carregarVendedores(),carregarMecanicos()]);
+    renderComissoes();
+  }catch(e){
+    toast('Erro ao processar pagamento: '+e.message,'error');
+  }
+}
+async function processarTodosPagamentos(){
+  const pendentesVend=SELLERS.filter(s=>(s.real*s.comm/100-s.pago)>0.01);
+  const pendentesMec=MECHS.filter(m=>(m.fat*m.comm/100-m.pago)>0.01);
+  const total=pendentesVend.length+pendentesMec.length;
+  if(!total){toast('Nenhuma comissão pendente pra pagar','info');return;}
+  const valorTotal=pendentesVend.reduce((s,x)=>s+(x.real*x.comm/100-x.pago),0)+pendentesMec.reduce((s,x)=>s+(x.fat*x.comm/100-x.pago),0);
+  if(!confirm(`Processar o pagamento de ${total} comissão(ões) pendente(s), totalizando R$ ${valorTotal.toFixed(2)}?`))return;
+  try{
+    for(const s of pendentesVend){
+      const pend=parseFloat((s.real*s.comm/100-s.pago).toFixed(2));
+      await fetch(API_BASE+'/usuarios/'+s.id+'/comissao-paga',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({valor:pend})});
+    }
+    for(const m of pendentesMec){
+      const pend=parseFloat((m.fat*m.comm/100-m.pago).toFixed(2));
+      await fetch(API_BASE+'/usuarios/'+m.id+'/comissao-paga',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({valor:pend})});
+    }
+    toast(`✅ ${total} pagamento(s) processado(s), totalizando R$ ${valorTotal.toFixed(2)}!`,'success');
+    await Promise.all([carregarVendedores(),carregarMecanicos()]);
+    renderComissoes();
+  }catch(e){
+    toast('Erro ao processar pagamentos: '+e.message,'error');
+  }
 }
 function commTab(id,el){
   ['vendedores','mecanicos','historico'].forEach(t=>{const e=document.getElementById('comm-pane-'+t);if(e)e.style.display=t===id?'block':'none';});
@@ -5037,6 +5181,79 @@ function aplicarValorFinalDesejado(){
   discCalc=Math.max(0,parseFloat(discCalc.toFixed(4)));
   if(discEl)discEl.value=discCalc;
   updateCart();
+}
+async function carregarDRE(){
+  try{
+    const resp=await fetch(API_BASE+'/vendas?periodo=mes',{headers:authHeaders()});
+    const vendas=resp.ok?await resp.json():[];
+    const receitaBruta=vendas.reduce((s,v)=>s+(parseFloat(v.total)||0),0);
+    let devolucoes=0,cmv=0;
+    vendas.forEach(v=>{
+      const itens=v.itens||[];
+      const devolvidos=v.itens_devolvidos||[];
+      devolvidos.forEach(d=>{
+        const it=itens.find(x=>String(x.id)===String(d.id));
+        if(it)devolucoes+=d.qty*it.preco;
+      });
+      itens.forEach(it=>{
+        if(it.avulso)return;
+        const p=PRODS.find(x=>x.id===it.id);
+        if(p)cmv+=(it.qty||0)*(p.custo||0);
+      });
+    });
+    const receitaLiquida=receitaBruta-devolucoes;
+    const lucroBruto=receitaLiquida-cmv;
+    const margemBruta=receitaLiquida>0?(lucroBruto/receitaLiquida*100):0;
+
+    const mesAtual=new Date().toISOString().slice(0,7);
+    const despesasMes=CONTAS_PAGAR.filter(c=>c.tipo==='despesa'&&c.venc&&c.venc.slice(0,7)===mesAtual);
+    const salarios=despesasMes.filter(d=>d.categoria==='Funcionário/Folha').reduce((s,d)=>s+d.valor,0);
+    const aluguel=despesasMes.filter(d=>d.categoria==='Aluguel').reduce((s,d)=>s+d.valor,0);
+    const outras=despesasMes.filter(d=>!['Funcionário/Folha','Aluguel'].includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
+    const resultadoOp=lucroBruto-salarios-aluguel-outras;
+    const margemLiq=receitaLiquida>0?(resultadoOp/receitaLiquida*100):0;
+
+    window._dreDadosAtuais={salarios,aluguel,cmv,outras,margemBruta:parseFloat(margemBruta.toFixed(1)),margemLiq:parseFloat(margemLiq.toFixed(1))};
+
+    const fmt=v=>'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+    const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    setTxt('dre-receita-bruta',fmt(receitaBruta));
+    setTxt('dre-devolucoes',devolucoes>0?'R$ ('+devolucoes.toLocaleString('pt-BR',{minimumFractionDigits:2})+')':'R$ 0,00');
+    setTxt('dre-receita-liquida',fmt(receitaLiquida));
+    setTxt('dre-cmv','R$ ('+cmv.toLocaleString('pt-BR',{minimumFractionDigits:2})+')');
+    setTxt('dre-lucro-bruto',fmt(lucroBruto)+' ('+margemBruta.toFixed(1)+'%)');
+    setTxt('dre-salarios','R$ ('+salarios.toLocaleString('pt-BR',{minimumFractionDigits:2})+')');
+    setTxt('dre-aluguel','R$ ('+aluguel.toLocaleString('pt-BR',{minimumFractionDigits:2})+')');
+    setTxt('dre-outras','R$ ('+outras.toLocaleString('pt-BR',{minimumFractionDigits:2})+')');
+    setTxt('dre-resultado',fmt(resultadoOp)+' ('+margemLiq.toFixed(1)+'%)');
+    if(typeof initCharts==='function')setTimeout(initCharts,100);
+  }catch(e){toast('Erro ao carregar DRE: '+e.message,'error');}
+}
+function imprimirDRE(){
+  const d=window._dreDadosAtuais||{};
+  const agora=new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  const getV=id=>document.getElementById(id)?.textContent||'—';
+  const win=window.open('','_blank','width=700,height=800');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>DRE Gerencial — ${agora}</title>
+    <style>body{font-family:Arial,sans-serif;padding:30px;color:#000}h1{font-size:20px}table{width:100%;border-collapse:collapse;margin-top:16px}td{padding:8px;border-bottom:1px solid #eee}td:last-child{text-align:right;font-weight:600}</style>
+    </head><body>
+    <h1>${EMPRESA_INFO.nome||'Minha Loja'} — DRE Gerencial</h1>
+    <div style="color:#666;margin-bottom:10px">Referente a ${agora}</div>
+    <table>
+      <tr><td><strong>RECEITA BRUTA</strong></td><td>${getV('dre-receita-bruta')}</td></tr>
+      <tr><td>(-) Devoluções</td><td>${getV('dre-devolucoes')}</td></tr>
+      <tr><td><strong>= RECEITA LÍQUIDA</strong></td><td>${getV('dre-receita-liquida')}</td></tr>
+      <tr><td>(-) CMV</td><td>${getV('dre-cmv')}</td></tr>
+      <tr><td><strong>= LUCRO BRUTO</strong></td><td>${getV('dre-lucro-bruto')}</td></tr>
+      <tr><td>(-) Salários</td><td>${getV('dre-salarios')}</td></tr>
+      <tr><td>(-) Aluguel</td><td>${getV('dre-aluguel')}</td></tr>
+      <tr><td>(-) Outras Despesas</td><td>${getV('dre-outras')}</td></tr>
+      <tr><td><strong>= RESULTADO OPERACIONAL</strong></td><td>${getV('dre-resultado')}</td></tr>
+    </table>
+    <div style="margin-top:20px;font-size:11px;color:#999">Impostos não incluídos — regime tributário ainda não configurado. CMV estimado com o custo atual dos produtos.</div>
+    </body></html>`);
+  win.document.close();
+  setTimeout(()=>win.print(),300);
 }
 function pdvSwitchTab(tab){
   const paneCat=document.getElementById('pdv-pane-catalogo');
@@ -5874,34 +6091,131 @@ function renderMov(){
   const movs=[{p:'Pastilha Fras-le',tp:'Saída (Venda)',q:'-2',u:'João Carlos',d:'14/05 14:32'},{p:'Filtro Óleo Bosch',tp:'Entrada (NF 3421)',q:'+20',u:'Admin',d:'14/05 10:14'},{p:'Amortecedor Monroe',tp:'Saída (OS #2845)',q:'-1',u:'Roberto O.',d:'14/05 09:28'}];
   t.innerHTML=movs.map(m=>`<tr><td class="td-n">${m.p}</td><td class="ts tm">${m.tp}</td><td class="fw6 ${m.q.startsWith('+')?'tg':'tr'}">${m.q}</td><td>${m.u}</td><td class="ts tm">${m.d}</td></tr>`).join('');
 }
+let PEDIDOS_COMPRA=[];
+async function carregarPedidosCompra(){
+  try{
+    const resp=await fetch(API_BASE+'/pedidos-compra',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar pedidos de compra');
+    const rows=await resp.json();
+    PEDIDOS_COMPRA=rows.map(r=>({
+      id:r.id,n:'PC-'+String(r.id).padStart(3,'0'),
+      sup:r.fornecedor_nome,its:(r.itens||[]).reduce((s,it)=>s+(it.qty||0),0),
+      val:parseFloat(r.valor)||0,
+      prev:r.entrega_prevista?String(r.entrega_prevista).slice(0,10).split('-').reverse().join('/'):'—',
+      st:r.status,nfe:r.nfe_status,itens:r.itens||[]
+    }));
+    renderCompras();
+  }catch(e){toast('Erro ao carregar pedidos de compra: '+e.message,'error');}
+}
 function renderCompras(){
   const t=document.getElementById('comp-tbl');if(!t)return;
-  const cs=[
-    {n:'PC-047',sup:'Bosch do Brasil',its:28,val:'R$ 12.400',prev:'15/05',st:'aprovado',nfe:'pendente'},
-    {n:'PC-048',sup:'Fras-le',its:12,val:'R$ 4.200',prev:'17/05',st:'pendente',nfe:null},
-    {n:'PC-046',sup:'NGK',its:8,val:'R$ 2.840',prev:'16/05',st:'transito',nfe:'pendente'},
-    {n:'PC-045',sup:'Monroe',its:6,val:'R$ 5.100',prev:'10/05',st:'recebido',nfe:'confirmada'},
-  ];
+  const cs=PEDIDOS_COMPRA;
   const cl={aprovado:'bg2',pendente:'ba',transito:'bb',recebido:'bg2'};
   const nl={aprovado:'Aprovado',pendente:'Pendente',transito:'Em Trânsito',recebido:'Recebido'};
   const abertos=cs.filter(c=>c.st==='aprovado'||c.st==='pendente').length;
   const transito=cs.filter(c=>c.st==='transito').length;
-  const volumeMes=cs.reduce((s,c)=>s+(parseFloat(c.val.replace(/[^\d,]/g,'').replace(',','.'))||0),0);
+  const volumeMes=cs.reduce((s,c)=>s+c.val,0);
   const nfePend=cs.filter(c=>c.nfe==='pendente').length;
   const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   setTxt('comp-kpi-abertos',abertos);
   setTxt('comp-kpi-transito',transito);
   setTxt('comp-kpi-volume','R$ '+volumeMes.toLocaleString('pt-BR',{minimumFractionDigits:0}));
   setTxt('comp-kpi-nfe-pend',nfePend);
+  if(!cs.length){
+    t.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">Nenhum pedido de compra cadastrado ainda</td></tr>`;
+    return;
+  }
   t.innerHTML=cs.map(c=>`<tr>
     <td class="fw6 ta">${c.n}</td>
     <td>${c.sup}</td>
     <td style="text-align:center">${c.its}</td>
-    <td class="fw6">${c.val}</td>
-    <td class="tm ts">${c.prev}/2025</td>
-    <td><span class="badge ${cl[c.st]}">${nl[c.st]}</span></td>
-    <td>${c.nfe==='pendente'?`<button class="btn ber btn-sm" onclick="comprasTab('nfe',null);setTimeout(loadDemoNFe,200)"><i class="ti ti-file-import"></i>Dar entrada</button>`:c.nfe==='confirmada'?`<span class="badge bg2"><i class="ti ti-check"></i>Entrada OK</span>`:`<span class="ts tm">—</span>`}</td>
+    <td class="fw6">R$ ${c.val.toFixed(2)}</td>
+    <td class="tm ts">${c.prev}</td>
+    <td><span class="badge ${cl[c.st]||'bg2'}">${nl[c.st]||c.st}</span></td>
+    <td>${c.nfe==='pendente'?`<button class="btn ber btn-sm" onclick="comprasTab('nfe',null)"><i class="ti ti-file-import"></i>Dar entrada</button>`:c.nfe==='confirmada'?`<span class="badge bg2"><i class="ti ti-check"></i>Entrada OK</span>`:`<span class="ts tm">—</span>`}</td>
   </tr>`).join('');
+}
+
+let compraItens=[];
+function abrirModalCompra(){
+  compraItens=[];
+  const sel=document.getElementById('compra-fornecedor');
+  if(sel){
+    sel.innerHTML=FORNECEDORES_DATA.length
+      ?FORNECEDORES_DATA.map(f=>`<option value="${f.id}" data-nome="${f.nome}">${f.nome}</option>`).join('')
+      :'<option value="">Nenhum fornecedor cadastrado</option>';
+  }
+  const entrega=document.getElementById('compra-entrega');if(entrega)entrega.value='';
+  const busca=document.getElementById('compra-item-busca');if(busca)busca.value='';
+  document.getElementById('compra-item-resultados').innerHTML='';
+  renderCompraItens();
+  openModal('modal-compra');
+}
+function buscarProdutoCompra(q){
+  const wrap=document.getElementById('compra-item-resultados');if(!wrap)return;
+  if(!q||q.length<2){wrap.innerHTML='';return;}
+  const nq=normTxt(q);
+  const achados=PRODS.filter(p=>normTxt(p.n).includes(nq)||normTxt(p.sku).includes(nq)).slice(0,8);
+  if(!achados.length){wrap.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text3)">Nenhum produto encontrado</div>';return;}
+  wrap.innerHTML=achados.map(p=>`<div style="padding:8px;border:1px solid var(--border);border-radius:var(--radius-xs);margin-top:4px;cursor:pointer;font-size:12px" onclick="adicionarItemCompra(${p.id})"><strong>${p.n}</strong><br><span style="color:var(--text3)">${p.sku} · Custo atual: R$ ${p.custo.toFixed(2)}</span></div>`).join('');
+}
+function adicionarItemCompra(produtoId){
+  const p=PRODS.find(x=>x.id===produtoId);if(!p)return;
+  const existente=compraItens.find(it=>it.produtoId===produtoId);
+  if(existente){existente.qty+=1;}
+  else{compraItens.push({produtoId,nome:p.n,sku:p.sku,qty:1,custo:p.custo});}
+  document.getElementById('compra-item-busca').value='';
+  document.getElementById('compra-item-resultados').innerHTML='';
+  renderCompraItens();
+}
+function alterarQtdItemCompra(idx,delta){
+  const it=compraItens[idx];if(!it)return;
+  it.qty+=delta;
+  if(it.qty<=0)compraItens.splice(idx,1);
+  renderCompraItens();
+}
+function alterarCustoItemCompra(idx,val){
+  const it=compraItens[idx];if(!it)return;
+  it.custo=parseFloat(val)||0;
+  renderCompraItens();
+}
+function renderCompraItens(){
+  const c=document.getElementById('compra-itens-lista');if(!c)return;
+  if(!compraItens.length){
+    c.innerHTML='<div class="empty" style="padding:14px"><i class="ti ti-package-off" style="font-size:22px"></i><p style="font-size:11px">Nenhum item adicionado</p></div>';
+  }else{
+    c.innerHTML=compraItens.map((it,i)=>`<div class="parts-row">
+      <div class="pr-info"><div class="pr-name">${it.nome}</div><div class="pr-sku">${it.sku}</div></div>
+      <div class="pr-qty"><button onclick="alterarQtdItemCompra(${i},-1)">−</button><span>${it.qty}</span><button onclick="alterarQtdItemCompra(${i},1)">+</button></div>
+      <input type="number" value="${it.custo}" oninput="alterarCustoItemCompra(${i},this.value)" style="width:70px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-xs);padding:4px 6px;color:var(--text1);font-size:12px;margin-left:6px">
+      <div class="pr-total" style="min-width:70px">R$ ${(it.qty*it.custo).toFixed(2)}</div>
+    </div>`).join('');
+  }
+  const total=compraItens.reduce((s,it)=>s+it.qty*it.custo,0);
+  const totEl=document.getElementById('compra-total');if(totEl)totEl.textContent='R$ '+total.toFixed(2);
+}
+async function salvarPedidoCompra(){
+  const sel=document.getElementById('compra-fornecedor');
+  const fornecedorId=sel?.value||null;
+  const fornecedorNome=sel?.selectedOptions[0]?.dataset.nome||'';
+  if(!fornecedorId){toast('Selecione o fornecedor','error');return;}
+  if(!compraItens.length){toast('Adicione pelo menos um item ao pedido','error');return;}
+  const entrega=document.getElementById('compra-entrega')?.value||null;
+  const pagamento=document.getElementById('compra-pagamento')?.value||'';
+  const valor=compraItens.reduce((s,it)=>s+it.qty*it.custo,0);
+  const itens=compraItens.map(it=>({produtoId:it.produtoId,nome:it.nome,sku:it.sku,qty:it.qty,custo:it.custo}));
+  try{
+    const resp=await fetch(API_BASE+'/pedidos-compra',{method:'POST',headers:authHeaders(),body:JSON.stringify({
+      fornecedor_id:fornecedorId,fornecedor_nome:fornecedorNome,itens,valor,
+      entrega_prevista:entrega,pagamento,status:'pendente',nfe_status:'pendente'
+    })});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao criar pedido');}
+    toast(`✅ Pedido de compra enviado para ${fornecedorNome}!`,'success');
+    closeModal('modal-compra');
+    await carregarPedidosCompra();
+  }catch(e){
+    toast('Erro ao enviar pedido: '+e.message,'error');
+  }
 }
 
 // ======= COMPRAS TABS =======
@@ -6346,12 +6660,17 @@ const CO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:fal
 function initCharts(){
   const ctx=id=>document.getElementById(id);
   if(ctx('ch-fat')){dc('fat');charts.fat=new Chart(ctx('ch-fat'),{type:'bar',data:{labels:['Nov','Dez','Jan','Fev','Mar','Abr','Mai'],datasets:[{data:[142,165,138,158,171,163,184.7],backgroundColor:['rgba(245,158,11,.35)','rgba(245,158,11,.35)','rgba(245,158,11,.35)','rgba(245,158,11,.35)','rgba(245,158,11,.35)','rgba(245,158,11,.35)','#F59E0B'],borderRadius:6}]},options:CO});}
-  if(ctx('ch-gar-tipo')){dc('gart');charts.gart=new Chart(ctx('ch-gar-tipo'),{type:'doughnut',data:{labels:['Peça','Mão de Obra','Serviço'],datasets:[{data:[88,32,22],backgroundColor:['#10B981','#3B82F6','#F59E0B'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10},boxWidth:10,padding:8}}}}});}
+  if(ctx('ch-gar-tipo')){
+    dc('gart');
+    const porTipo={'Peça':0,'Mão de Obra':0,'Serviço':0};
+    (typeof GARANTIAS!=='undefined'?GARANTIAS:[]).forEach(g=>{if(porTipo[g.tipo]!==undefined)porTipo[g.tipo]++;});
+    charts.gart=new Chart(ctx('ch-gar-tipo'),{type:'doughnut',data:{labels:['Peça','Mão de Obra','Serviço'],datasets:[{data:[porTipo['Peça'],porTipo['Mão de Obra'],porTipo['Serviço']],backgroundColor:['#10B981','#3B82F6','#F59E0B'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10},boxWidth:10,padding:8}}}}});
+  }
   if(ctx('ch-caixa-pag')){dc('cpag');charts.cpag=new Chart(ctx('ch-caixa-pag'),{type:'doughnut',data:{labels:['PIX','Cartão Crédito','Cartão Débito','Dinheiro'],datasets:[{data:[6840,3920,2280,1240],backgroundColor:['#F59E0B','#3B82F6','#8B5CF6','#10B981'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10},boxWidth:10,padding:6}}}}});}
   if(ctx('ch-fluxo')){dc('flx');charts.flx=new Chart(ctx('ch-fluxo'),{type:'line',data:{labels:Array.from({length:15},(_,i)=>`${i+1}/05`),datasets:[{label:'Entradas',data:Array.from({length:15},()=>Math.floor(Math.random()*12000+6000)),borderColor:'#10B981',tension:.4,fill:true,backgroundColor:'rgba(16,185,129,.07)',pointRadius:0},{label:'Saídas',data:Array.from({length:15},()=>Math.floor(Math.random()*8000+3000)),borderColor:'#EF4444',tension:.4,fill:true,backgroundColor:'rgba(239,68,68,.05)',pointRadius:0}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#94A3B8',font:{size:10}}}}}});}
   if(ctx('ch-pag')){dc('pag');charts.pag=new Chart(ctx('ch-pag'),{type:'doughnut',data:{labels:['PIX','Crédito','Débito','Boleto','Dinheiro'],datasets:[{data:[42,28,18,8,4],backgroundColor:['#F59E0B','#3B82F6','#8B5CF6','#14B8A6','#64748B'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10},boxWidth:10,padding:6}}}}});}
-  if(ctx('ch-dre-mar')){dc('drm');charts.drm=new Chart(ctx('ch-dre-mar'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Bruta%',data:[38,39,41,40,40],borderColor:'#10B981',tension:.4,pointRadius:3,pointBackgroundColor:'#10B981'},{label:'Líquida%',data:[12,14,15,14,15.6],borderColor:'#F59E0B',tension:.4,pointRadius:3,pointBackgroundColor:'#F59E0B'}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#94A3B8',font:{size:10}}}},scales:{...CO.scales,y:{...CO.scales.y,ticks:{color:'#64748B',font:{size:10},callback:v=>v+'%'}}}}});}
-  if(ctx('ch-dre-desp')){dc('drd');charts.drd=new Chart(ctx('ch-dre-desp'),{type:'pie',data:{labels:['Salários','Aluguel','CMV','Impostos'],datasets:[{data:[22400,8000,99432,14778],backgroundColor:['#3B82F6','#F59E0B','#EF4444','#8B5CF6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10},boxWidth:10,padding:4}}}}});}
+  if(ctx('ch-dre-mar')){dc('drm');const dreDados=window._dreDadosAtuais||{margemBruta:0,margemLiq:0};charts.drm=new Chart(ctx('ch-dre-mar'),{type:'bar',data:{labels:['Margem Bruta','Margem Líquida (Operacional)'],datasets:[{data:[dreDados.margemBruta,dreDados.margemLiq],backgroundColor:['#10B981','#F59E0B'],borderRadius:6}]},options:{...CO,plugins:{legend:{display:false}},scales:{...CO.scales,y:{...CO.scales.y,ticks:{color:'#64748B',font:{size:10},callback:v=>v+'%'}}}}});}
+  if(ctx('ch-dre-desp')){dc('drd');const dd=window._dreDadosAtuais||{salarios:0,aluguel:0,cmv:0,outras:0};dc('drd');charts.drd=new Chart(ctx('ch-dre-desp'),{type:'pie',data:{labels:['Salários','Aluguel','CMV','Outras Despesas'],datasets:[{data:[dd.salarios,dd.aluguel,dd.cmv,dd.outras],backgroundColor:['#3B82F6','#F59E0B','#EF4444','#8B5CF6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10},boxWidth:10,padding:4}}}}});}
   if(ctx('ch-bi-fat')){dc('bif');charts.bif=new Chart(ctx('ch-bi-fat'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],datasets:[{data:[138,145,162,158,184.7,0,0,0,0,0,0,0],backgroundColor:['rgba(245,158,11,.45)','rgba(245,158,11,.45)','rgba(245,158,11,.45)','rgba(245,158,11,.45)','#F59E0B','rgba(59,130,246,.25)','rgba(59,130,246,.25)','rgba(59,130,246,.25)','rgba(59,130,246,.25)','rgba(59,130,246,.25)','rgba(59,130,246,.25)','rgba(59,130,246,.25)'],borderRadius:5}]},options:CO});}
   if(ctx('ch-bi-canal')){dc('bic');charts.bic=new Chart(ctx('ch-bi-canal'),{type:'doughnut',data:{labels:['PDV','OS Oficina','WhatsApp','eCommerce'],datasets:[{data:[38,42,15,5],backgroundColor:['#F59E0B','#3B82F6','#25D366','#8B5CF6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10},boxWidth:10,padding:8}}}}});}
   if(ctx('ch-ia-prev')){dc('iap');charts.iap=new Chart(ctx('ch-ia-prev'),{type:'line',data:{labels:['Mar','Abr','Mai','Jun(p)','Jul(p)'],datasets:[{label:'Histórico',data:[162,158,184.7,null,null],borderColor:'#10B981',tension:.4,pointRadius:4,pointBackgroundColor:'#10B981'},{label:'Previsão IA',data:[null,null,184.7,196,209],borderColor:'#8B5CF6',borderDash:[6,3],tension:.4,pointRadius:4,pointBackgroundColor:'#8B5CF6'}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#94A3B8',font:{size:11}}}}}});}
@@ -6567,6 +6886,45 @@ function getRepDataDinamico(type){
       tbl:entries.map(f=>[f.nome||'—',f.cnpj||'—',f.cat||'—',f.status||'ativo'])
     };
   }
+  if(type==='comissoes'&&((Array.isArray(SELLERS)&&SELLERS.length)||(Array.isArray(MECHS)&&MECHS.length))){
+    const pessoas=[
+      ...(SELLERS||[]).map(s=>({nome:s.n,tipo:'Vendedor',base:s.real,pct:s.comm,comm:s.real*s.comm/100,pago:s.pago})),
+      ...(MECHS||[]).map(m=>({nome:m.n,tipo:'Mecânico',base:m.fat,pct:m.comm,comm:m.fat*m.comm/100,pago:m.pago}))
+    ].slice(0,8);
+    return{
+      title:'Comissões por Colaborador',type:'bar',
+      labels:pessoas.map(p=>p.nome.substring(0,15)),
+      data:pessoas.map(p=>parseFloat(p.comm.toFixed(2))),
+      color:'#F97316',
+      tbl:pessoas.map(p=>[p.nome,p.tipo,'R$ '+p.base.toLocaleString('pt-BR'),'R$ '+p.comm.toFixed(2)])
+    };
+  }
+  if(type==='garantias'&&Array.isArray(GARANTIAS)&&GARANTIAS.length){
+    const porStatus={ativa:0,vencendo:0,vencida:0,acionada:0};
+    GARANTIAS.forEach(g=>{if(porStatus[g.st]!==undefined)porStatus[g.st]++;});
+    return{
+      title:'Garantias por Status',type:'doughnut',
+      labels:['Ativas','Vencendo','Vencidas','Acionadas'],
+      data:[porStatus.ativa,porStatus.vencendo,porStatus.vencida,porStatus.acionada],
+      color:'#EF4444',
+      tbl:GARANTIAS.slice(0,8).map(g=>[g.cli,g.svc,g.venc,g.st])
+    };
+  }
+  if(type==='financeiro'&&Array.isArray(CONTAS_PAGAR)&&CONTAS_PAGAR.length){
+    const despesas=CONTAS_PAGAR.filter(c=>c.tipo==='despesa');
+    const porCategoria={};
+    despesas.forEach(d=>{porCategoria[d.categoria]=(porCategoria[d.categoria]||0)+d.valor;});
+    const entries=Object.entries(porCategoria).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    if(entries.length){
+      return{
+        title:'Despesas por Categoria',type:'bar',
+        labels:entries.map(e=>e[0]),
+        data:entries.map(e=>parseFloat(e[1].toFixed(2))),
+        color:'#8B5CF6',
+        tbl:entries.map(([cat,v])=>[cat,'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2}),despesas.filter(d=>d.categoria===cat).length+' lanç.','—'])
+      };
+    }
+  }
   return REP_DATA[type];
 }
 function printRelatorio(){
@@ -6576,7 +6934,7 @@ function printRelatorio(){
   const html=`
     <div style="font-family:Arial,sans-serif;color:#000">
       <div style="text-align:center;margin-bottom:14px">
-        <div style="font-size:16px;font-weight:800">🔧 AutoPeças Central</div>
+        <div style="font-size:16px;font-weight:800">🔧 ${EMPRESA_INFO.nome||'Minha Loja'}</div>
         <div style="font-size:11px;color:#666">${d.title} — ${agora}</div>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:11px">
@@ -7345,7 +7703,7 @@ function renderLabelPreview(){
   const aplicacao=(p.compat||'').substring(0,42);
   wrap.innerHTML=`
     <div class="label-preview" style="transform:scale(${scale});transform-origin:top center;margin-bottom:${(scale-1)*80}px">
-      <div class="label-logo">🔧 AutoPeças Central</div>
+      <div class="label-logo">🔧 ${EMPRESA_INFO.nome||'Minha Loja'}</div>
       <div class="label-name">${p.n}</div>
       <div class="label-row">
         <span style="font-size:10px;color:#666">${p.sku} · ${p.marca}</span>
@@ -7368,7 +7726,7 @@ function printLabel(){
   const showLoc=document.getElementById('lbl-show-loc')?.checked!==false;
   const aplicacao=(p.compat||'').substring(0,42);
   const labelHTML=`<div class="label-preview" style="page-break-inside:avoid">
-    <div class="label-logo">🔧 AutoPeças Central</div>
+    <div class="label-logo">🔧 ${EMPRESA_INFO.nome||'Minha Loja'}</div>
     <div class="label-name">${p.n}</div>
     <div class="label-row"><span style="font-size:10px;color:#666">${p.sku}·${p.marca}</span>${showLoc?`<span class="label-loc">${p.loc||'—'}</span>`:''}</div>
     <div style="font-size:10px;font-weight:700;color:#000;margin:1px 0">Cód. Interno: ${p.codigoInterno}</div>
@@ -7909,7 +8267,7 @@ function clearOrcModal(){
   document.getElementById('modal-orc-title').textContent='Novo Orçamento';
 }
 
-function saveOrc(forceStatus){
+async function saveOrc(forceStatus){
   const cli=(document.getElementById('orc-cli')?.value||'').trim();
   if(!cli){toast('Informe o cliente','error');return;}
   if(!orcItens.length){toast('Adicione ao menos um produto ou serviço','error');return;}
@@ -7921,34 +8279,52 @@ function saveOrc(forceStatus){
   const obs=(document.getElementById('orc-obs')?.value||'').trim();
   const validade=parseInt(document.getElementById('orc-validade')?.value||7);
   const status=forceStatus||document.getElementById('orc-status')?.value||'enviado';
-  const today=new Date();
-  const valDt=new Date(today.getTime()+validade*86400000);
-  const fmt=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-  // Gera descrição automática dos itens
+  const valDt=new Date(Date.now()+validade*86400000);
   const desc=orcItens.map(it=>`${it.qty}x ${it.nome}`).join(', ');
-  if(orcEditId!==null){
-    const idx=ORC_DATA.findIndex(o=>o.id===orcEditId);
-    if(idx>=0)ORC_DATA[idx]={...ORC_DATA[idx],cli,vei,val,desc,st:status,itens:[...orcItens]};
-    toast('Orçamento atualizado!','success');
-  }else{
-    const newId='ORC-'+String(ORC_DATA.length+33).padStart(3,'0');
-    ORC_DATA.push({id:newId,cli,vei,val,desc,dt:fmt(today),val_dt:fmt(valDt),st:status,vend,obs,itens:[...orcItens]});
-    toast(`Orçamento ${newId} criado!`,'success');
+  const payload={
+    cliente_nome:cli,veiculo:vei,vendedor:vend,valor:val,descricao:desc,observacoes:obs,
+    itens:[...orcItens],status,data_validade:valDt.toISOString().slice(0,10)
+  };
+  try{
+    if(orcEditId!==null){
+      const resp=await fetch(API_BASE+'/orcamentos/'+orcEditId,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+      if(!resp.ok)throw new Error('Erro ao atualizar orçamento');
+      toast('Orçamento atualizado!','success');
+    }else{
+      const resp=await fetch(API_BASE+'/orcamentos',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+      if(!resp.ok)throw new Error('Erro ao criar orçamento');
+      const novo=await resp.json();
+      toast(`Orçamento ORC-${String(novo.id).padStart(3,'0')} criado!`,'success');
+    }
+    closeModal('modal-orc');
+    clearOrcModal();
+    await carregarOrcamentos();
+  }catch(e){
+    toast('Erro ao salvar orçamento: '+e.message,'error');
   }
-  closeModal('modal-orc');
-  clearOrcModal();
-  renderOrcamentos();
-  saveData();
 }
 
-function saveOrcAndWhatsApp(){saveOrc('enviado');setTimeout(()=>toast('Orçamento enviado por WhatsApp!','success'),500);}
+function compartilharOrcWhatsApp(id){
+  const o=ORC_DATA.find(x=>x.id===id);if(!o)return;
+  const cliente=CLIENTES_DATA.find(c=>c.n===o.cli);
+  const tel=cliente?.tel?String(cliente.tel).replace(/\D/g,''):'';
+  const texto=encodeURIComponent(`Olá ${o.cli}! Segue o orçamento ${o.codigo}:\n\n${o.desc}\n\nValor: R$ ${o.val.toFixed(2)}\nVálido até: ${o.val_dt}`);
+  if(tel){
+    window.open(`https://wa.me/55${tel}?text=${texto}`,'_blank');
+  }else{
+    window.open(`https://wa.me/?text=${texto}`,'_blank');
+    toast('Cliente sem telefone cadastrado — abrindo WhatsApp sem número pré-selecionado','info');
+  }
+}
+
+function saveOrcAndWhatsApp(){saveOrc('enviado');}
 
 function editOrc(id){
   const o=ORC_DATA.find(x=>x.id===id);if(!o)return;
   orcEditId=id;
   orcItens=o.itens?[...o.itens]:[];
   openModal('modal-orc');
-  document.getElementById('modal-orc-title').textContent='Editar '+id;
+  document.getElementById('modal-orc-title').textContent='Editar '+o.codigo;
   setTimeout(()=>{
     const set=(elId,v)=>{const el=document.getElementById(elId);if(el)el.value=v||'';};
     set('orc-cli',o.cli);set('orc-vei',o.vei||'');set('orc-obs',o.obs||'');
@@ -7956,17 +8332,40 @@ function editOrc(id){
     renderOrcItens();
   },50);
 }
-function moveOrc(id,newSt){
-  const o=ORC_DATA.find(x=>x.id===id);if(o)o.st=newSt;
-  renderOrcamentos();saveData();
-  const labels={rascunho:'Rascunho',enviado:'Enviado',aprovado:'Aprovado',convertido:'Convertido em OS',perdido:'Perdido'};
-  toast(`${id} → ${labels[newSt]||newSt}`,'success');
+async function moveOrc(id,newSt){
+  try{
+    const resp=await fetch(API_BASE+'/orcamentos/'+id+'/status',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({status:newSt})});
+    if(!resp.ok)throw new Error('Erro ao mover orçamento');
+    const labels={rascunho:'Rascunho',enviado:'Enviado',aprovado:'Aprovado',convertido:'Convertido em OS',perdido:'Perdido'};
+    toast(`ORC → ${labels[newSt]||newSt}`,'success');
+    await carregarOrcamentos();
+  }catch(e){
+    toast('Erro ao mover orçamento: '+e.message,'error');
+  }
 }
-function convertOrcToOS(id){
+async function convertOrcToOS(id){
   const o=ORC_DATA.find(x=>x.id===id);if(!o)return;
-  o.st='convertido';
-  renderOrcamentos();saveData();
-  toast(`✅ OS criada a partir do orçamento ${id}! Cliente: ${o.cli}. Valor: R$ ${o.val.toFixed(2)}`,'success');
+  if(!confirm(`Converter o orçamento ${o.codigo} (${o.cli} — R$ ${o.val.toFixed(2)}) numa Ordem de Serviço de verdade?`))return;
+  try{
+    const resp=await fetch(API_BASE+'/orcamentos/'+id+'/status',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({status:'convertido'})});
+    if(!resp.ok)throw new Error('Erro ao converter orçamento');
+    // Cria a OS de verdade a partir dos dados do orçamento
+    const maxNum=OS_DATA.reduce((mx,x)=>{const n=parseInt((x.id||'').replace('#',''));return isNaN(n)?mx:Math.max(mx,n);},2999);
+    const novoId='#'+(maxNum+1);
+    const pcs=(o.itens||[]).filter(it=>it.tipo!=='servico').map(it=>({produtoId:it.produtoId||null,n:it.nome,q:it.qty,val:it.total}));
+    const srvs=(o.itens||[]).filter(it=>it.tipo==='servico').map(it=>({desc:it.nome,val:it.total}));
+    OS_DATA.unshift({
+      id:novoId,cli:o.cli,placa:(o.vei||'').toUpperCase(),vei:o.vei||'',km:0,box:'',
+      mec:o.vend||'A definir',st:'aberta',val:o.val,
+      def:'Convertido do orçamento '+o.codigo,diag:o.desc||'',prev:'A definir',
+      svcs:[],pcs,srvs
+    });
+    saveData();
+    toast(`✅ OS ${novoId} criada a partir do orçamento ${o.codigo}!`,'success');
+    await carregarOrcamentos();
+  }catch(e){
+    toast('Erro ao converter orçamento: '+e.message,'error');
+  }
 }
 function printOrc(id){
   const o=ORC_DATA.find(x=>x.id===id);if(!o)return;
@@ -8088,13 +8487,13 @@ function printOrc(id){
         <div style="border-top:1px solid #333;margin-top:40px;padding-top:6px;font-size:11px;color:#888;text-align:center">Assinatura do Cliente · ${o.cli}</div>
       </div>
       <div>
-        <div style="border-top:1px solid #333;margin-top:40px;padding-top:6px;font-size:11px;color:#888;text-align:center">Vendedor · AutoPeças Central</div>
+        <div style="border-top:1px solid #333;margin-top:40px;padding-top:6px;font-size:11px;color:#888;text-align:center">Vendedor · ${EMPRESA_INFO.nome||'Minha Loja'}</div>
       </div>
     </div>
 
     <!-- Rodapé -->
     <div class="footer">
-      <span>AutoPeças Central Ltda. · CNPJ 12.345.678/0001-90</span>
+      <span>${EMPRESA_INFO.nome||'Minha Loja'}${EMPRESA_INFO.cnpj?(' · CNPJ '+EMPRESA_INFO.cnpj):''}</span>
       <span>Orçamento ${o.id} · Emitido em ${o.dt||new Date().toLocaleDateString('pt-BR')}</span>
     </div>
 
@@ -8106,11 +8505,41 @@ function printOrc(id){
   win.document.close();
 }
 
-function deleteOrc(id){
-  const idx=ORC_DATA.findIndex(x=>x.id===id);
-  if(idx>=0)ORC_DATA.splice(idx,1);
-  renderOrcamentos();saveData();
-  toast('Orçamento removido','info');
+async function deleteOrc(id){
+  const o=ORC_DATA.find(x=>x.id===id);if(!o)return;
+  if(!confirm(`Excluir o orçamento ${o.codigo}?`))return;
+  try{
+    const resp=await fetch(API_BASE+'/orcamentos/'+id,{method:'DELETE',headers:authHeaders()});
+    if(!resp.ok)throw new Error('Erro ao excluir orçamento');
+    toast('Orçamento removido','info');
+    await carregarOrcamentos();
+  }catch(e){
+    toast('Erro ao excluir: '+e.message,'error');
+  }
+}
+async function carregarOrcamentos(){
+  try{
+    const resp=await fetch(API_BASE+'/orcamentos',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar orçamentos');
+    const rows=await resp.json();
+    ORC_DATA.length=0;
+    ORC_DATA.push(...rows.map(r=>({
+      id:r.id,codigo:r.codigo||('ORC-'+String(r.id).padStart(3,'0')),
+      cli:r.cliente_nome,vei:r.veiculo||'',val:parseFloat(r.valor)||0,
+      desc:r.descricao||'',obs:r.observacoes||'',vend:r.vendedor||'',
+      dt:new Date(r.criado_em).toLocaleDateString('pt-BR'),
+      val_dt:r.data_validade?String(r.data_validade).slice(0,10).split('-').reverse().join('/'):'—',
+      dataValidadeISO:r.data_validade?String(r.data_validade).slice(0,10):null,
+      st:r.status,itens:r.itens||[]
+    })));
+    const badgeOrc=document.getElementById('sidebar-orc-badge');
+    if(badgeOrc){
+      const qtdPendente=ORC_DATA.filter(o=>o.st==='rascunho'||o.st==='enviado').length;
+      badgeOrc.textContent=qtdPendente;
+      badgeOrc.style.display=qtdPendente>0?'':'none';
+    }
+    renderOrcamentos();
+  }catch(e){toast('Erro ao carregar orçamentos: '+e.message,'error');}
 }
 function renderOrcamentos(){
   const board=document.getElementById('orc-board');if(!board)return;
@@ -8121,7 +8550,8 @@ function renderOrcamentos(){
     {key:'convertido',label:'Convertido',color:'var(--teal)',icon:'ti-clipboard-check'},
     {key:'perdido',label:'Perdido',color:'var(--red)',icon:'ti-x'},
   ];
-  const hoje='14/05/2025';
+  const hj=new Date();
+  const hoje=`${String(hj.getDate()).padStart(2,'0')}/${String(hj.getMonth()+1).padStart(2,'0')}/${hj.getFullYear()}`;
   board.innerHTML=cols.map(col=>{
     const items=ORC_DATA.filter(o=>o.st===col.key);
     const total=items.reduce((s,o)=>s+(o.val||0),0);
@@ -8133,10 +8563,9 @@ function renderOrcamentos(){
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
       ${items.map(o=>{
         const vencendo=o.val_dt===hoje;
-        const vencido=false;
         return`<div class="orc-card" style="${vencendo?'border-color:var(--amber)':''}">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-            <div class="orc-num">${o.id}</div>
+            <div class="orc-num">${o.codigo}</div>
             ${vencendo?`<span style="font-size:9px;background:rgba(245,158,11,.15);color:var(--amber);padding:1px 6px;border-radius:8px">Vence hoje</span>`:''}
           </div>
           <div class="orc-cli">${o.cli}</div>
@@ -8145,13 +8574,13 @@ function renderOrcamentos(){
           <div class="orc-val">R$ ${(o.val||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
           <div class="orc-dt"><i class="ti ti-calendar" style="font-size:10px"></i> ${o.dt} · Válido: ${o.val_dt}</div>
           <div class="orc-card-actions">
-            <button class="btn bg btn-sm" onclick="editOrc('${o.id}')" title="Editar"><i class="ti ti-edit"></i></button>
-            <button class="btn bg btn-sm" onclick="printOrc('${o.id}')" title="Imprimir orçamento"><i class="ti ti-printer"></i></button>
-            ${col.key==='rascunho'?`<button class="btn bb btn-sm" onclick="moveOrc('${o.id}','enviado')" title="Marcar como enviado"><i class="ti ti-send"></i>Enviar</button>`:''}
-            ${col.key==='enviado'?`<button class="btn bsuc btn-sm" onclick="moveOrc('${o.id}','aprovado')"><i class="ti ti-thumb-up"></i>Aprovar</button>`:''}
-            ${col.key==='aprovado'?`<button class="btn bsuc btn-sm" onclick="convertOrcToOS('${o.id}')"><i class="ti ti-clipboard-check"></i>→ OS</button>`:''}
-            ${col.key==='enviado'||col.key==='aprovado'?`<button class="btn bg btn-sm" style="color:var(--red)" onclick="moveOrc('${o.id}','perdido')" title="Marcar como perdido"><i class="ti ti-x"></i></button>`:''}
-            ${col.key!=='convertido'&&col.key!=='perdido'?`<button class="btn bg btn-sm" style="background:rgba(37,211,102,.08);border-color:rgba(37,211,102,.2)" onclick="toast('WhatsApp enviado para ${o.cli}!','success')"><i class="ti ti-brand-whatsapp" style="color:#25D366;font-size:13px"></i></button>`:''}
+            <button class="btn bg btn-sm" onclick="editOrc(${o.id})" title="Editar"><i class="ti ti-edit"></i></button>
+            <button class="btn bg btn-sm" onclick="printOrc(${o.id})" title="Imprimir orçamento"><i class="ti ti-printer"></i></button>
+            ${col.key==='rascunho'?`<button class="btn bb btn-sm" onclick="moveOrc(${o.id},'enviado')" title="Marcar como enviado"><i class="ti ti-send"></i>Enviar</button>`:''}
+            ${col.key==='enviado'?`<button class="btn bsuc btn-sm" onclick="moveOrc(${o.id},'aprovado')"><i class="ti ti-thumb-up"></i>Aprovar</button>`:''}
+            ${col.key==='aprovado'?`<button class="btn bsuc btn-sm" onclick="convertOrcToOS(${o.id})"><i class="ti ti-clipboard-check"></i>→ OS</button>`:''}
+            ${col.key==='enviado'||col.key==='aprovado'?`<button class="btn bg btn-sm" style="color:var(--red)" onclick="moveOrc(${o.id},'perdido')" title="Marcar como perdido"><i class="ti ti-x"></i></button>`:''}
+            ${col.key!=='convertido'&&col.key!=='perdido'?`<button class="btn bg btn-sm" style="background:rgba(37,211,102,.08);border-color:rgba(37,211,102,.2)" onclick="compartilharOrcWhatsApp(${o.id})" title="Compartilhar no WhatsApp"><i class="ti ti-brand-whatsapp" style="color:#25D366;font-size:13px"></i></button>`:''}
           </div>
         </div>`;
       }).join('')}
@@ -8614,29 +9043,66 @@ function _aplicarDadosPlaca(d,prefix){
   }
 }
 
-function salvarVeiculo(){
+let veiSelectedClienteIdx=null;
+function abrirModalVeiculo(){
+  veiSelectedClienteIdx=null;
+  const sel=document.getElementById('vei-cliente-selecionado');if(sel){sel.style.display='none';sel.innerHTML='';}
+  const busca=document.getElementById('vei-proprietario-busca');if(busca)busca.value='';
+  const res=document.getElementById('vei-cliente-resultados');if(res)res.innerHTML='';
+  ['vei-placa','vei-chassi','vei-renavam','vei-modelo','vei-versao','vei-ano-fab','vei-ano-mod','vei-motor','vei-cor','vei-km','vei-rev-km','vei-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  openModal('modal-veiculo');
+}
+function buscarClienteVeiculo(q){
+  const wrap=document.getElementById('vei-cliente-resultados');if(!wrap)return;
+  if(!q||q.length<2){wrap.innerHTML='';return;}
+  const nq=normTxt(q);
+  const achados=CLIENTES_DATA.filter(c=>normTxt(c.n).includes(nq)).slice(0,8);
+  if(!achados.length){wrap.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text3)">Nenhum cliente encontrado</div>';return;}
+  wrap.innerHTML=achados.map(c=>`<div style="padding:8px;border:1px solid var(--border);border-radius:var(--radius-xs);margin-top:4px;cursor:pointer;font-size:12px" onclick="selecionarClienteVeiculo(${CLIENTES_DATA.indexOf(c)})"><strong>${c.n}</strong>${c.placa?` <span style="color:var(--amber)">(já tem: ${c.placa})</span>`:''}</div>`).join('');
+}
+function selecionarClienteVeiculo(idx){
+  veiSelectedClienteIdx=idx;
+  const c=CLIENTES_DATA[idx];if(!c)return;
+  document.getElementById('vei-cliente-resultados').innerHTML='';
+  document.getElementById('vei-proprietario-busca').value='';
+  const sel=document.getElementById('vei-cliente-selecionado');
+  sel.style.display='block';
+  sel.innerHTML=`<i class="ti ti-user-check" style="color:var(--green)"></i> Cliente: <strong>${c.n}</strong>${c.placa?' — já tinha o veículo '+c.placa+' cadastrado, vai ser substituído':''}`;
+}
+async function salvarVeiculo(){
   const placa=(document.getElementById('vei-placa')?.value||'').trim();
   const modelo=(document.getElementById('vei-modelo')?.value||'').trim();
+  if(veiSelectedClienteIdx===null){toast('Busque e selecione o cliente dono do veículo','error');return;}
   if(!placa){toast('Informe a placa do veículo','error');return;}
   if(!modelo){toast('Informe o modelo do veículo','error');return;}
   const montadora=document.getElementById('vei-montadora')?.value||'';
   const anoFab=document.getElementById('vei-ano-fab')?.value||'';
-  const anoMod=document.getElementById('vei-ano-mod')?.value||anoFab;
-  // Add to VEICULOS and cache
-  VEICULOS.push({
-    placa,model:`${montadora} ${modelo}`.trim(),
-    ano:`${anoFab}/${anoMod}`,
+  const c=CLIENTES_DATA[veiSelectedClienteIdx];if(!c)return;
+  const payload={
+    nome:c.n,apelido:c.apelido,cpf_cnpj:c.d,telefone:c.tel,email:c.email,
+    cep:c.cep,rua:c.rua,numero:c.num,complemento:c.comp,bairro:c.bairro,cidade:c.cidade,uf:c.uf,
+    placa,montadora,modelo,ano_veiculo:anoFab,
     motor:document.getElementById('vei-motor')?.value||'',
     cor:document.getElementById('vei-cor')?.value||'',
-    chassi:document.getElementById('vei-chassi')?.value||'',
-    cli:document.getElementById('vei-proprietario')?.value||'',
-    km:parseInt(document.getElementById('vei-km')?.value)||0,
-    os:0,serv:[],ult:new Date().toLocaleDateString('pt-BR')
-  });
-  // Add to local cache for next lookup
+    limite_credito:c.limite,prazo_pagamento:c.prazo,observacoes:c.obs
+  };
+  try{
+    const resp=await fetch(API_BASE+'/clientes/'+c.id,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar veículo');}
+    await carregarClientes();
+    renderVeiculos();
+    toast(`✅ Veículo ${placa} — ${montadora} ${modelo} vinculado a ${c.n}!`,'success');
+    closeModal('modal-veiculo');
+    veiSelectedClienteIdx=null;
+    document.getElementById('vei-cliente-selecionado').style.display='none';
+  }catch(e){
+    toast('Erro ao salvar veículo: '+e.message,'error');
+    return;
+  }
+  // Cache local pra facilitar preenchimento automático de placa na próxima vez (não é dado oficial)
   PLACAS_CACHE[_placaKey(placa)]={
     montadora,modelo,versao:document.getElementById('vei-versao')?.value||'',
-    anoFab:parseInt(anoFab)||0,anoMod:parseInt(anoMod)||0,
+    anoFab:parseInt(anoFab)||0,anoMod:parseInt(document.getElementById('vei-ano-mod')?.value||anoFab)||0,
     motor:document.getElementById('vei-motor')?.value||'',
     comb:document.getElementById('vei-comb')?.value||'Flex',
     cor:document.getElementById('vei-cor')?.value||'',
@@ -8644,11 +9110,7 @@ function salvarVeiculo(){
     chassi:document.getElementById('vei-chassi')?.value||'',
     renavam:document.getElementById('vei-renavam')?.value||''
   };
-  renderVeiculos();
-  toast(`✅ Veículo ${placa} — ${montadora} ${modelo} cadastrado!`,'success');
-  closeModal('modal-veiculo');
-  // Limpar campos
-  ['vei-placa','vei-proprietario','vei-chassi','vei-renavam','vei-modelo','vei-versao','vei-ano-fab','vei-ano-mod','vei-motor','vei-cor','vei-km','vei-rev-km','vei-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['vei-placa','vei-chassi','vei-renavam','vei-modelo','vei-versao','vei-ano-fab','vei-ano-mod','vei-motor','vei-cor','vei-km','vei-rev-km','vei-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['vei-placa-loading','vei-placa-found','vei-placa-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
 }
 
@@ -8758,7 +9220,7 @@ function imprimirContasPagar(){
   const html=`
     <div style="font-family:Arial,sans-serif;color:#000">
       <div style="text-align:center;margin-bottom:14px">
-        <div style="font-size:16px;font-weight:800">🔧 AutoPeças Central</div>
+        <div style="font-size:16px;font-weight:800">🔧 ${EMPRESA_INFO.nome||'Minha Loja'}</div>
         <div style="font-size:11px;color:#666">Contas a Pagar — ${agora}</div>
         <div style="font-size:10px;color:#999;margin-top:2px">Filtro aplicado: ${statusTxt} · ${periodoTxt}</div>
       </div>
@@ -8842,6 +9304,8 @@ function carregarEmpresaInfo(){
     const s=localStorage.getItem(STORAGE_KEY_EMPRESA);
     if(s){const d=JSON.parse(s);if(d&&typeof d==='object')EMPRESA_INFO={...EMPRESA_INFO,...d};}
   }catch(e){}
+  const nomeSidebar=document.getElementById('sidebar-empresa-nome');
+  if(nomeSidebar)nomeSidebar.textContent=EMPRESA_INFO.nome||'Minha Loja';
   const setVal=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   setVal('cfg-emp-nome',EMPRESA_INFO.nome);
   setVal('cfg-emp-cnpj',EMPRESA_INFO.cnpj);
@@ -9202,7 +9666,7 @@ function imprimirListaReposicao(){
   const html=`
     <div style="font-family:Arial,sans-serif;color:#000">
       <div style="text-align:center;margin-bottom:14px">
-        <div style="font-size:16px;font-weight:800">🔧 AutoPeças Central</div>
+        <div style="font-size:16px;font-weight:800">🔧 ${EMPRESA_INFO.nome||'Minha Loja'}</div>
         <div style="font-size:11px;color:#666">Lista de Reposição de Estoque — ${agora}</div>
       </div>
       ${gruposHTML}
@@ -9229,7 +9693,7 @@ function baixarPDFReposicao(){
   const agora=new Date().toLocaleDateString('pt-BR');
 
   doc.setFont('helvetica','bold');doc.setFontSize(14);
-  doc.text('AutoPeças Central',pageW/2,y,{align:'center'});
+  doc.text(EMPRESA_INFO.nome||'Minha Loja',pageW/2,y,{align:'center'});
   y+=6;
   doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90);
   doc.text('Lista de Reposição de Estoque — '+agora,pageW/2,y,{align:'center'});
@@ -9392,6 +9856,7 @@ async function carregarClientes(q){
     const rows=await resp.json();
     CLIENTES_DATA.length=0;
     CLIENTES_DATA.push(...rows.map(mapClienteFromApi));
+    if(typeof getVeiculosReais==='function'){VEICULOS.length=0;VEICULOS.push(...getVeiculosReais());}
     renderCli();
   }catch(e){
     toast('Erro ao carregar clientes: '+e.message,'error');
@@ -10369,7 +10834,7 @@ function imprimirRelatorioInv(id){
   .ok{color:#16A34A}.div{color:#DC2626}.pend{color:#888}
   @media print{@page{margin:8mm}}</style></head>
   <body>
-  <h1>🔧 AutoPeças Central — Inventário ${inv.id}</h1>
+  <h1>🔧 ${EMPRESA_INFO.nome||'Minha Loja'} — Inventário ${inv.id}</h1>
   <h2>${inv.dt} · Responsável: ${inv.responsavel} · Filtro: ${inv.filtro}${inv.obs?' · '+inv.obs:''}</h2>
   <table><thead><tr><th>SKU</th><th>Produto</th><th>Local</th><th>Categoria</th><th>Sistema</th><th>Contado</th><th>Diferença</th><th>Status</th></tr></thead>
   <tbody>${rows}</tbody></table>
@@ -10483,6 +10948,7 @@ function aplicarSessaoLogada(usuario){
   currentUser={id:usuario.id,n:usuario.nome,perfil:usuario.perfil,email:usuario.email};
   localStorage.setItem(STORAGE_KEY_USER,JSON.stringify(currentUser));
   document.getElementById('login-overlay').style.display='none';
+  const appEl=document.getElementById('app');if(appEl)appEl.style.display='flex';
   applySidebarPerms(currentUser.perfil);
   const initials=currentUser.n.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
   const cores={admin:'linear-gradient(135deg,var(--red),#B91C1C)',vendedor:'linear-gradient(135deg,var(--blue),var(--purple))',mecanico:'linear-gradient(135deg,var(--amber),var(--orange))',financeiro:'linear-gradient(135deg,var(--green),var(--teal))'};
@@ -10498,6 +10964,8 @@ function aplicarSessaoLogada(usuario){
   if(typeof carregarDashboard==='function')setTimeout(()=>carregarDashboard(),300);
   if(typeof carregarAgenda==='function')setTimeout(()=>carregarAgenda(),300);
   if(typeof atualizarBadgeAgenda==='function')setTimeout(()=>atualizarBadgeAgenda(),300);
+  if(typeof carregarGarantias==='function')setTimeout(()=>carregarGarantias(),300);
+  if(typeof carregarOrcamentos==='function')setTimeout(()=>carregarOrcamentos(),300);
 }
 
 async function verificarSessaoSalva(){
@@ -10519,6 +10987,7 @@ async function verificarSessaoSalva(){
     if(saved){
       currentUser=JSON.parse(saved);
       document.getElementById('login-overlay').style.display='none';
+      const appEl=document.getElementById('app');if(appEl)appEl.style.display='flex';
       applySidebarPerms(currentUser.perfil);
       return true;
     }
@@ -10667,19 +11136,29 @@ function nav(id,el){
   if(id==='usuarios')setTimeout(()=>carregarUsuarios(),50);
   if(id==='credito')setTimeout(renderCredito,50);
   if(id==='reposicao')setTimeout(renderReposicao,50);
-  if(id==='orcamentos')setTimeout(renderOrcamentos,50);
-  if(id==='relatorios')setTimeout(()=>{selectReport(activeReport,document.querySelector('.rep-type-card.active'));},80);
+  if(id==='relatorios')setTimeout(()=>{
+    Promise.all([
+      (!SELLERS.length?carregarVendedores():Promise.resolve()),
+      (!MECHS.length?carregarMecanicos():Promise.resolve()),
+      (!GARANTIAS.length?carregarGarantias():Promise.resolve())
+    ]).finally(()=>selectReport(activeReport,document.querySelector('.rep-type-card.active')));
+  },80);
   if(id==='produtos')setTimeout(()=>carregarProdutos(),50);
   if(id==='vendas')setTimeout(()=>carregarVendas(),50);
   if(id==='ofertas')setTimeout(()=>renderOfertasTable(),50);
   if(id==='despesas')setTimeout(()=>renderDespesasTable(),50);
+  if(id==='veiculos')setTimeout(()=>{VEICULOS.length=0;VEICULOS.push(...getVeiculosReais());renderVeiculos();},50);
+  if(id==='garantias')setTimeout(()=>carregarGarantias(),50);
+  if(id==='orcamentos')setTimeout(()=>carregarOrcamentos(),50);
+  if(id==='compras')setTimeout(()=>carregarPedidosCompra(),50);
   if(id==='agenda')setTimeout(()=>carregarAgenda(),50);
   if(id==='config')setTimeout(()=>carregarEmpresaInfo(),50);
   if(id==='estoque'){setTimeout(()=>{renderMov();atualizarKpisEstoque();},50);}
   if(id==='inventario')setTimeout(renderInventario,50);
   if(id==='dashboard')setTimeout(()=>carregarDashboard(),50);
   if(id==='clientes')setTimeout(()=>carregarClientes(),50);
-  if(id==='compras')setTimeout(renderCompras,50);
+  if(id==='comissoes')setTimeout(()=>{Promise.all([carregarVendedores(),carregarMecanicos()]).then(renderComissoes);},50);
+  if(id==='dre')setTimeout(()=>carregarDRE(),50);
   if(id==='financeiro')setTimeout(renderFinanceiro,50);
   if(id==='os')setTimeout(renderOS,50);
   if(id==='config')setTimeout(()=>{
@@ -10979,6 +11458,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadData();
   loadExtraOpts();
   try{const s=localStorage.getItem(STORAGE_KEY_EMPRESA);if(s){const d=JSON.parse(s);if(d&&typeof d==='object')EMPRESA_INFO={...EMPRESA_INFO,...d};}}catch(e){}
+  {const nomeSidebar=document.getElementById('sidebar-empresa-nome');if(nomeSidebar)nomeSidebar.textContent=EMPRESA_INFO.nome||'Minha Loja';}
+  {const xn=document.getElementById('emit-xnome');if(xn&&!xn.value)xn.value=EMPRESA_INFO.nome||'';const xf=document.getElementById('emit-xfant');if(xf&&!xf.value)xf.value=EMPRESA_INFO.nome||'';}
   setTimeout(()=>{
     try{
       if('fonts' in document && !document.fonts.check('16px "tabler-icons"')){
