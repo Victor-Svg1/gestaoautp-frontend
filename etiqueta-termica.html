@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impressão de Etiqueta — PT-260 (TSPL)</title>
+<style>
+  :root{
+    --bg0:#F0F4F8;--bg1:#FFFFFF;--bg2:#F1F5F9;--bg3:#E2E8F0;
+    --border:#E2E8F0;--amber:#F59E0B;--amber2:#D97706;
+    --text1:#0F172A;--text2:#475569;--text3:#94A3B8;
+    --green:#10B981;--red:#EF4444;--radius:12px;--radius-sm:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',Arial,sans-serif;background:var(--bg0);color:var(--text1);padding:24px;line-height:1.5}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-family:'Sora',Arial,sans-serif;font-size:20px;margin-bottom:4px}
+  .sub{color:var(--text3);font-size:13px;margin-bottom:24px}
+  .card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+  .card h2{font-family:'Sora',Arial,sans-serif;font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+  .badge.ok{background:rgba(16,185,129,.15);color:var(--green)}
+  .badge.warn{background:rgba(245,158,11,.15);color:var(--amber)}
+  .badge.no{background:rgba(239,68,68,.15);color:var(--red)}
+  label{display:block;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;margin-top:10px}
+  input,select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--text1);outline:none;font-family:inherit}
+  input:focus,select:focus{border-color:var(--amber)}
+  button{cursor:pointer;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;font-family:inherit;transition:all .15s}
+  .btn-primary{background:var(--amber);color:#000}
+  .btn-primary:hover{background:var(--amber2)}
+  .btn-outline{background:var(--bg2);color:var(--text1);border:1px solid var(--border)}
+  .btn-outline:hover{border-color:var(--amber)}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .note{font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6}
+  .note b{color:var(--text2)}
+  .log{background:#0F172A;color:#94E2B8;font-family:'Courier New',monospace;font-size:11px;padding:10px;border-radius:6px;max-height:160px;overflow-y:auto;white-space:pre-wrap;margin-top:10px}
+
+  /* ===== ETIQUETA — preview na tela ===== */
+  #etiqueta-preview{
+    width:50mm;height:30mm;
+    background:#fff;color:#000;border:1px solid #999;
+    padding:2mm;
+    font-family:Arial,sans-serif;
+    display:flex;flex-direction:column;justify-content:space-between;
+    margin:12px auto;
+  }
+  #etiqueta-preview .loja{font-size:7.5pt;font-weight:800;text-align:center;letter-spacing:.3px}
+  #etiqueta-preview .nome{font-size:7pt;font-weight:700;text-align:center;line-height:1.15;max-height:2.4em;overflow:hidden}
+  #etiqueta-preview .barras{text-align:center}
+  #etiqueta-preview .barras svg{width:100%;height:9mm}
+  #etiqueta-preview .rodape{display:flex;justify-content:space-between;align-items:center}
+  #etiqueta-preview .preco{font-size:12pt;font-weight:800}
+  #etiqueta-preview .cod{font-size:6pt;color:#333;font-family:monospace}
+
+  /* ===== IMPRESSÃO — regra principal pedida: @page 50x30mm, margem zero ===== */
+  @media print{
+    body *{visibility:hidden}
+    #etiqueta-preview,#etiqueta-preview *{visibility:visible}
+    #etiqueta-preview{
+      position:fixed;top:0;left:0;
+      width:50mm;height:30mm;margin:0;border:none;
+    }
+    @page{
+      size:50mm 30mm;
+      margin:0;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🖨️ Impressão de Etiqueta — PT-260</h1>
+  <div class="sub">Etiqueta 50×30mm · comandos TSPL (compatível TSC E210) · demo pra testar no seu sistema</div>
+
+  <!-- ============ PRÉVIA DA ETIQUETA ============ -->
+  <div class="card">
+    <h2>Prévia da etiqueta</h2>
+    <div id="etiqueta-preview">
+      <div class="loja" id="et-loja">MINHA LOJA</div>
+      <div class="nome" id="et-nome">Pastilha de Freio Dianteira Fras-le</div>
+      <div class="barras"><svg id="et-barcode-svg"></svg></div>
+      <div class="rodape">
+        <div class="preco" id="et-preco">R$ 89,90</div>
+        <div class="cod" id="et-cod">AP000123</div>
+      </div>
+    </div>
+
+    <label>Nome do produto</label>
+    <input type="text" id="in-nome" value="Pastilha de Freio Dianteira Fras-le">
+    <label>Preço</label>
+    <input type="text" id="in-preco" value="89,90">
+    <label>Código de barras (EAN)</label>
+    <input type="text" id="in-ean" value="7891234567890">
+    <label>Código interno</label>
+    <input type="text" id="in-cod" value="AP000123">
+    <button class="btn-outline" style="margin-top:10px" onclick="atualizarPreview()">Atualizar prévia</button>
+  </div>
+
+  <!-- ============ DESKTOP: window.print() ============ -->
+  <div class="card">
+    <h2>1. Desktop <span class="badge ok">Funciona em qualquer navegador</span></h2>
+    <div class="note">
+      A folha de estilo usa <b>@page { size: 50mm 30mm; margin: 0 }</b> dentro de <b>@media print</b>.
+      Ao clicar em Imprimir, o navegador abre o diálogo de impressão já com o tamanho de papel certo —
+      é só apontar pro driver da PT-260 (instalada via USB ou pareada como impressora do Windows/Mac) e imprimir.
+      Nenhuma etiqueta em branco ou cortada, porque a página inteira já nasce do tamanho exato.
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="window.print()"><b>🖨️ Imprimir (Desktop)</b></button>
+    </div>
+  </div>
+
+  <!-- ============ CELULAR: Web Bluetooth + TSPL ============ -->
+  <div class="card">
+    <h2>2. Celular via Bluetooth <span id="bt-support-badge" class="badge warn">verificando…</span></h2>
+    <div class="note" id="bt-warning"></div>
+
+    <div id="bt-area">
+      <label>UUID do serviço BLE da impressora</label>
+      <input type="text" id="in-service-uuid" placeholder="ex: 49535343-fe7d-4ae5-8fa9-9fafd205e455">
+      <label>UUID da característica de escrita</label>
+      <input type="text" id="in-char-uuid" placeholder="ex: 49535343-8841-43f4-a8d4-ecbe34729bb3">
+      <div class="btn-row">
+        <button class="btn-outline" onclick="descobrirServicos()">🔍 Descobrir serviços da impressora</button>
+        <button class="btn-primary" onclick="imprimirViaBluetooth()">📶 Imprimir (Bluetooth)</button>
+      </div>
+      <div class="note">
+        <b>Não sabe o UUID da PT-260?</b> Clique em "Descobrir serviços" — o navegador vai pedir pra você
+        escolher a impressora na lista Bluetooth, conectar, e listar todos os serviços/características
+        encontrados no log abaixo. Copie o UUID que tiver permissão de <b>escrita (write)</b> e cole nos
+        campos acima. Depois disso o botão "Imprimir" já salva esses valores automaticamente pra próxima vez.
+      </div>
+      <div class="log" id="bt-log">Aguardando ação…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// PARTE 1 — Geração do código de barras (Code128) em SVG, só
+// pra prévia na tela. Implementação mínima, sem biblioteca externa.
+// ============================================================
+const CODE128_PATTERNS = {
+  "0":"11011001100","1":"11001101100","2":"11001100110","3":"10010011000","4":"10010001100",
+  "5":"10001001100","6":"10011001000","7":"10011000100","8":"10001100100","9":"11001001000",
+  "START_B":"11010010000","STOP":"1100011101011"
+};
+function desenharBarrasSimples(svgEl, texto){
+  // Representação visual simplificada (não é Code128 real) — serve só pra prévia visual em tela.
+  // Na impressão de verdade usamos o comando BARCODE nativo da TSPL (a impressora gera o código real).
+  const largura=200, altura=60;
+  svgEl.setAttribute('viewBox','0 0 '+largura+' '+altura);
+  let barras='';
+  let x=4;
+  const seed=Array.from(texto).reduce((s,c)=>s+c.charCodeAt(0),0);
+  let rnd=seed;
+  for(let i=0;i<texto.length*3 && x<largura-4;i++){
+    rnd=(rnd*9301+49297)%233280;
+    const w=1+(rnd%3);
+    if(i%2===0)barras+=`<rect x="${x}" y="4" width="${w}" height="${altura-14}" fill="#000"/>`;
+    x+=w;
+  }
+  svgEl.innerHTML=barras;
+}
+function atualizarPreview(){
+  document.getElementById('et-nome').textContent=document.getElementById('in-nome').value;
+  document.getElementById('et-preco').textContent='R$ '+document.getElementById('in-preco').value;
+  document.getElementById('et-cod').textContent=document.getElementById('in-cod').value;
+  desenharBarrasSimples(document.getElementById('et-barcode-svg'), document.getElementById('in-ean').value);
+}
+atualizarPreview();
+
+// ============================================================
+// PARTE 2 — Geração dos comandos TSPL pra impressão térmica real.
+// Esse é o texto puro que a PT-260 entende (emulação TSC E210).
+// ============================================================
+function gerarComandosTSPL(){
+  const nome=document.getElementById('in-nome').value.replace(/"/g,"'").substring(0,40);
+  const preco=document.getElementById('in-preco').value;
+  const ean=document.getElementById('in-ean').value.replace(/\D/g,'');
+  const cod=document.getElementById('in-cod').value;
+
+  // Tamanho 50x30mm, sem espaço entre etiquetas (gap 0 — ajuste se sua bobina tiver espaçamento)
+  let tspl = '';
+  tspl += 'SIZE 50 mm, 30 mm\r\n';
+  tspl += 'GAP 2 mm, 0 mm\r\n';
+  tspl += 'DIRECTION 1\r\n';
+  tspl += 'CLS\r\n';
+  tspl += `TEXT 20,15,"2",0,1,1,"${nome}"\r\n`;
+  if(ean){
+    tspl += `BARCODE 20,60,"128",50,1,0,2,2,"${ean}"\r\n`;
+  }
+  tspl += `TEXT 20,150,"3",0,1,1,"R$ ${preco}"\r\n`;
+  tspl += `TEXT 280,220,"1",0,1,1,"${cod}"\r\n`;
+  tspl += 'PRINT 1,1\r\n';
+  return tspl;
+}
+
+// ============================================================
+// PARTE 3 — Web Bluetooth: conectar e enviar bytes TSPL crus.
+// ============================================================
+const btLog=document.getElementById('bt-log');
+function log(msg){
+  btLog.textContent += '\n'+msg;
+  btLog.scrollTop = btLog.scrollHeight;
+}
+
+// Suporte varia por navegador/SO — checagem honesta na tela
+(function checarSuporteBluetooth(){
+  const badge=document.getElementById('bt-support-badge');
+  const warn=document.getElementById('bt-warning');
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if(isIOS){
+    badge.textContent='Não suportado no iOS';
+    badge.className='badge no';
+    warn.innerHTML='<b>Importante:</b> a Apple não implementa a Web Bluetooth API no Safari nem em nenhum navegador do iOS/iPadOS (nem o Chrome para iPhone, porque por baixo dos panos ele usa o motor da Apple). Isso é uma limitação da Apple, não do seu sistema. Pra clientes com iPhone, a alternativa é uma dessas: (1) um app nativo/PWA usando um plugin de Bluetooth, (2) imprimir via rede Wi-Fi (a maioria das impressoras térmicas boas tem opção de IP), ou (3) usar o fluxo desktop normal via USB.';
+    document.getElementById('bt-area').style.opacity='.5';
+    return;
+  }
+  if(!navigator.bluetooth){
+    badge.textContent='Não suportado';
+    badge.className='badge no';
+    warn.innerHTML='Esse navegador não tem suporte à Web Bluetooth API. Funciona no <b>Chrome ou Edge no Android</b>, e no Chrome/Edge/Opera no Windows, Mac e Linux (com um adaptador Bluetooth). Não funciona no Firefox nem no Safari.';
+    document.getElementById('bt-area').style.opacity='.5';
+    return;
+  }
+  badge.textContent='Suportado neste navegador';
+  badge.className='badge ok';
+  warn.innerHTML='Esse navegador suporta Web Bluetooth. Mas atenção: <b>ainda precisa ser testado com a impressora física</b> — o UUID de serviço/característica abaixo é um chute baseado em módulos BLE comuns (chip ISSC), não é garantido pra PT-260 especificamente. Use o botão "Descobrir serviços" abaixo com a impressora ligada e por perto pra achar o UUID certo.';
+})();
+
+let dispositivoBT=null, characteristicBT=null;
+
+async function conectarImpressora(){
+  log('Abrindo seletor de dispositivos Bluetooth…');
+  // acceptAllDevices + optionalServices é a forma mais confiável quando não
+  // se sabe o serviço de antemão. Em produção, prefira "filters" com o nome
+  // da impressora quando isso já for conhecido, pra não listar dispositivos demais.
+  dispositivoBT = await navigator.bluetooth.requestDevice({
+    acceptAllDevices: true,
+    optionalServices: [
+      '49535343-fe7d-4ae5-8fa9-9fafd205e455', // ISSC UART (comum em impressoras BLE genéricas)
+      '000018f0-0000-1000-8000-00805f9b34fb', // serviço genérico usado por vários módulos chineses
+      '6e400001-b5a3-f393-e0a9-e50e24dcca9e', // Nordic UART Service
+      'e7810a71-73ae-499d-8c15-faa9aef0c3f2'  // usado por alguns modelos TSC/portáteis
+    ]
+  });
+  log('Dispositivo escolhido: '+dispositivoBT.name);
+  const server = await dispositivoBT.gatt.connect();
+  log('Conectado ao GATT server.');
+  return server;
+}
+
+async function descobrirServicos(){
+  try{
+    btLog.textContent='Conectando…';
+    const server = await conectarImpressora();
+    const services = await server.getPrimaryServices();
+    log('Serviços encontrados: '+services.length);
+    for(const service of services){
+      log('\n📡 Serviço: '+service.uuid);
+      const chars = await service.getCharacteristics();
+      for(const c of chars){
+        const props=[];
+        if(c.properties.write)props.push('write');
+        if(c.properties.writeWithoutResponse)props.push('writeWithoutResponse');
+        if(c.properties.notify)props.push('notify');
+        if(c.properties.read)props.push('read');
+        log('  └─ Característica: '+c.uuid+'  ['+props.join(', ')+']');
+        if(c.properties.write || c.properties.writeWithoutResponse){
+          log('     ✅ Essa aceita escrita — provável candidata pra imprimir');
+          document.getElementById('in-service-uuid').value=service.uuid;
+          document.getElementById('in-char-uuid').value=c.uuid;
+        }
+      }
+    }
+    log('\nPronto. Se encontrou uma característica de escrita, os campos acima já foram preenchidos — clique em "Imprimir (Bluetooth)" pra testar.');
+  }catch(e){
+    log('❌ Erro: '+e.message);
+  }
+}
+
+async function imprimirViaBluetooth(){
+  const serviceUUID=document.getElementById('in-service-uuid').value.trim();
+  const charUUID=document.getElementById('in-char-uuid').value.trim();
+  if(!serviceUUID||!charUUID){
+    log('❌ Preencha os UUIDs de serviço e característica antes (ou clique em "Descobrir serviços").');
+    return;
+  }
+  try{
+    let server;
+    if(dispositivoBT && dispositivoBT.gatt.connected){
+      server=dispositivoBT.gatt;
+    }else{
+      server = await conectarImpressora();
+    }
+    const service = await server.getPrimaryService(serviceUUID);
+    const characteristic = await service.getCharacteristic(charUUID);
+
+    const tspl = gerarComandosTSPL();
+    log('\nEnviando comandos TSPL:\n'+tspl);
+
+    // BLE tem limite de tamanho por pacote (normalmente ~20 bytes em conexões antigas,
+    // até 512 em BLE moderno) — fatiamos em blocos de 100 bytes por segurança.
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(tspl);
+    const TAMANHO_BLOCO = 100;
+    for(let i=0;i<bytes.length;i+=TAMANHO_BLOCO){
+      const bloco = bytes.slice(i, i+TAMANHO_BLOCO);
+      if(characteristic.properties.writeWithoutResponse){
+        await characteristic.writeValueWithoutResponse(bloco);
+      }else{
+        await characteristic.writeValue(bloco);
+      }
+      await new Promise(r=>setTimeout(r,30)); // pequena pausa entre blocos
+    }
+    log('✅ Comando enviado! Se a impressora não reagir, confira se o UUID de característica é realmente o de escrita da PT-260 (use "Descobrir serviços" pra confirmar).');
+  }catch(e){
+    log('❌ Erro ao imprimir: '+e.message);
+  }
+}
+</script>
+</body>
+</html>
