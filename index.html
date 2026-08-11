@@ -9287,23 +9287,43 @@ function renderContasPagasList(){
     </div>
   `).join('');
 }
-function salvarEmpresaInfo(){
+async function salvarEmpresaInfo(){
   const get=id=>(document.getElementById(id)?.value||'').trim();
   const nome=get('cfg-emp-nome');
   if(!nome){toast('Informe o nome da empresa','error');return;}
-  EMPRESA_INFO={
+  const payload={
     nome,cnpj:get('cfg-emp-cnpj'),
-    regime:document.getElementById('cfg-emp-regime')?.value||'Simples Nacional',
-    whatsapp:get('cfg-emp-whatsapp'),endereco:get('cfg-emp-endereco')
+    regime_tributario:document.getElementById('cfg-emp-regime')?.value||'Simples Nacional',
+    telefone:get('cfg-emp-whatsapp'),endereco:get('cfg-emp-endereco')
   };
-  localStorage.setItem(STORAGE_KEY_EMPRESA,JSON.stringify(EMPRESA_INFO));
-  toast('✅ Dados da empresa salvos! Já valem pro cupom de venda.','success');
-}
-function carregarEmpresaInfo(){
   try{
-    const s=localStorage.getItem(STORAGE_KEY_EMPRESA);
-    if(s){const d=JSON.parse(s);if(d&&typeof d==='object')EMPRESA_INFO={...EMPRESA_INFO,...d};}
-  }catch(e){}
+    const resp=await fetch(API_BASE+'/empresa',{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar empresa');}
+    EMPRESA_INFO={nome,cnpj:payload.cnpj,regime:payload.regime_tributario,whatsapp:payload.telefone,endereco:payload.endereco};
+    localStorage.setItem(STORAGE_KEY_EMPRESA,JSON.stringify(EMPRESA_INFO)); // cache local, só pra uso offline
+    const nomeSidebar=document.getElementById('sidebar-empresa-nome');if(nomeSidebar)nomeSidebar.textContent=EMPRESA_INFO.nome||'Minha Loja';
+    toast('✅ Dados da empresa salvos! Já sincronizado — vale em qualquer aparelho.','success');
+  }catch(e){
+    toast('Erro ao salvar empresa: '+e.message,'error');
+  }
+}
+async function carregarEmpresaInfo(){
+  try{
+    const resp=await fetch(API_BASE+'/empresa',{headers:authHeaders()});
+    if(resp.ok){
+      const d=await resp.json();
+      EMPRESA_INFO={nome:d.nome||'',cnpj:d.cnpj||'',regime:d.regime_tributario||'Simples Nacional',whatsapp:d.telefone||'',endereco:d.endereco||''};
+      localStorage.setItem(STORAGE_KEY_EMPRESA,JSON.stringify(EMPRESA_INFO));
+    }else{
+      throw new Error('offline');
+    }
+  }catch(e){
+    // Sem conexão: usa o que tiver salvo localmente como reserva, só nesse aparelho
+    try{
+      const s=localStorage.getItem(STORAGE_KEY_EMPRESA);
+      if(s){const d=JSON.parse(s);if(d&&typeof d==='object')EMPRESA_INFO={...EMPRESA_INFO,...d};}
+    }catch(e2){}
+  }
   const nomeSidebar=document.getElementById('sidebar-empresa-nome');
   if(nomeSidebar)nomeSidebar.textContent=EMPRESA_INFO.nome||'Minha Loja';
   const setVal=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
@@ -10963,6 +10983,7 @@ function aplicarSessaoLogada(usuario){
   if(typeof carregarProdutos==='function')carregarProdutos();
   if(typeof carregarDashboard==='function')setTimeout(()=>carregarDashboard(),300);
   if(typeof carregarAgenda==='function')setTimeout(()=>carregarAgenda(),300);
+  if(typeof carregarEmpresaInfo==='function')setTimeout(()=>carregarEmpresaInfo(),300);
   if(typeof atualizarBadgeAgenda==='function')setTimeout(()=>atualizarBadgeAgenda(),300);
   if(typeof carregarGarantias==='function')setTimeout(()=>carregarGarantias(),300);
   if(typeof carregarOrcamentos==='function')setTimeout(()=>carregarOrcamentos(),300);
