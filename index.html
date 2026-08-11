@@ -5774,6 +5774,10 @@ function openProdDrawer(id){
         <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
       </div>
     `).join('')}</div>`:'<div style="font-size:12px;color:var(--text3)">—</div>'}
+    <div class="pdd-section">Radar de Preço <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(compara fornecedores)</span></div>
+    <div id="radar-preco-area"><button class="btn bs btn-sm" style="width:100%" onclick="carregarRadarPreco(${p.id})"><i class="ti ti-radar-2"></i>Ver preços por fornecedor</button></div>
+    <div class="pdd-section">Giro de Estoque <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(tempo parado e velocidade de venda)</span></div>
+    <div id="giro-estoque-area"><button class="btn bs btn-sm" style="width:100%" onclick="carregarGiroEstoque(${p.id})"><i class="ti ti-clock-hour-4"></i>Ver tempo em estoque e giro</button></div>
     <div class="pdd-section">Financeiro</div>
     <div class="flx ic g2b" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text3)">Custo</span><span style="font-family:monospace;font-size:13px">R$ ${p.custo.toFixed(2)}</span></div>
     <div class="flx ic g2b" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text3)">Lucro unitário</span><span style="font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--green)">R$ ${(p.preco-p.custo).toFixed(2)}</span></div>
@@ -5985,6 +5989,96 @@ async function excluirProdutoAtual(){
 }
 
 // ======= TABS MODAL PRODUTO =======
+async function carregarGiroEstoque(produtoId){
+  const area=document.getElementById('giro-estoque-area');if(!area)return;
+  area.innerHTML='<div style="text-align:center;padding:10px;font-size:12px;color:var(--text3)">Buscando…</div>';
+  try{
+    const [movResp,vendResp]=await Promise.all([
+      fetch(API_BASE+'/estoque/movimentacoes?produto_id='+produtoId,{headers:authHeaders()}),
+      fetch(API_BASE+'/vendas',{headers:authHeaders()})
+    ]);
+    const movs=movResp.ok?await movResp.json():[];
+    const vendas=vendResp.ok?await vendResp.json():[];
+    const entradas=movs.filter(m=>m.tipo==='entrada').sort((a,b)=>new Date(b.criado_em)-new Date(a.criado_em));
+    const ultimaEntrada=entradas[0];
+    const hoje=new Date();
+    let vendasDoItem=[];
+    vendas.forEach(v=>{
+      (v.itens||[]).forEach(it=>{
+        if(String(it.id)===String(produtoId)&&!it.avulso){
+          vendasDoItem.push({data:v.criado_em,qty:it.qty});
+        }
+      });
+    });
+    vendasDoItem.sort((a,b)=>new Date(b.data)-new Date(a.data));
+    const ultimaVenda=vendasDoItem[0];
+    const diasEmEstoque=ultimaEntrada?Math.floor((hoje-new Date(ultimaEntrada.criado_em))/86400000):null;
+    const diasSemVender=ultimaVenda?Math.floor((hoje-new Date(ultimaVenda.data))/86400000):null;
+    const qtdVendidaDesdeEntrada=ultimaEntrada
+      ?vendasDoItem.filter(v=>new Date(v.data)>=new Date(ultimaEntrada.criado_em)).reduce((s,v)=>s+v.qty,0)
+      :vendasDoItem.reduce((s,v)=>s+v.qty,0);
+    let status,statusCor,statusIcon;
+    if(diasSemVender===null){status='Nunca vendeu';statusCor='var(--red)';statusIcon='ti-alert-triangle';}
+    else if(diasSemVender<=15){status='Girando bem';statusCor='var(--green)';statusIcon='ti-trending-up';}
+    else if(diasSemVender<=45){status='Devagar';statusCor='var(--amber)';statusIcon='ti-clock';}
+    else{status='Parado';statusCor='var(--red)';statusIcon='ti-alert-triangle';}
+    area.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg2);border:1px solid ${statusCor};border-radius:var(--radius-sm);margin-bottom:8px">
+        <i class="ti ${statusIcon}" style="font-size:20px;color:${statusCor}"></i>
+        <div><div style="font-size:13px;font-weight:700;color:${statusCor}">${status}</div><div style="font-size:10px;color:var(--text3)">${diasSemVender!==null?diasSemVender+' dias sem vender':'Nenhuma venda registrada ainda'}</div></div>
+      </div>
+      <div class="fr ts"><span class="lbl"><i class="ti ti-package-import"></i>Última entrada</span><span class="val">${ultimaEntrada?new Date(ultimaEntrada.criado_em).toLocaleDateString('pt-BR'):'—'}</span></div>
+      <div class="fr ts"><span class="lbl"><i class="ti ti-hourglass"></i>Dias em estoque</span><span class="val fw6">${diasEmEstoque!==null?diasEmEstoque+' dias':'—'}</span></div>
+      <div class="fr ts"><span class="lbl"><i class="ti ti-shopping-cart"></i>Vendido desde a entrada</span><span class="val">${qtdVendidaDesdeEntrada} un.</span></div>
+      <div class="fr ts"><span class="lbl"><i class="ti ti-calendar-event"></i>Última venda</span><span class="val">${ultimaVenda?new Date(ultimaVenda.data).toLocaleDateString('pt-BR'):'Nunca vendido'}</span></div>
+    `;
+  }catch(e){
+    area.innerHTML='<div style="text-align:center;padding:10px;font-size:12px;color:var(--red)">Erro ao buscar giro de estoque: '+e.message+'</div>';
+  }
+}
+async function carregarRadarPreco(produtoId){
+  const area=document.getElementById('radar-preco-area');if(!area)return;
+  area.innerHTML='<div style="text-align:center;padding:10px;font-size:12px;color:var(--text3)">Buscando…</div>';
+  try{
+    if(!PEDIDOS_COMPRA.length)await carregarPedidosCompra();
+    const p=PRODS.find(x=>x.id===produtoId);if(!p){area.innerHTML='';return;}
+    // Pra cada fornecedor, pega o pedido mais recente que contém esse produto (por id, SKU ou código de barras)
+    const porFornecedor={};
+    PEDIDOS_COMPRA.forEach(pc=>{
+      (pc.itens||[]).forEach(it=>{
+        const mesmoItem=(it.produtoId===p.id)||(p.sku&&it.sku&&normTxt(it.sku)===normTxt(p.sku))||(p.ean&&it.ean&&it.ean===p.ean);
+        if(!mesmoItem)return;
+        const chave=pc.fornecedorId||pc.sup;
+        const atual=porFornecedor[chave];
+        if(!atual||new Date(pc.criadoEm)>new Date(atual.data)){
+          porFornecedor[chave]={fornecedor:pc.sup,preco:it.custo,data:pc.criadoEm,pedido:pc.n};
+        }
+      });
+    });
+    const lista=Object.values(porFornecedor).sort((a,b)=>a.preco-b.preco);
+    if(!lista.length){
+      area.innerHTML='<div style="text-align:center;padding:14px;font-size:12px;color:var(--text3)"><i class="ti ti-radar-2" style="font-size:22px;display:block;margin-bottom:6px"></i>Nenhum pedido de compra encontrado com esse produto ainda.<br><span style="font-size:10px">O radar aprende conforme você registra Pedidos de Compra.</span></div>';
+      return;
+    }
+    const melhor=lista[0].preco;
+    area.innerHTML=lista.map((f,i)=>{
+      const diff=melhor>0?((f.preco-melhor)/melhor*100):0;
+      const dataFmt=new Date(f.data).toLocaleDateString('pt-BR');
+      return`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg2);border:1px solid ${i===0?'var(--green)':'var(--border)'};border-radius:var(--radius-sm);margin-bottom:6px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600">${f.fornecedor}${i===0?' <span class="badge bg2" style="font-size:9px">🏆 melhor preço</span>':''}</div>
+          <div style="font-size:10px;color:var(--text3)">${f.pedido} · ${dataFmt}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:700;color:${i===0?'var(--green)':'var(--text1)'}">R$ ${f.preco.toFixed(2)}</div>
+          ${i>0?`<div style="font-size:10px;color:var(--red)">+${diff.toFixed(1)}%</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    area.innerHTML='<div style="text-align:center;padding:10px;font-size:12px;color:var(--red)">Erro ao buscar radar de preço: '+e.message+'</div>';
+  }
+}
 function prodTab(id,el){
   ['id','compat','estoque','fotos','similar'].forEach(t=>{const e=document.getElementById('ptab-'+t);if(e)e.classList.toggle('active',t===id);});
   document.querySelectorAll('.pmt').forEach(t=>t.classList.remove('active'));
@@ -6099,10 +6193,11 @@ async function carregarPedidosCompra(){
     const rows=await resp.json();
     PEDIDOS_COMPRA=rows.map(r=>({
       id:r.id,n:'PC-'+String(r.id).padStart(3,'0'),
-      sup:r.fornecedor_nome,its:(r.itens||[]).reduce((s,it)=>s+(it.qty||0),0),
+      sup:r.fornecedor_nome,fornecedorId:r.fornecedor_id,
+      its:(r.itens||[]).reduce((s,it)=>s+(it.qty||0),0),
       val:parseFloat(r.valor)||0,
       prev:r.entrega_prevista?String(r.entrega_prevista).slice(0,10).split('-').reverse().join('/'):'—',
-      st:r.status,nfe:r.nfe_status,itens:r.itens||[]
+      st:r.status,nfe:r.nfe_status,itens:r.itens||[],criadoEm:r.criado_em
     }));
     renderCompras();
   }catch(e){toast('Erro ao carregar pedidos de compra: '+e.message,'error');}
@@ -6163,7 +6258,7 @@ function adicionarItemCompra(produtoId){
   const p=PRODS.find(x=>x.id===produtoId);if(!p)return;
   const existente=compraItens.find(it=>it.produtoId===produtoId);
   if(existente){existente.qty+=1;}
-  else{compraItens.push({produtoId,nome:p.n,sku:p.sku,qty:1,custo:p.custo});}
+  else{compraItens.push({produtoId,nome:p.n,sku:p.sku,ean:p.ean||'',qty:1,custo:p.custo});}
   document.getElementById('compra-item-busca').value='';
   document.getElementById('compra-item-resultados').innerHTML='';
   renderCompraItens();
