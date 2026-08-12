@@ -737,6 +737,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 .pagination{display:flex;align-items:center;justify-content:space-between;padding-top:12px;margin-top:8px;border-top:1px solid var(--border)}
 .page-btns{display:flex;gap:4px}
 .page-btn{width:30px;height:30px;border-radius:var(--radius-xs);border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--tr)}
+.page-btn.disabled{opacity:.35;cursor:default;pointer-events:none}
 .page-btn.active,.page-btn:hover{background:var(--amber);color:#000;border-color:var(--amber)}
 /* Modal produto tabs */
 .prod-modal-tabs{display:flex;gap:2px;margin-bottom:18px;background:var(--bg2);border-radius:var(--radius-sm);padding:3px}
@@ -1277,6 +1278,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
             <button class="btn bs btn-sm" onclick="exportCSV('produtos')"><i class="ti ti-file-spreadsheet"></i>CSV</button>
             <button class="btn bs btn-sm" onclick="toast('Importação por planilha em desenvolvimento','info')"><i class="ti ti-upload"></i>Importar</button>
             <button class="btn bs btn-sm" onclick="abrirModalConversaoEmbalagem()"><i class="ti ti-package-import"></i>Conversão de Embalagem</button>
+            <button class="btn bs btn-sm" onclick="abrirChecklistCadastro()"><i class="ti ti-list-check"></i>Checklist de Cadastro <span id="checklist-badge-count" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:8px;padding:1px 6px;margin-left:4px">0</span></button>
             <button class="btn bp" onclick="openProdModal(null)"><i class="ti ti-plus"></i>Novo Produto</button>
           </div>
         </div>
@@ -1335,13 +1337,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
             </div>
             <div class="pagination">
               <span style="font-size:12px;color:var(--text3)" id="prod-pag-info">Exibindo 1–15 de 15 produtos</span>
-              <div class="page-btns">
-                <div class="page-btn"><i class="ti ti-chevron-left" style="font-size:12px"></i></div>
-                <div class="page-btn active">1</div>
-                <div class="page-btn">2</div>
-                <div class="page-btn">3</div>
-                <div class="page-btn"><i class="ti ti-chevron-right" style="font-size:12px"></i></div>
-              </div>
+              <div class="page-btns" id="prod-page-btns"></div>
             </div>
           </div>
           <div id="prod-grid-view" style="display:none">
@@ -2268,6 +2264,16 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     <div class="mft">
       <button class="btn bg" onclick="closeModal('modal-despesa')">Cancelar</button>
       <button class="btn bp" onclick="salvarDespesa()"><i class="ti ti-check"></i>Salvar Despesa</button>
+    </div>
+  </div>
+</div>
+
+<div class="mov" id="modal-checklist-cadastro" onclick="closeModal('modal-checklist-cadastro')">
+  <div class="modal wide" onclick="event.stopPropagation()" style="max-width:640px;max-height:82vh;display:flex;flex-direction:column">
+    <div class="mhd"><span class="mtit"><i class="ti ti-list-check" style="color:var(--amber)"></i> Checklist de Cadastro Pendente</span><button class="mcl" onclick="closeModal('modal-checklist-cadastro')"><i class="ti ti-x"></i></button></div>
+    <div class="mbd" style="overflow-y:auto;flex:1">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Produtos com alguma informação de cadastro faltando (Compatibilidade, NCM, Localização ou Marca). Ao completar e salvar, o item sai dessa lista sozinho.</div>
+      <div id="checklist-cadastro-lista"></div>
     </div>
   </div>
 </div>
@@ -5664,14 +5670,50 @@ function getProdFiltered(){
   });
 }
 
+let prodCurrentPage=1;
+const PROD_PAGE_SIZE=50;
 function renderProd(){
   const items=getProdFiltered();
   const cnt=document.getElementById('prod-count');
   if(cnt)cnt.textContent=`${items.length} produto${items.length!==1?'s':''}`;
+  const totalPages=Math.max(1,Math.ceil(items.length/PROD_PAGE_SIZE));
+  if(prodCurrentPage>totalPages)prodCurrentPage=totalPages;
+  if(prodCurrentPage<1)prodCurrentPage=1;
+  const startIdx=(prodCurrentPage-1)*PROD_PAGE_SIZE;
+  const pageItems=items.slice(startIdx,startIdx+PROD_PAGE_SIZE);
   const info=document.getElementById('prod-pag-info');
-  if(info)info.textContent=`Exibindo 1–${items.length} de ${items.length} produto${items.length!==1?'s':''}`;
-  if(prodViewMode==='list')renderProdTable(items);
-  else renderProdGrid(items);
+  if(info)info.textContent=items.length?`Exibindo ${startIdx+1}–${Math.min(startIdx+PROD_PAGE_SIZE,items.length)} de ${items.length} produto${items.length!==1?'s':''}`:'Nenhum produto encontrado';
+  renderProdPaginationBtns(totalPages);
+  if(prodViewMode==='list')renderProdTable(pageItems);
+  else renderProdGrid(pageItems);
+}
+function irParaPaginaProd(n){
+  prodCurrentPage=n;
+  renderProd();
+  document.getElementById('prod-tbl')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderProdPaginationBtns(totalPages){
+  const wrap=document.getElementById('prod-page-btns');if(!wrap)return;
+  if(totalPages<=1){wrap.innerHTML='';return;}
+  const p=prodCurrentPage;
+  let pages=[];
+  if(totalPages<=7){
+    pages=Array.from({length:totalPages},(_,i)=>i+1);
+  }else{
+    pages=[1];
+    if(p>3)pages.push('…');
+    for(let i=Math.max(2,p-1);i<=Math.min(totalPages-1,p+1);i++)pages.push(i);
+    if(p<totalPages-2)pages.push('…');
+    pages.push(totalPages);
+  }
+  wrap.innerHTML=`
+    <div class="page-btn${p<=1?' disabled':''}" onclick="${p>1?`irParaPaginaProd(${p-1})`:''}"><i class="ti ti-chevron-left" style="font-size:12px"></i></div>
+    ${pages.map(n=>n==='…'
+      ?`<div class="page-btn disabled">…</div>`
+      :`<div class="page-btn${n===p?' active':''}" onclick="irParaPaginaProd(${n})">${n}</div>`
+    ).join('')}
+    <div class="page-btn${p>=totalPages?' disabled':''}" onclick="${p<totalPages?`irParaPaginaProd(${p+1})`:''}"><i class="ti ti-chevron-right" style="font-size:12px"></i></div>
+  `;
 }
 
 function renderProdTable(items){
@@ -5688,7 +5730,7 @@ function renderProdTable(items){
       </div></td>
       <td><div class="prod-sku-cell">${p.sku}</div><div class="prod-oem-cell" style="color:var(--amber)" title="Código interno (gerado automaticamente)"><i class="ti ti-hash" style="font-size:9px"></i>${p.codigoInterno}</div></td>
       <td><span class="badge bb" style="font-size:10px">${p.subcat||p.cat}</span></td>
-      <td style="font-size:11px;color:var(--text2);max-width:140px">${p.compat}${p.compatLivre?` <i class="ti ti-pencil" style="font-size:10px;color:var(--amber)" title="${p.compatLivre.substring(0,80)}…"></i>`:''}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:180px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4">${p.compat}${p.compatLivre?` <i class="ti ti-pencil" style="font-size:10px;color:var(--amber)" title="${p.compatLivre.substring(0,80)}…"></i>`:''}</td>
       <td style="font-family:monospace;font-size:12px;color:var(--text3)">R$ ${p.custo.toFixed(2)}</td>
       <td style="font-family:var(--font-head);font-size:13px;font-weight:700">R$ ${p.preco.toFixed(2)}</td>
       <td><div class="mg-bar"><span class="mg-num" style="color:${mgColor}">${p.mg}%</span><div class="mg-strip"><div class="mg-fill" style="width:${Math.min(p.mg,80)}%;background:${mgColor}"></div></div></div></td>
@@ -5747,8 +5789,7 @@ function openProdDrawer(id){
     <div class="pdd-field"><div class="pdd-label">NCM (Fiscal)</div><div class="pdd-value pdd-mono">${p.ncm||'—'}</div></div>
     ${p.refcross?`<div class="pdd-field"><div class="pdd-label">Referências Cruzadas</div><div class="pdd-value" style="font-size:12px">${p.refcross.split(',').map(r=>`<span class="refcross-tag">${r.trim()}</span>`).join('')}</div></div>`:''}
     <div class="pdd-section">Compatibilidade Veicular</div>
-    <div><span class="compat-tag"><i class="ti ti-car" style="font-size:11px"></i>${p.compat}</span></div>
-    ${p.compatLivre?`<div style="margin-top:8px;font-size:12px;color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:8px 10px;line-height:1.6;white-space:pre-wrap">${p.compatLivre}</div>`:''}
+    <div style="font-size:12px;color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:8px 10px;line-height:1.6;white-space:pre-wrap">${p.compat||'A cadastrar'}</div>
     <div class="pdd-section">Produtos Similares <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(mesmo item, outra marca)</span></div>
     ${(p.similares&&p.similares.length)?`<div style="display:flex;flex-direction:column;gap:6px">${p.similares.map(s=>`
       <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer" onclick="openProdDrawer(${s.id})">
@@ -5784,12 +5825,12 @@ function addToCartFromDrawer(){
 }
 
 // Filtros de produto
-function filterProducts(q){prodFilters.q=q;renderProd();}
-function filterProductsCat(v){prodFilters.cat=v;renderProd();}
-function filterProductsMarca(v){prodFilters.marca=v;renderProd();}
-function filterProductsCurva(v){prodFilters.curva=v;renderProd();}
-function filterProductsEst(v){prodFilters.est=v;renderProd();}
-function filterProdutos(type,val){prodFilters[type]=prodFilters[type]===val?'':val;renderProd();}
+function filterProducts(q){prodFilters.q=q;prodCurrentPage=1;renderProd();}
+function filterProductsCat(v){prodFilters.cat=v;prodCurrentPage=1;renderProd();}
+function filterProductsMarca(v){prodFilters.marca=v;prodCurrentPage=1;renderProd();}
+function filterProductsCurva(v){prodFilters.curva=v;prodCurrentPage=1;renderProd();}
+function filterProductsEst(v){prodFilters.est=v;prodCurrentPage=1;renderProd();}
+function filterProdutos(type,val){prodFilters[type]=prodFilters[type]===val?'':val;prodCurrentPage=1;renderProd();}
 
 function setProductView(mode,el){
   prodViewMode=mode;
@@ -5884,13 +5925,13 @@ function mapProdutoFromApi(row){
   const precoSugerido=row.preco_sugerido!=null?parseFloat(row.preco_sugerido):null;
   const qtdEmbalagem=parseInt(row.qtd_embalagem)||1;
   return{
-    id:row.id,n:row.nome||'',pop:row.nome||'',sku:row.sku||'',ean:row.codigo_barras||'',ncm:'',oem:'',refcross:'',
+    id:row.id,n:row.nome||'',pop:row.nome||'',sku:row.sku||'',ean:row.codigo_barras||'',ncm:row.ncm||'',oem:'',refcross:'',
     precoSugerido,unidadeCompra:row.unidade_compra||'',unidadeVenda:row.unidade_venda||'Unidade',qtdEmbalagem,
     codigoInterno:'AP'+String(row.id).padStart(6,'0'),
     obs:'',loc:row.loc||'',compatLivre:row.compat||'',compatEstruturada,compat:row.compat||'A cadastrar',
     marca:row.marca||'',cat:row.categoria||'',subcat:row.subcategoria||'',
     fornecedor_id:row.fornecedor_id||null,forn:(FORNECEDORES_DATA.find(f=>f.id===row.fornecedor_id)||{}).nome||'',
-    custo,preco,mg:custo>0?parseFloat((((preco-custo)/preco)*100).toFixed(1)):0,
+    custo,preco,mg:custo>0?parseFloat((((preco-custo)/custo)*100).toFixed(1)):0,
     est,min,curva:est>=min*4?'A':est>=min?'B':'C',
     ofertaPreco:row.oferta_preco?parseFloat(row.oferta_preco):null,
     ofertaInicio:row.oferta_inicio?String(row.oferta_inicio).slice(0,10):null,
@@ -5905,6 +5946,7 @@ async function carregarProdutos(q){
     const rows=await resp.json();
     PRODS.length=0;
     PRODS.push(...rows.map(mapProdutoFromApi));
+    if(typeof atualizarBadgeChecklist==='function')atualizarBadgeChecklist();
     renderProd();
   }catch(e){toast('Erro ao carregar produtos: '+e.message,'error');}
 }
@@ -5940,7 +5982,7 @@ function saveProduto(mode){
     categoria:cat,subcategoria:document.getElementById('modal-subcat')?.value||'',
     fornecedor_id:fornId,custo:parseFloat(custo.toFixed(2)),preco:parseFloat(preco.toFixed(2)),
     estoque:est,estoque_minimo:min,compat:compatFull,loc:get('inp-loc').toUpperCase(),
-    codigo_barras:get('inp-ean'),compatibilidade:compatRows
+    codigo_barras:get('inp-ean'),compatibilidade:compatRows,ncm:get('inp-ncm')
   };
   saveProdutoAsync(payload,mode,nome);
 }
@@ -5955,6 +5997,7 @@ async function saveProdutoAsync(payload,mode,nome){
     }
     if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao salvar produto');}
     await carregarProdutos();
+    if(typeof renderChecklistCadastro==='function')renderChecklistCadastro();
     toast(savedId!==null?`✅ Produto "${nome.substring(0,28)}" atualizado!`:`✅ Produto "${nome.substring(0,28)}" cadastrado!`,'success');
     if(mode==='rascunho')return;
     closeModal('modal-produto');
@@ -6077,6 +6120,45 @@ function abrirConversaoDoProdutoAtual(){
   abrirModalConversaoEmbalagem();
   setTimeout(()=>selecionarProdutoConversao(prodEditId),150);
 }
+function getCamposFaltantes(p){
+  const faltando=[];
+  if(!p.compat||p.compat==='A cadastrar')faltando.push('Compatibilidade');
+  if(!p.ncm||!p.ncm.trim())faltando.push('NCM');
+  if(!p.loc||!p.loc.trim())faltando.push('Localização');
+  if(!p.marca||!p.marca.trim())faltando.push('Marca');
+  return faltando;
+}
+function getProdutosComPendencia(){
+  return PRODS.map(p=>({p,faltando:getCamposFaltantes(p)})).filter(x=>x.faltando.length>0);
+}
+function atualizarBadgeChecklist(){
+  const badge=document.getElementById('checklist-badge-count');if(!badge)return;
+  const qtd=getProdutosComPendencia().length;
+  badge.textContent=qtd;
+  badge.style.display=qtd>0?'':'none';
+}
+function abrirChecklistCadastro(){
+  renderChecklistCadastro();
+  openModal('modal-checklist-cadastro');
+}
+function renderChecklistCadastro(){
+  const lista=document.getElementById('checklist-cadastro-lista');if(!lista)return;
+  const pendentes=getProdutosComPendencia();
+  atualizarBadgeChecklist();
+  if(!pendentes.length){
+    lista.innerHTML='<div class="empty" style="padding:30px"><i class="ti ti-circle-check" style="font-size:32px;color:var(--green)"></i><p>Tudo certo! Nenhum produto com pendência de cadastro.</p></div>';
+    return;
+  }
+  lista.innerHTML=pendentes.map(({p,faltando})=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.n}</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">${p.sku} · ${p.codigoInterno||''}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${faltando.map(f=>`<span class="badge br" style="font-size:9px">${f}</span>`).join('')}</div>
+    </div>
+    <button class="btn bp btn-sm" onclick="closeModal('modal-checklist-cadastro');openProdModal(${p.id})"><i class="ti ti-edit"></i>Completar</button>
+  </div>`).join('');
+}
+
 let convEmbSelectedId=null;
 function abrirModalConversaoEmbalagem(){
   convEmbSelectedId=null;
