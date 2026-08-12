@@ -1753,70 +1753,22 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
             <!-- Painel de Impostos + Confirmação -->
             <div class="card" style="padding:16px" id="nfe-tax-confirm-panel">
-              <!-- Pergunta sobre impostos -->
+              <!-- Fator da nota — calculado automaticamente, sem escolha manual -->
               <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;background:var(--bg2)">
-                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-                  <div style="display:flex;align-items:center;gap:10px">
-                    <div style="width:38px;height:38px;background:rgba(245,158,11,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                      <i class="ti ti-receipt-tax" style="font-size:20px;color:var(--amber)"></i>
-                    </div>
-                    <div>
-                      <div style="font-size:13px;font-weight:600">Adicionar impostos ao custo dos produtos?</div>
-                      <div style="font-size:11px;color:var(--text3);margin-top:1px">O imposto será somado ao custo de entrada, recalculando o preço de venda com margem de 67%</div>
-                    </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                  <div style="width:38px;height:38px;background:rgba(245,158,11,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <i class="ti ti-calculator" style="font-size:20px;color:var(--amber)"></i>
                   </div>
-                  <div style="display:flex;gap:6px">
-                    <button class="btn bs btn-sm" id="tax-btn-nao" onclick="setNFeTax(false)" style="border-width:2px">
-                      <i class="ti ti-x"></i>Não
-                    </button>
-                    <button class="btn bp btn-sm" id="tax-btn-sim" onclick="setNFeTax(true)" style="border-width:2px">
-                      <i class="ti ti-check"></i>Sim
-                    </button>
+                  <div>
+                    <div style="font-size:13px;font-weight:600">Fator da Nota <span id="fator-nota-valor" style="color:var(--amber);font-weight:700">—</span></div>
+                    <div style="font-size:11px;color:var(--text3);margin-top:1px">Calculado automaticamente: Valor Total da Nota ÷ Valor dos Produtos. Aplicado no custo de cada item — sem % fixa ou média.</div>
                   </div>
                 </div>
-
-                <!-- Painel expandido (visível quando "Sim") -->
-                <div id="tax-options-panel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-                    <!-- Impostos da NF-e (referência) -->
-                    <div>
-                      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Impostos desta NF-e (referência)</div>
-                      <div id="tax-nfe-ref" style="display:flex;flex-wrap:wrap;gap:5px"></div>
-                    </div>
-                    <!-- Configuração -->
-                    <div>
-                      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Aplicar ao custo</div>
-                      <div style="display:flex;flex-direction:column;gap:8px">
-                        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
-                          <input type="radio" name="tax-mode" value="icms" id="tax-mode-icms" onchange="updateTaxPreview()" checked>
-                          <span>Usar ICMS da NF-e <span id="tax-icms-label" style="color:var(--amber);font-weight:600"></span></span>
-                        </label>
-                        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
-                          <input type="radio" name="tax-mode" value="total" id="tax-mode-total" onchange="updateTaxPreview()">
-                          <span>Total de tributos (ICMS+IPI+PIS+COFINS) <span id="tax-total-label" style="color:var(--amber);font-weight:600"></span></span>
-                        </label>
-                        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
-                          <input type="radio" name="tax-mode" value="custom" id="tax-mode-custom" onchange="updateTaxPreview()">
-                          <span>Percentual personalizado:</span>
-                          <div style="display:flex;align-items:center;gap:4px">
-                            <input type="number" id="tax-custom-pct" min="0" max="100" step="0.1" placeholder="0" value="12"
-                              style="width:60px;background:var(--bg1);border:1px solid var(--border);color:var(--text1);padding:4px 8px;border-radius:var(--radius-xs);font-size:13px;font-family:var(--font-head);font-weight:600;outline:none;text-align:center"
-                              oninput="document.getElementById('tax-mode-custom').checked=true;updateTaxPreview()"
-                              onfocus="document.getElementById('tax-mode-custom').checked=true;updateTaxPreview()">
-                            <span style="font-size:12px;color:var(--text3)">%</span>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
+                <div id="fator-nota-preview" style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:var(--radius-xs);padding:10px 12px;font-size:12px">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-weight:600;color:var(--amber)">
+                    <i class="ti ti-list-check" style="font-size:14px"></i> Como cada item vai ficar
                   </div>
-
-                  <!-- Preview do impacto -->
-                  <div id="tax-preview" style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:var(--radius-xs);padding:10px 12px;font-size:12px;display:none">
-                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-weight:600;color:var(--amber)">
-                      <i class="ti ti-calculator" style="font-size:14px"></i> Impacto nos produtos desta NF-e
-                    </div>
-                    <div id="tax-preview-rows" style="display:flex;flex-direction:column;gap:4px"></div>
-                  </div>
+                  <div id="fator-nota-rows" style="display:flex;flex-direction:column;gap:4px"></div>
                 </div>
               </div>
 
@@ -5891,8 +5843,10 @@ function mapProdutoFromApi(row){
   const compatEstruturada=(row.compatibilidade||[]).map(c=>({montadora:c.montadora||'',modelo:c.modelo||'',anoIni:c.ano_ini||'',anoFim:c.ano_fim||'',motor:c.motor||''}));
   const est=parseInt(row.estoque)||0,min=parseInt(row.estoque_minimo)||5;
   const custo=parseFloat(row.custo)||0,preco=parseFloat(row.preco)||0;
+  const precoSugerido=row.preco_sugerido!=null?parseFloat(row.preco_sugerido):null;
   return{
     id:row.id,n:row.nome||'',pop:row.nome||'',sku:row.sku||'',ean:row.codigo_barras||'',ncm:'',oem:'',refcross:'',
+    precoSugerido,
     codigoInterno:'AP'+String(row.id).padStart(6,'0'),
     obs:'',loc:row.loc||'',compatLivre:row.compat||'',compatEstruturada,compat:row.compat||'A cadastrar',
     marca:row.marca||'',cat:row.categoria||'',subcat:row.subcategoria||'',
@@ -6555,7 +6509,7 @@ function renderNFePreview(d){
 
   toast('NF-e '+d.nNF+' carregada — '+d.items.length+' itens, R$ '+d.vNF.toFixed(2),'success');
   // Inicializa painel de impostos
-  setTimeout(initTaxPanel,100);
+  setTimeout(initFatorPanel,100);
 }
 
 function resetNFe(){
@@ -8697,143 +8651,91 @@ function renderOrcamentos(){
 }
 
 // ======= IMPOSTOS NA ENTRADA DE NF-e =======
-let nfeTaxEnabled=false;
-
-function setNFeTax(enabled){
-  nfeTaxEnabled=enabled;
-  const panel=document.getElementById('tax-options-panel');
-  const btnSim=document.getElementById('tax-btn-sim');
-  const btnNao=document.getElementById('tax-btn-nao');
-  if(panel)panel.style.display=enabled?'block':'none';
-  if(btnSim){btnSim.style.background=enabled?'var(--amber)':'';btnSim.style.color=enabled?'#000':'';}
-  if(btnNao){btnNao.style.background=!enabled?'var(--bg3)':'';btnNao.style.borderColor=!enabled?'var(--border2)':'';}
-  const desc=document.getElementById('nfe-confirm-desc');
-  if(desc)desc.textContent=enabled
-    ?'Imposto será somado ao custo · estoque atualizado · conta a pagar criada'
-    :'Estoque será atualizado e conta a pagar criada no financeiro';
-  if(enabled)updateTaxPreview();
+function calcularFatorNota(){
+  if(!parsedNFe||!parsedNFe.vProd||parsedNFe.vProd<=0)return 1;
+  return parsedNFe.vNF/parsedNFe.vProd;
 }
-
-function getNFeTaxPct(){
-  if(!nfeTaxEnabled)return 0;
-  const mode=document.querySelector('input[name="tax-mode"]:checked')?.value||'icms';
-  if(!parsedNFe)return 0;
-  if(mode==='icms'){
-    // média do ICMS dos itens
-    const rates=parsedNFe.items.map(it=>parseFloat(it.pICMS||0)).filter(v=>v>0);
-    return rates.length?rates.reduce((a,b)=>a+b,0)/rates.length:0;
-  }
-  if(mode==='total'){
-    const total=parsedNFe.vProd>0
-      ?((parsedNFe.vICMS+parsedNFe.vIPI+parsedNFe.vPIS+parsedNFe.vCOFINS)/parsedNFe.vProd*100)
-      :0;
-    return parseFloat(total.toFixed(2));
-  }
-  if(mode==='custom'){
-    return parseFloat(document.getElementById('tax-custom-pct')?.value||0)||0;
-  }
-  return 0;
+function calcularNovoCustoItem(it,fator){
+  return parseFloat((it.vUnCom*fator).toFixed(2));
 }
-
-function updateTaxPreview(){
+function initFatorPanel(){
   if(!parsedNFe)return;
-  const pct=getNFeTaxPct();
-  const prev=document.getElementById('tax-preview');
-  const rows=document.getElementById('tax-preview-rows');
-  if(!prev||!rows)return;
-  if(pct<=0){prev.style.display='none';return;}
-  prev.style.display='block';
-  rows.innerHTML=parsedNFe.items.slice(0,5).map(it=>{
-    const custoOriginal=it.vUnCom;
-    const custoComImposto=parseFloat((custoOriginal*(1+pct/100)).toFixed(2));
-    const precoSugerido=parseFloat((custoComImposto*(1+0.76)).toFixed(2));
+  const fator=calcularFatorNota();
+  const fatorEl=document.getElementById('fator-nota-valor');
+  if(fatorEl)fatorEl.textContent=fator.toFixed(4)+'x  (R$ '+parsedNFe.vNF.toFixed(2)+' ÷ R$ '+parsedNFe.vProd.toFixed(2)+')';
+  const rows=document.getElementById('fator-nota-rows');
+  if(!rows)return;
+  rows.innerHTML=parsedNFe.items.slice(0,6).map(it=>{
+    const novoCusto=calcularNovoCustoItem(it,fator);
+    const prodExistente=it.matched&&it.matched.prod;
+    const custoAnterior=prodExistente?parseFloat(prodExistente.custo||0):null;
+    let situacao;
+    if(custoAnterior===null){
+      situacao=`<span style="color:var(--blue)">produto novo</span>`;
+    }else if(novoCusto>custoAnterior){
+      situacao=`<span style="color:var(--green)">↑ preço sugerido recalculado</span>`;
+    }else{
+      situacao=`<span style="color:var(--text3)">preço sugerido mantido</span>`;
+    }
     return`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(245,158,11,.1)">
-      <span style="color:var(--text2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.xProd.substring(0,35)}</span>
+      <span style="color:var(--text2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.xProd.substring(0,30)}</span>
       <span style="white-space:nowrap;margin-left:10px;font-family:monospace;font-size:11px">
-        R$ ${custoOriginal.toFixed(2)}
-        <i class="ti ti-arrow-right" style="font-size:10px;color:var(--text3)"></i>
-        <strong style="color:var(--amber)">R$ ${custoComImposto.toFixed(2)}</strong>
-        <span style="color:var(--text3)">· venda: R$ ${precoSugerido.toFixed(2)}</span>
+        ${custoAnterior!==null?'R$ '+custoAnterior.toFixed(2)+' <i class="ti ti-arrow-right" style="font-size:10px;color:var(--text3)"></i> ':''}
+        <strong style="color:var(--amber)">R$ ${novoCusto.toFixed(2)}</strong>
+        &nbsp;${situacao}
       </span>
     </div>`;
   }).join('');
-  if(parsedNFe.items.length>5){rows.innerHTML+=`<div style="font-size:10px;color:var(--text3);padding-top:4px">+ ${parsedNFe.items.length-5} itens não exibidos</div>`;}
+  if(parsedNFe.items.length>6){rows.innerHTML+=`<div style="font-size:10px;color:var(--text3);padding-top:4px">+ ${parsedNFe.items.length-6} itens não exibidos</div>`;}
 }
 
 // Inicializa o painel de impostos quando o preview da NF-e é carregado
-function initTaxPanel(){
-  nfeTaxEnabled=false;
-  const panel=document.getElementById('tax-options-panel');
-  if(panel)panel.style.display='none';
-  const btnSim=document.getElementById('tax-btn-sim');
-  const btnNao=document.getElementById('tax-btn-nao');
-  if(btnSim){btnSim.style.background='';btnSim.style.color='';}
-  if(btnNao){btnNao.style.background='';btnNao.style.borderColor='';}
-  // Preenche referência dos impostos da NF-e
-  if(!parsedNFe)return;
-  const ref=document.getElementById('tax-nfe-ref');
-  if(ref){
-    const avgIcms=parsedNFe.items.length
-      ?parsedNFe.items.map(i=>parseFloat(i.pICMS||0)).reduce((a,b)=>a+b,0)/parsedNFe.items.length
-      :0;
-    const totalTrib=parsedNFe.vProd>0
-      ?((parsedNFe.vICMS+parsedNFe.vIPI+parsedNFe.vPIS+parsedNFe.vCOFINS)/parsedNFe.vProd*100)
-      :0;
-    ref.innerHTML=[
-      {l:'ICMS',v:avgIcms.toFixed(1)+'%',c:'var(--amber)'},
-      {l:'IPI',v:(parsedNFe.vProd>0?parsedNFe.vIPI/parsedNFe.vProd*100:0).toFixed(1)+'%',c:'var(--blue)'},
-      {l:'PIS',v:(parsedNFe.vProd>0?parsedNFe.vPIS/parsedNFe.vProd*100:0).toFixed(2)+'%',c:'var(--text3)'},
-      {l:'COFINS',v:(parsedNFe.vProd>0?parsedNFe.vCOFINS/parsedNFe.vProd*100:0).toFixed(2)+'%',c:'var(--text3)'},
-      {l:'Total',v:totalTrib.toFixed(1)+'%',c:'var(--green)',bold:true},
-    ].map(t=>`<div style="background:var(--bg3);border-radius:var(--radius-xs);padding:4px 10px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">${t.l}</div><div style="font-size:13px;font-weight:${t.bold?'700':'600'};color:${t.c};font-family:var(--font-head)">${t.v}</div></div>`).join('');
-    // Atualiza labels dos radios
-    const icmsLbl=document.getElementById('tax-icms-label');
-    if(icmsLbl)icmsLbl.textContent='('+avgIcms.toFixed(1)+'%)';
-    const totalLbl=document.getElementById('tax-total-label');
-    if(totalLbl)totalLbl.textContent='('+totalTrib.toFixed(1)+'%)';
-  }
-}
-
-
 async function confirmNFeEntry(){
   if(!parsedNFe){toast('Nenhuma NF-e carregada','error');return;}
   const d=parsedNFe;
-  const taxPct=getNFeTaxPct();
-  const applyTax=v=>parseFloat((v*(1+taxPct/100)).toFixed(2));
-  const calcPV=custo=>parseFloat((custo*(1+0.76)).toFixed(2));
+  const fator=calcularFatorNota();
   const today=new Date().toLocaleDateString('pt-BR');
   const btn=document.getElementById('nfe-confirm-btn');
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Processando…';}
 
-  let updated=0,created=0,erros=0;
+  let updated=0,created=0,erros=0,aumentaram=0,reduziram=0;
   try{
     for(const it of d.items){
-      const custoFinal=taxPct>0?applyTax(it.vUnCom):it.vUnCom;
-      const precoFinal=calcPV(custoFinal);
+      // Regra: NOVO CUSTO = valor base do item no XML × FATOR DA NOTA (nunca % fixa/média)
+      const novoCusto=calcularNovoCustoItem(it,fator);
       try{
         if(it.matched&&it.matched.prod){
           const prod=it.matched.prod;
+          const custoAnterior=parseFloat(prod.custo||0);
+          const aumentou=novoCusto>custoAnterior;
+          if(aumentou)aumentaram++;else reduziram++;
           const payload={
             nome:prod.n,sku:prod.sku,marca:prod.marca,categoria:prod.cat,subcategoria:prod.subcat,
-            fornecedor_id:prod.fornecedor_id||null,custo:custoFinal,preco:precoFinal,
+            fornecedor_id:prod.fornecedor_id||null,
+            custo:novoCusto,
+            preco:prod.preco, // preço de venda NUNCA é alterado automaticamente aqui
+            preco_sugerido:aumentou?parseFloat((novoCusto*1.76).toFixed(2)):null, // null = mantém o sugerido atual (COALESCE no backend)
             estoque:Math.round((prod.est||0)+it.qCom),estoque_minimo:prod.min,
             compat:prod.compat,loc:prod.loc,codigo_barras:prod.ean,
             compatibilidade:prod.compatEstruturada||[]
           };
           const resp=await fetch(API_BASE+'/produtos/'+prod.id,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
           if(!resp.ok)throw new Error('Falha ao atualizar '+prod.n);
-          await movimentarEstoque(prod.id,'entrada',Math.round(it.qCom),'Entrada NF-e '+d.nNF);
+          await movimentarEstoque(prod.id,'entrada',Math.round(it.qCom),'Entrada NF-e '+d.nNF+' (custo base R$ '+it.vUnCom.toFixed(2)+' × fator '+fator.toFixed(4)+')');
           updated++;
         }else{
+          // Produto novo: cadastra com o custo calculado e preço sugerido a 76%
+          const precoSugeridoNovo=parseFloat((novoCusto*1.76).toFixed(2));
           const fornecedorMatch=FORNECEDORES_DATA.find(f=>(f.cnpj||'').replace(/\D/g,'')===(d.emitCNPJ||'').replace(/\D/g,''));
           const payload={
             nome:it.xProd.substring(0,60),sku:it.cProd.trim(),
             marca:'',categoria:'Motor',subcategoria:'Outros',
             fornecedor_id:fornecedorMatch?fornecedorMatch.id:null,
-            custo:custoFinal,preco:precoFinal,estoque:Math.round(it.qCom),
+            custo:novoCusto,preco:precoSugeridoNovo,preco_sugerido:precoSugeridoNovo,
+            estoque:Math.round(it.qCom),
             estoque_minimo:Math.ceil(it.qCom*0.2)||3,compat:'A cadastrar',loc:'',
             codigo_barras:it.cEAN!=='SEM GTIN'?it.cEAN:'',
-            observacoes:`Auto-cadastrado via NF-e ${d.nNF} em ${today}. Fornecedor (emitente): ${d.emitNome}${fornecedorMatch?'':' — NÃO vinculado, cadastre esse fornecedor pra linkar automaticamente da próxima vez.'}${taxPct>0?' Imposto '+taxPct.toFixed(1)+'% incluso no custo.':''}`
+            observacoes:`Auto-cadastrado via NF-e ${d.nNF} em ${today}. Fornecedor (emitente): ${d.emitNome}${fornecedorMatch?'':' — NÃO vinculado, cadastre esse fornecedor pra linkar automaticamente da próxima vez.'} Custo base R$ ${it.vUnCom.toFixed(2)} × fator da nota ${fator.toFixed(4)}.`
           };
           const resp=await fetch(API_BASE+'/produtos',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
           if(!resp.ok)throw new Error('Falha ao cadastrar '+it.xProd);
@@ -8852,9 +8754,10 @@ async function confirmNFeEntry(){
   }
   if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-check"></i>Confirmar Entrada';}
 
-  const taxMsg=taxPct>0?` · Imposto ${taxPct.toFixed(1)}% aplicado`:'';
+  const fatorMsg=` · Fator da nota: ${fator.toFixed(4)}x`;
+  const precoMsg=aumentaram>0?` · ${aumentaram} preço(s) sugerido(s) recalculado(s)`:'';
   const errMsg=erros>0?` · ⚠️ ${erros} item(ns) com erro`:'';
-  toast(`\u2705 NF-e ${d.nNF} confirmada! ${updated} atualizado(s) \u00b7 ${created} cadastrado(s) \u00b7 R$ ${d.vNF.toFixed(2)}${taxMsg}${errMsg}`,erros>0?'error':'success');
+  toast(`\u2705 NF-e ${d.nNF} confirmada! ${updated} atualizado(s) \u00b7 ${created} cadastrado(s) \u00b7 R$ ${d.vNF.toFixed(2)}${fatorMsg}${precoMsg}${errMsg}`,erros>0?'error':'success');
   // Lançar duplicatas em Contas a Pagar
   if(d.dups&&d.dups.length){
     d.dups.forEach((dup,i)=>{
@@ -8868,7 +8771,7 @@ async function confirmNFeEntry(){
     setTimeout(()=>toast('\u2139\ufe0f Essa NF-e não trouxe duplicatas/boleto pra lançar em Contas a Pagar (fatura à vista ou XML sem essa seção).','info'),1200);
   }
   setTimeout(()=>{
-    resetNFe();parsedNFe=null;nfeTaxEnabled=false;
+    resetNFe();parsedNFe=null;
     prodFilters={q:'',cat:'',marca:'',curva:'',est:''};
     ['prod-search','prod-cat-sel','prod-marca-sel','prod-curva-sel','prod-est-sel'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     nav('produtos',document.querySelector('.ni[onclick*=\"produtos\"]'));
