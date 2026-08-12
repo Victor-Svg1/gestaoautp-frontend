@@ -1276,6 +1276,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
           <div class="flx g2b">
             <button class="btn bs btn-sm" onclick="exportCSV('produtos')"><i class="ti ti-file-spreadsheet"></i>CSV</button>
             <button class="btn bs btn-sm" onclick="toast('Importação por planilha em desenvolvimento','info')"><i class="ti ti-upload"></i>Importar</button>
+            <button class="btn bs btn-sm" onclick="abrirModalConversaoEmbalagem()"><i class="ti ti-package-import"></i>Conversão de Embalagem</button>
             <button class="btn bp" onclick="openProdModal(null)"><i class="ti ti-plus"></i>Novo Produto</button>
           </div>
         </div>
@@ -1659,6 +1660,9 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
                 </div>
                 <button class="btn bs" onclick="loadDemoNFe()" style="width:100%">
                   <i class="ti ti-file-code"></i> Carregar NF-e de demonstração
+                </button>
+                <button class="btn bs" onclick="abrirModalConversaoEmbalagem()" style="width:100%;margin-top:8px">
+                  <i class="ti ti-package-import"></i> Conversão de Embalagem
                 </button>
               </div>
             </div>
@@ -2264,6 +2268,34 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     <div class="mft">
       <button class="btn bg" onclick="closeModal('modal-despesa')">Cancelar</button>
       <button class="btn bp" onclick="salvarDespesa()"><i class="ti ti-check"></i>Salvar Despesa</button>
+    </div>
+  </div>
+</div>
+
+<div class="mov" id="modal-conversao-embalagem" onclick="closeModal('modal-conversao-embalagem')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:520px">
+    <div class="mhd"><span class="mtit"><i class="ti ti-package-import" style="color:var(--amber)"></i> Conversão de Embalagem</span><button class="mcl" onclick="closeModal('modal-conversao-embalagem')"><i class="ti ti-x"></i></button></div>
+    <div class="mbd">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Pra produtos comprados em caixa/pacote mas vendidos por unidade (ex: WD-40, enforca-gato). Configure uma vez — os próximos XML já convertem sozinhos.</div>
+
+      <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px">Buscar produto</label>
+      <input type="text" id="conv-emb-busca" placeholder="Nome, SKU ou código interno…" oninput="buscarProdutoConversao(this.value)" autocomplete="off" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;color:var(--text1);font-size:13px;outline:none">
+      <div id="conv-emb-resultados" style="max-height:160px;overflow-y:auto;margin-top:6px"></div>
+
+      <div id="conv-emb-form" style="display:none;margin-top:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px" id="conv-emb-produto-nome">—</div>
+        <div class="fg t">
+          <div class="ff"><label>Unidade de Compra</label><input type="text" id="conv-emb-unid-compra" placeholder="Ex: Caixa, Pacote, Fardo…" oninput="atualizarPreviewConversao()"></div>
+          <div class="ff"><label>Unidade de Venda</label><input type="text" id="conv-emb-unid-venda" value="Unidade" oninput="atualizarPreviewConversao()"></div>
+          <div class="ff sp2"><label>Quantidade por Embalagem</label><input type="number" id="conv-emb-qtd" min="1" placeholder="Ex: 6" oninput="atualizarPreviewConversao()"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px" id="conv-emb-preview"></div>
+        <button class="btn bp btn-sm" style="width:100%;margin-top:10px" onclick="salvarConversaoEmbalagem()"><i class="ti ti-check"></i>Salvar Conversão</button>
+      </div>
+
+      <div class="divider" style="margin:16px 0"></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--amber);margin-bottom:8px">JÁ CONFIGURADOS</div>
+      <div id="conv-emb-lista"></div>
     </div>
   </div>
 </div>
@@ -3420,6 +3452,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
         <div class="ff"><label>Estoque Atual</label><input id="inp-est-atual" type="number" value="0"></div>
         <div class="ff"><label>Prazo Reposição (dias)</label><input type="number" value="7"></div>
         <div class="ff"><label>Unidade</label><select><option>Unidade</option><option>Par</option><option>Kit</option><option>Jogo</option><option>Litro</option></select></div>
+        <div class="ff" id="prod-conv-emb-info"><label>Conversão de Embalagem</label><button class="btn bs btn-sm" style="width:100%" type="button" onclick="abrirConversaoDoProdutoAtual()"><i class="ti ti-package-import"></i><span id="prod-conv-emb-label">Configurar</span></button></div>
         <div class="ff"><label>CEST</label><input type="text" placeholder="01.004.00" style="font-family:monospace"></div>
         <div class="ff"><label>ICMS (%)</label><input type="number" value="12"></div>
         <div class="ff"><label>IPI (%)</label><input type="number" value="0"></div>
@@ -5775,6 +5808,11 @@ function openProdModal(id){
   const title=document.getElementById('modal-prod-title');
   const fornSel=document.getElementById('sel-forn');
   if(fornSel)fornSel.innerHTML='<option value="">Selecione</option>'+FORNECEDORES_DATA.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
+  const convLabel=document.getElementById('prod-conv-emb-label');
+  if(convLabel){
+    const p=id!==null?PRODS.find(x=>x.id===id):null;
+    convLabel.textContent=(p&&p.qtdEmbalagem>1)?`1 ${p.unidadeCompra} = ${p.qtdEmbalagem} ${p.unidadeVenda}`:'Configurar';
+  }
   const delBtn=document.getElementById('btn-excluir-produto');
   if(id===null){
     clearProdModal();
@@ -5844,9 +5882,10 @@ function mapProdutoFromApi(row){
   const est=parseInt(row.estoque)||0,min=parseInt(row.estoque_minimo)||5;
   const custo=parseFloat(row.custo)||0,preco=parseFloat(row.preco)||0;
   const precoSugerido=row.preco_sugerido!=null?parseFloat(row.preco_sugerido):null;
+  const qtdEmbalagem=parseInt(row.qtd_embalagem)||1;
   return{
     id:row.id,n:row.nome||'',pop:row.nome||'',sku:row.sku||'',ean:row.codigo_barras||'',ncm:'',oem:'',refcross:'',
-    precoSugerido,
+    precoSugerido,unidadeCompra:row.unidade_compra||'',unidadeVenda:row.unidade_venda||'Unidade',qtdEmbalagem,
     codigoInterno:'AP'+String(row.id).padStart(6,'0'),
     obs:'',loc:row.loc||'',compatLivre:row.compat||'',compatEstruturada,compat:row.compat||'A cadastrar',
     marca:row.marca||'',cat:row.categoria||'',subcat:row.subcategoria||'',
@@ -6033,6 +6072,92 @@ async function carregarRadarPreco(produtoId){
     area.innerHTML='<div style="text-align:center;padding:10px;font-size:12px;color:var(--red)">Erro ao buscar radar de preço: '+e.message+'</div>';
   }
 }
+function abrirConversaoDoProdutoAtual(){
+  if(prodEditId===null){toast('Salve o produto primeiro pra poder configurar a conversão','error');return;}
+  abrirModalConversaoEmbalagem();
+  setTimeout(()=>selecionarProdutoConversao(prodEditId),150);
+}
+let convEmbSelectedId=null;
+function abrirModalConversaoEmbalagem(){
+  convEmbSelectedId=null;
+  const busca=document.getElementById('conv-emb-busca');if(busca)busca.value='';
+  const res=document.getElementById('conv-emb-resultados');if(res)res.innerHTML='';
+  const form=document.getElementById('conv-emb-form');if(form)form.style.display='none';
+  renderListaConversaoEmbalagem();
+  openModal('modal-conversao-embalagem');
+}
+function buscarProdutoConversao(q){
+  const wrap=document.getElementById('conv-emb-resultados');if(!wrap)return;
+  if(!q||q.length<2){wrap.innerHTML='';return;}
+  const nq=normTxt(q);
+  const achados=PRODS.filter(p=>normTxt(p.n).includes(nq)||normTxt(p.sku).includes(nq)||normTxt(p.codigoInterno||'').includes(nq)).slice(0,8);
+  if(!achados.length){wrap.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text3)">Nenhum produto encontrado</div>';return;}
+  wrap.innerHTML=achados.map(p=>`<div style="padding:8px;border:1px solid var(--border);border-radius:var(--radius-xs);margin-top:4px;cursor:pointer;font-size:12px" onclick="selecionarProdutoConversao(${p.id})"><strong>${p.n}</strong><br><span style="color:var(--text3)">${p.sku} · ${p.qtdEmbalagem>1?('já configurado: 1 '+p.unidadeCompra+' = '+p.qtdEmbalagem+' '+p.unidadeVenda):'sem conversão configurada'}</span></div>`).join('');
+}
+function selecionarProdutoConversao(id){
+  const p=PRODS.find(x=>x.id===id);if(!p)return;
+  convEmbSelectedId=id;
+  document.getElementById('conv-emb-resultados').innerHTML='';
+  document.getElementById('conv-emb-busca').value='';
+  document.getElementById('conv-emb-produto-nome').textContent=p.n+' ('+p.sku+')';
+  document.getElementById('conv-emb-unid-compra').value=p.unidadeCompra||'';
+  document.getElementById('conv-emb-unid-venda').value=p.unidadeVenda||'Unidade';
+  document.getElementById('conv-emb-qtd').value=p.qtdEmbalagem>1?p.qtdEmbalagem:'';
+  document.getElementById('conv-emb-form').style.display='block';
+  atualizarPreviewConversao();
+}
+function atualizarPreviewConversao(){
+  const preview=document.getElementById('conv-emb-preview');if(!preview)return;
+  const qtd=parseInt(document.getElementById('conv-emb-qtd')?.value||0);
+  const unidCompra=document.getElementById('conv-emb-unid-compra')?.value||'embalagem';
+  const unidVenda=document.getElementById('conv-emb-unid-venda')?.value||'unidade';
+  if(qtd>1){
+    preview.innerHTML=`Exemplo: se 1 ${unidCompra} custar R$ 150,00 no XML → custo por ${unidVenda.toLowerCase()} = R$ ${(150/qtd).toFixed(2)} · estoque recebido = ${qtd} ${unidVenda.toLowerCase()}(s) por ${unidCompra.toLowerCase()||'embalagem'} comprada`;
+  }else{
+    preview.innerHTML='Sem conversão — compra e venda na mesma unidade (comportamento padrão, nada muda).';
+  }
+}
+async function salvarConversaoEmbalagem(){
+  if(convEmbSelectedId===null){toast('Selecione um produto primeiro','error');return;}
+  const p=PRODS.find(x=>x.id===convEmbSelectedId);if(!p)return;
+  const unidCompra=(document.getElementById('conv-emb-unid-compra')?.value||'').trim();
+  const unidVenda=(document.getElementById('conv-emb-unid-venda')?.value||'Unidade').trim()||'Unidade';
+  const qtd=parseInt(document.getElementById('conv-emb-qtd')?.value||1)||1;
+  if(qtd>1&&!unidCompra){toast('Informe a unidade de compra (ex: Caixa, Pacote)','error');return;}
+  try{
+    // Envia o produto completo (a rota de PUT não faz atualização parcial dos campos normais)
+    const payload={
+      nome:p.n,sku:p.sku,marca:p.marca,categoria:p.cat,subcategoria:p.subcat,
+      fornecedor_id:p.fornecedor_id||null,custo:p.custo,preco:p.preco,
+      estoque:p.est,estoque_minimo:p.min,compat:p.compat,loc:p.loc,codigo_barras:p.ean,
+      oferta_preco:p.ofertaPreco||null,oferta_inicio:p.ofertaInicio||null,oferta_fim:p.ofertaFim||null,
+      compatibilidade:p.compatEstruturada||[],
+      unidade_compra:unidCompra||null,unidade_venda:unidVenda,qtd_embalagem:qtd
+    };
+    const resp=await fetch(API_BASE+'/produtos/'+convEmbSelectedId,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    if(!resp.ok)throw new Error('Erro ao salvar conversão');
+    toast(`✅ Conversão salva: 1 ${unidCompra||'un.'} = ${qtd} ${unidVenda}!`,'success');
+    await carregarProdutos();
+    renderListaConversaoEmbalagem();
+    document.getElementById('conv-emb-form').style.display='none';
+    convEmbSelectedId=null;
+  }catch(e){
+    toast('Erro ao salvar conversão: '+e.message,'error');
+  }
+}
+function renderListaConversaoEmbalagem(){
+  const lista=document.getElementById('conv-emb-lista');if(!lista)return;
+  const configurados=PRODS.filter(p=>p.qtdEmbalagem>1);
+  if(!configurados.length){
+    lista.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:10px">Nenhum produto com conversão configurada ainda.</div>';
+    return;
+  }
+  lista.innerHTML=configurados.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-xs);margin-bottom:6px;font-size:12px">
+    <div><strong>${p.n}</strong><div style="color:var(--text3);font-size:11px">1 ${p.unidadeCompra} = ${p.qtdEmbalagem} ${p.unidadeVenda}</div></div>
+    <button class="btn bs btn-sm" onclick="selecionarProdutoConversao(${p.id});document.getElementById('conv-emb-form').scrollIntoView({behavior:'smooth'})"><i class="ti ti-edit"></i></button>
+  </div>`).join('');
+}
+
 function prodTab(id,el){
   ['id','compat','estoque','fotos','similar'].forEach(t=>{const e=document.getElementById('ptab-'+t);if(e)e.classList.toggle('active',t===id);});
   document.querySelectorAll('.pmt').forEach(t=>t.classList.remove('active'));
@@ -8665,10 +8790,11 @@ function initFatorPanel(){
   if(fatorEl)fatorEl.textContent=fator.toFixed(4)+'x  (R$ '+parsedNFe.vNF.toFixed(2)+' ÷ R$ '+parsedNFe.vProd.toFixed(2)+')';
   const rows=document.getElementById('fator-nota-rows');
   if(!rows)return;
-  rows.innerHTML=parsedNFe.items.slice(0,6).map(it=>{
+  rows.innerHTML=parsedNFe.items.slice(0,6).map((it,idx)=>{
     const novoCusto=calcularNovoCustoItem(it,fator);
     const prodExistente=it.matched&&it.matched.prod;
     const custoAnterior=prodExistente?parseFloat(prodExistente.custo||0):null;
+    const temConversaoSalva=prodExistente&&prodExistente.qtdEmbalagem>1;
     let situacao;
     if(custoAnterior===null){
       situacao=`<span style="color:var(--blue)">produto novo</span>`;
@@ -8677,7 +8803,7 @@ function initFatorPanel(){
     }else{
       situacao=`<span style="color:var(--text3)">preço sugerido mantido</span>`;
     }
-    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(245,158,11,.1)">
+    const linhaBase=`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(245,158,11,.1)">
       <span style="color:var(--text2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.xProd.substring(0,30)}</span>
       <span style="white-space:nowrap;margin-left:10px;font-family:monospace;font-size:11px">
         ${custoAnterior!==null?'R$ '+custoAnterior.toFixed(2)+' <i class="ti ti-arrow-right" style="font-size:10px;color:var(--text3)"></i> ':''}
@@ -8685,8 +8811,29 @@ function initFatorPanel(){
         &nbsp;${situacao}
       </span>
     </div>`;
+    if(!temConversaoSalva)return linhaBase;
+    // Item com conversão de embalagem já configurada — mostra controle pra essa entrada específica
+    const qtdSalva=prodExistente.qtdEmbalagem;
+    const custoUnitEmb=parseFloat((novoCusto/qtdSalva).toFixed(2));
+    return linhaBase+`<div style="display:flex;align-items:center;gap:8px;padding:6px 0 8px;background:rgba(245,158,11,.06);border-radius:var(--radius-xs);padding-left:8px;margin-bottom:4px">
+      <i class="ti ti-package-import" style="font-size:14px;color:var(--amber)"></i>
+      <span style="font-size:10.5px;color:var(--text2)">1 ${prodExistente.unidadeCompra} =</span>
+      <input type="number" id="conv-override-${idx}" value="${qtdSalva}" min="1" style="width:50px;background:var(--bg1);border:1px solid var(--border);border-radius:4px;padding:2px 4px;font-size:11px;text-align:center;color:var(--text1)" oninput="atualizarLinhaConversaoNFe(${idx})">
+      <span style="font-size:10.5px;color:var(--text2)">${prodExistente.unidadeVenda}(s) · custo por ${prodExistente.unidadeVenda.toLowerCase()}: <strong id="conv-custo-unit-${idx}" style="color:var(--amber)">R$ ${custoUnitEmb.toFixed(2)}</strong> · entrada: <strong id="conv-estoque-final-${idx}">${Math.round(it.qCom*qtdSalva)}</strong> un.</span>
+    </div>`;
   }).join('');
   if(parsedNFe.items.length>6){rows.innerHTML+=`<div style="font-size:10px;color:var(--text3);padding-top:4px">+ ${parsedNFe.items.length-6} itens não exibidos</div>`;}
+}
+function atualizarLinhaConversaoNFe(idx){
+  if(!parsedNFe)return;
+  const fator=calcularFatorNota();
+  const it=parsedNFe.items[idx];if(!it)return;
+  const novoCusto=calcularNovoCustoItem(it,fator);
+  const qtd=parseInt(document.getElementById('conv-override-'+idx)?.value||1)||1;
+  const custoEl=document.getElementById('conv-custo-unit-'+idx);
+  const estEl=document.getElementById('conv-estoque-final-'+idx);
+  if(custoEl)custoEl.textContent='R$ '+(novoCusto/qtd).toFixed(2);
+  if(estEl)estEl.textContent=Math.round(it.qCom*qtd);
 }
 
 // Inicializa o painel de impostos quando o preview da NF-e é carregado
@@ -8698,33 +8845,46 @@ async function confirmNFeEntry(){
   const btn=document.getElementById('nfe-confirm-btn');
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Processando…';}
 
-  let updated=0,created=0,erros=0,aumentaram=0,reduziram=0;
+  let updated=0,created=0,erros=0,aumentaram=0,reduziram=0,convertidos=0;
   try{
-    for(const it of d.items){
+    for(let idx=0;idx<d.items.length;idx++){
+      const it=d.items[idx];
       // Regra: NOVO CUSTO = valor base do item no XML × FATOR DA NOTA (nunca % fixa/média)
       const novoCusto=calcularNovoCustoItem(it,fator);
       try{
         if(it.matched&&it.matched.prod){
           const prod=it.matched.prod;
+          // Conversão de embalagem (se configurada pro produto): aplicada DEPOIS do fator, nunca antes
+          const temConversaoSalva=prod.qtdEmbalagem>1;
+          const overrideInput=idx<6?document.getElementById('conv-override-'+idx):null;
+          const qtdEmbalagemUsada=temConversaoSalva?(parseInt(overrideInput?.value||prod.qtdEmbalagem)||prod.qtdEmbalagem):1;
+          const custoPorUnidade=qtdEmbalagemUsada>1?parseFloat((novoCusto/qtdEmbalagemUsada).toFixed(2)):novoCusto;
+          const qtdEstoqueReal=qtdEmbalagemUsada>1?Math.round(it.qCom*qtdEmbalagemUsada):Math.round(it.qCom);
+          if(qtdEmbalagemUsada>1)convertidos++;
+
           const custoAnterior=parseFloat(prod.custo||0);
-          const aumentou=novoCusto>custoAnterior;
+          const aumentou=custoPorUnidade>custoAnterior;
           if(aumentou)aumentaram++;else reduziram++;
           const payload={
             nome:prod.n,sku:prod.sku,marca:prod.marca,categoria:prod.cat,subcategoria:prod.subcat,
             fornecedor_id:prod.fornecedor_id||null,
-            custo:novoCusto,
+            custo:custoPorUnidade,
             preco:prod.preco, // preço de venda NUNCA é alterado automaticamente aqui
-            preco_sugerido:aumentou?parseFloat((novoCusto*1.76).toFixed(2)):null, // null = mantém o sugerido atual (COALESCE no backend)
-            estoque:Math.round((prod.est||0)+it.qCom),estoque_minimo:prod.min,
+            preco_sugerido:aumentou?parseFloat((custoPorUnidade*1.76).toFixed(2)):null, // null = mantém o sugerido atual (COALESCE no backend)
+            estoque:Math.round((prod.est||0)+qtdEstoqueReal),estoque_minimo:prod.min,
             compat:prod.compat,loc:prod.loc,codigo_barras:prod.ean,
             compatibilidade:prod.compatEstruturada||[]
           };
           const resp=await fetch(API_BASE+'/produtos/'+prod.id,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
           if(!resp.ok)throw new Error('Falha ao atualizar '+prod.n);
-          await movimentarEstoque(prod.id,'entrada',Math.round(it.qCom),'Entrada NF-e '+d.nNF+' (custo base R$ '+it.vUnCom.toFixed(2)+' × fator '+fator.toFixed(4)+')');
+          const motivoMov=qtdEmbalagemUsada>1
+            ?`Entrada NF-e ${d.nNF} — ${it.qCom} ${prod.unidadeCompra||'emb.'} × ${qtdEmbalagemUsada} ${prod.unidadeVenda||'un.'} = ${qtdEstoqueReal} un. (custo emb. R$ ${novoCusto.toFixed(2)} ÷ ${qtdEmbalagemUsada} = R$ ${custoPorUnidade.toFixed(2)}/un.)`
+            :`Entrada NF-e ${d.nNF} (custo base R$ ${it.vUnCom.toFixed(2)} × fator ${fator.toFixed(4)})`;
+          await movimentarEstoque(prod.id,'entrada',qtdEstoqueReal,motivoMov);
           updated++;
         }else{
           // Produto novo: cadastra com o custo calculado e preço sugerido a 76%
+          // (sem conversão de embalagem — ainda não existe cadastro pra ter uma salva; configure depois em "Conversão de Embalagem")
           const precoSugeridoNovo=parseFloat((novoCusto*1.76).toFixed(2));
           const fornecedorMatch=FORNECEDORES_DATA.find(f=>(f.cnpj||'').replace(/\D/g,'')===(d.emitCNPJ||'').replace(/\D/g,''));
           const payload={
@@ -8756,8 +8916,9 @@ async function confirmNFeEntry(){
 
   const fatorMsg=` · Fator da nota: ${fator.toFixed(4)}x`;
   const precoMsg=aumentaram>0?` · ${aumentaram} preço(s) sugerido(s) recalculado(s)`:'';
+  const convMsg=convertidos>0?` · ${convertidos} item(ns) com conversão de embalagem`:'';
   const errMsg=erros>0?` · ⚠️ ${erros} item(ns) com erro`:'';
-  toast(`\u2705 NF-e ${d.nNF} confirmada! ${updated} atualizado(s) \u00b7 ${created} cadastrado(s) \u00b7 R$ ${d.vNF.toFixed(2)}${fatorMsg}${precoMsg}${errMsg}`,erros>0?'error':'success');
+  toast(`\u2705 NF-e ${d.nNF} confirmada! ${updated} atualizado(s) \u00b7 ${created} cadastrado(s) \u00b7 R$ ${d.vNF.toFixed(2)}${fatorMsg}${precoMsg}${convMsg}${errMsg}`,erros>0?'error':'success');
   // Lançar duplicatas em Contas a Pagar
   if(d.dups&&d.dups.length){
     d.dups.forEach((dup,i)=>{
