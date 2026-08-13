@@ -1200,6 +1200,14 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
               <div style="display:flex;align-items:center;gap:8px;margin-top:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer" onclick="openPDVClientModal()">
                 <i class="ti ti-user-circle" style="color:var(--text3)"></i><span style="font-size:12px;color:var(--text2);flex:1" id="cart-cli">Selecionar cliente</span><i class="ti ti-chevron-right" style="font-size:13px;color:var(--text3)"></i>
               </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                <i class="ti ti-building-store" style="color:var(--text3);font-size:14px"></i>
+                <select id="pdv-canal-venda" style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;font-size:11.5px;color:var(--text2);outline:none">
+                  <option value="balcao">Canal: Balcão</option>
+                  <option value="oficina">Canal: Oficina</option>
+                  <option value="marketplace">Canal: Marketplace</option>
+                </select>
+              </div>
             </div>
             <div style="flex:1;overflow-y:auto;padding:10px;min-height:220px" id="cart-items"><div class="empty" style="padding:20px"><i class="ti ti-shopping-cart-off" style="font-size:32px"></i><p style="font-size:12px">Carrinho vazio</p></div></div>
             <div style="border-top:1px solid var(--border);padding:12px 14px 0;display:flex;flex-direction:column">
@@ -1279,6 +1287,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
             <button class="btn bs btn-sm" onclick="toast('Importação por planilha em desenvolvimento','info')"><i class="ti ti-upload"></i>Importar</button>
             <button class="btn bs btn-sm" onclick="abrirModalConversaoEmbalagem()"><i class="ti ti-package-import"></i>Conversão de Embalagem</button>
             <button class="btn bs btn-sm" onclick="abrirChecklistCadastro()"><i class="ti ti-list-check"></i>Checklist de Cadastro <span id="checklist-badge-count" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:8px;padding:1px 6px;margin-left:4px">0</span></button>
+            <button class="btn bs btn-sm" onclick="abrirCurvaAbcAvancada()"><i class="ti ti-chart-histogram"></i>Curva ABC Avançada</button>
             <button class="btn bp" onclick="openProdModal(null)"><i class="ti ti-plus"></i>Novo Produto</button>
           </div>
         </div>
@@ -1893,7 +1902,60 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
           </div>
         </div>
       </div>
-      <div class="screen" id="screen-dre"><div class="ph"><div class="phl"><h1>DRE Gerencial</h1><p>Referente ao mês atual — calculado a partir dos dados reais do sistema</p></div><button class="btn bp btn-sm" onclick="imprimirDRE()"><i class="ti ti-printer"></i>Imprimir</button></div><div class="g2"><div class="card"><div class="fr" style="font-size:15px;font-weight:700"><span class="lbl">RECEITA BRUTA</span><span class="val ta" id="dre-receita-bruta">R$ 0</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Devoluções</span><span class="val tr" id="dre-devolucoes">R$ (0)</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Impostos <span style="font-size:9px;color:var(--text3)">(config. pendente)</span></span><span class="val tr" id="dre-impostos">—</span></div><div class="fr" style="font-weight:700"><span class="lbl">= RECEITA LÍQUIDA</span><span class="val" id="dre-receita-liquida">R$ 0</span></div><div class="divider"></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) CMV <span style="font-size:9px;color:var(--text3)">(estimado c/ custo atual)</span></span><span class="val tr" id="dre-cmv">R$ (0)</span></div><div class="fr" style="font-weight:700;color:var(--green)"><span class="lbl">= LUCRO BRUTO</span><span class="val tg" id="dre-lucro-bruto">R$ 0 (0,0%)</span></div><div class="divider"></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Salários (Folha)</span><span class="val tr" id="dre-salarios">R$ (0)</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Aluguel</span><span class="val tr" id="dre-aluguel">R$ (0)</span></div><div class="fr" style="padding-left:14px"><span class="lbl">(-) Outras Despesas</span><span class="val tr" id="dre-outras">R$ (0)</span></div><div class="fr" style="font-size:16px;font-weight:700"><span class="lbl">= RESULTADO OP.</span><span class="val tg" id="dre-resultado">R$ 0 (0,0%)</span></div></div><div class="flex" style="flex-direction:column;gap:14px"><div class="card"><div class="ch"><div class="ct">Margens do Mês Atual</div></div><div style="position:relative;height:180px"><canvas id="ch-dre-mar"></canvas></div></div><div class="card"><div class="ch"><div class="ct">Despesas</div></div><div style="position:relative;height:180px"><canvas id="ch-dre-desp"></canvas></div></div></div></div></div>
+      <div class="screen" id="screen-dre">
+        <div class="ph"><div class="phl"><h1>DRE Gerencial</h1><p>Demonstração do Resultado — Balcão, Oficina e Marketplace, calculado a partir dos dados reais</p></div><button class="btn bp btn-sm" onclick="imprimirDRE()"><i class="ti ti-printer"></i>Imprimir</button></div>
+
+        <!-- Filtros -->
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end">
+            <div>
+              <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Período</label>
+              <div style="display:flex;gap:6px;align-items:center">
+                <select id="dre-modo" onchange="toggleDreModo()" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12.5px;color:var(--text1)">
+                  <option value="mes">Mês/Ano</option>
+                  <option value="custom">Customizado</option>
+                </select>
+                <select id="dre-mes" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12.5px;color:var(--text1)">
+                  <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+                  <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+                  <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+                  <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                </select>
+                <select id="dre-ano" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12.5px;color:var(--text1)"></select>
+                <input type="date" id="dre-data-ini" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;font-size:12px;color:var(--text1)">
+                <span id="dre-custom-ate" style="display:none;font-size:11px;color:var(--text3)">até</span>
+                <input type="date" id="dre-data-fim" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;font-size:12px;color:var(--text1)">
+              </div>
+            </div>
+            <div>
+              <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Canal de Venda</label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="dre-canal-todos" checked onchange="toggleDreCanalTodos()"> Todos</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="dre-canal-item" value="balcao" checked onchange="onDreCanalItemChange()"> Balcão</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="dre-canal-item" value="oficina" checked onchange="onDreCanalItemChange()"> Oficina</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="dre-canal-item" value="marketplace" checked onchange="onDreCanalItemChange()"> Marketplace</label>
+              </div>
+            </div>
+            <button class="btn bp btn-sm" onclick="carregarDRE()"><i class="ti ti-refresh"></i>Aplicar</button>
+          </div>
+        </div>
+
+        <!-- Tabela do DRE -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="tw"><table id="dre-tabela" style="width:100%">
+            <thead><tr>
+              <th style="text-align:left">Indicador / Conta</th>
+              <th style="text-align:right">Valor (R$)</th>
+              <th style="text-align:right;width:110px">Análise Vertical (%)</th>
+            </tr></thead>
+            <tbody id="dre-tbody"></tbody>
+          </table></div>
+        </div>
+
+        <div style="font-size:10.5px;color:var(--text3);margin-top:10px;line-height:1.6">
+          <i class="ti ti-info-circle"></i> Impostos (ICMS/ST) e Taxas de Cartão ainda dependem de configuração de regime tributário/adquirente (aparecem zerados até serem configurados). Comissões refletem o total do mês corrente do módulo Comissões — ainda não segmentadas por canal ou por período customizado.
+        </div>
+      </div>
       <div class="screen" id="screen-clientes"><div class="ph"><div class="phl"><h1>Clientes</h1></div><button class="btn bp" onclick="openClienteNovo()"><i class="ti ti-user-plus"></i>Novo</button></div><div class="card"><div class="tw"><table><thead><tr><th>Cliente</th><th>Documento</th><th>Telefone</th><th>Veículos</th><th>Último Serviço</th><th>Limite Crédito</th><th>Total</th><th>Ações</th></tr></thead><tbody id="cli-tbl"></tbody></table></div></div></div>
 
       <div class="screen" id="screen-credito">
@@ -2252,6 +2314,50 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     <div class="mft">
       <button class="btn bg" onclick="closeModal('modal-despesa')">Cancelar</button>
       <button class="btn bp" id="desp-salvar-btn" onclick="salvarDespesa()"><i class="ti ti-check"></i>Salvar Despesa</button>
+    </div>
+  </div>
+</div>
+
+<div class="mov" id="modal-curva-abc-avancada" onclick="closeModal('modal-curva-abc-avancada')">
+  <div class="modal wide" onclick="event.stopPropagation()" style="max-width:1180px;max-height:90vh;display:flex;flex-direction:column">
+    <div class="mhd"><span class="mtit"><i class="ti ti-chart-histogram" style="color:var(--amber)"></i> Curva ABC Avançada de Estoque</span><button class="mcl" onclick="closeModal('modal-curva-abc-avancada')"><i class="ti ti-x"></i></button></div>
+    <div class="mbd" style="overflow-y:auto;flex:1">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Cruza Faturamento, Margem de Lucro e Tempo de Giro — não só quem vende mais, mas quem vale a pena continuar tendo em estoque.</div>
+
+      <!-- Filtros -->
+      <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px">
+        <div>
+          <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Período de Análise</label>
+          <select id="abc-periodo" onchange="carregarCurvaAbcAvancada()" style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12.5px;color:var(--text1)">
+            <option value="30">Últimos 30 dias</option>
+            <option value="90" selected>Últimos 90 dias</option>
+            <option value="180">Últimos 180 dias</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Categoria</label>
+          <select id="abc-categoria" onchange="carregarCurvaAbcAvancada()" style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12.5px;color:var(--text1);min-width:160px">
+            <option value="">Todas as categorias</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Buscar produto</label>
+          <input type="text" id="abc-busca" oninput="renderCurvaAbcTabela()" placeholder="Nome, SKU ou código interno…" style="width:100%;background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12.5px;color:var(--text1)">
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="g4 mb14" id="abc-kpis"></div>
+
+      <!-- Tabela -->
+      <div class="tw" style="max-height:420px;overflow-y:auto">
+        <table>
+          <thead><tr>
+            <th>SKU</th><th>Produto</th><th>Categoria</th><th>Qtd. Vendida</th><th>Faturamento</th><th>% Participação</th><th>Classe</th><th>Margem Média</th><th>Dias Sem Giro</th><th>Ação</th>
+          </tr></thead>
+          <tbody id="abc-tbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -5161,75 +5267,180 @@ function aplicarValorFinalDesejado(){
   if(discEl)discEl.value=discCalc;
   updateCart();
 }
+let dreFiltro={modo:'mes',mes:new Date().getMonth()+1,ano:new Date().getFullYear()};
+function popularDreAnos(){
+  const sel=document.getElementById('dre-ano');if(!sel||sel.options.length)return;
+  const anoAtual=new Date().getFullYear();
+  for(let a=anoAtual;a>=anoAtual-4;a--)sel.innerHTML+=`<option value="${a}">${a}</option>`;
+  const mesSel=document.getElementById('dre-mes');
+  if(mesSel)mesSel.value=String(dreFiltro.mes);
+}
+function toggleDreModo(){
+  const modo=document.getElementById('dre-modo')?.value;
+  const mesAno=[document.getElementById('dre-mes'),document.getElementById('dre-ano')];
+  const custom=[document.getElementById('dre-data-ini'),document.getElementById('dre-custom-ate'),document.getElementById('dre-data-fim')];
+  mesAno.forEach(el=>{if(el)el.style.display=modo==='mes'?'':'none';});
+  custom.forEach(el=>{if(el)el.style.display=modo==='custom'?(el.tagName==='SPAN'?'inline':''):'none';});
+}
+function toggleDreCanalTodos(){
+  const todos=document.getElementById('dre-canal-todos')?.checked;
+  document.querySelectorAll('.dre-canal-item').forEach(c=>c.checked=todos);
+}
+function onDreCanalItemChange(){
+  const itens=[...document.querySelectorAll('.dre-canal-item')];
+  const todosMarcados=itens.every(c=>c.checked);
+  const todosCheck=document.getElementById('dre-canal-todos');
+  if(todosCheck)todosCheck.checked=todosMarcados;
+}
+function getDrePeriodo(){
+  const modo=document.getElementById('dre-modo')?.value||'mes';
+  if(modo==='custom'){
+    const ini=document.getElementById('dre-data-ini')?.value;
+    const fim=document.getElementById('dre-data-fim')?.value;
+    if(ini&&fim)return{dataIni:new Date(ini+'T00:00:00'),dataFim:new Date(fim+'T23:59:59')};
+  }
+  const mes=parseInt(document.getElementById('dre-mes')?.value||dreFiltro.mes);
+  const ano=parseInt(document.getElementById('dre-ano')?.value||dreFiltro.ano);
+  return{dataIni:new Date(ano,mes-1,1),dataFim:new Date(ano,mes,0,23,59,59)};
+}
 async function carregarDRE(){
   try{
-    const resp=await fetch(API_BASE+'/vendas?periodo=mes',{headers:authHeaders()});
-    const vendas=resp.ok?await resp.json():[];
-    const receitaBruta=vendas.reduce((s,v)=>s+(parseFloat(v.total)||0),0);
-    let devolucoes=0,cmv=0;
+    popularDreAnos();
+    const{dataIni,dataFim}=getDrePeriodo();
+    const canaisSelecionados=[...document.querySelectorAll('.dre-canal-item:checked')].map(c=>c.value);
+
+    // Busca todas as vendas (filtragem de período/canal feita no cliente)
+    const resp=await fetch(API_BASE+'/vendas',{headers:authHeaders()});
+    let vendas=resp.ok?await resp.json():[];
+    vendas=vendas.filter(v=>{
+      const d=new Date(v.criado_em);
+      return d>=dataIni&&d<=dataFim&&canaisSelecionados.includes(v.canal_venda||'balcao');
+    });
+
+    // (+) FATURAMENTO BRUTO — soma de todas as vendas do período/canal
+    const faturamentoBruto=vendas.reduce((s,v)=>s+(parseFloat(v.total)||0),0);
+
+    // (-) Devoluções — peças devolvidas pelo cliente, pelo preço de venda praticado
+    let devolucoes=0;
     vendas.forEach(v=>{
       const itens=v.itens||[];
-      const devolvidos=v.itens_devolvidos||[];
-      devolvidos.forEach(d=>{
+      (v.itens_devolvidos||[]).forEach(d=>{
         const it=itens.find(x=>String(x.id)===String(d.id));
         if(it)devolucoes+=d.qty*it.preco;
       });
-      itens.forEach(it=>{
-        if(it.avulso)return;
-        const p=PRODS.find(x=>x.id===it.id);
-        if(p)cmv+=(it.qty||0)*(p.custo||0);
-      });
     });
-    const receitaLiquida=receitaBruta-devolucoes;
+    // (-) Impostos (ICMS/ST) — depende de regime tributário configurado (ainda não existe no sistema)
+    const impostos=0;
+    // (-) Taxas de Cartão/Meios de Pagamento — depende de taxa de adquirente configurada (ainda não existe)
+    const taxasCartao=0;
+    const deducoes=devolucoes+impostos+taxasCartao;
+
+    // (=) RECEITA LÍQUIDA
+    const receitaLiquida=faturamentoBruto-deducoes;
+
+    // (-) CMV — custo de aquisição do produto (já reflete conversão de embalagem, se configurada) × qtd vendida
+    let cmv=0;
+    vendas.forEach(v=>(v.itens||[]).forEach(it=>{
+      if(it.avulso)return;
+      const p=PRODS.find(x=>x.id===it.id);
+      if(p)cmv+=(it.qty||0)*(p.custo||0);
+    }));
+
+    // (=) LUCRO BRUTO
     const lucroBruto=receitaLiquida-cmv;
-    const margemBruta=receitaLiquida>0?(lucroBruto/receitaLiquida*100):0;
 
-    const mesAtual=new Date().toISOString().slice(0,7);
-    const despesasMes=CONTAS_PAGAR.filter(c=>c.tipo==='despesa'&&c.venc&&c.venc.slice(0,7)===mesAtual);
-    const salarios=despesasMes.filter(d=>d.categoria==='Funcionário/Folha').reduce((s,d)=>s+d.valor,0);
-    const aluguel=despesasMes.filter(d=>d.categoria==='Aluguel').reduce((s,d)=>s+d.valor,0);
-    const outras=despesasMes.filter(d=>!['Funcionário/Folha','Aluguel'].includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
-    const resultadoOp=lucroBruto-salarios-aluguel-outras;
-    const margemLiq=receitaLiquida>0?(resultadoOp/receitaLiquida*100):0;
+    // Despesas do período (Contas a Pagar tipo=despesa, vencimento dentro do período filtrado)
+    const despesasPeriodo=CONTAS_PAGAR.filter(c=>{
+      if(c.tipo!=='despesa'||!c.venc)return false;
+      const d=new Date(c.venc+'T00:00:00');
+      return d>=dataIni&&d<=dataFim;
+    });
+    // (-) Despesas Operacionais Fixas — aluguel, folha, softwares, contador, pro-labore etc.
+    const catFixas=['Aluguel','Água','Energia Elétrica','Internet/Telefone','IPTU','Contador','Guia de Imposto','Funcionário/Folha','Software/Catálogo','Despesas Gerais','Outras'];
+    const despFixas=despesasPeriodo.filter(d=>catFixas.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
 
-    window._dreDadosAtuais={salarios,aluguel,cmv,outras,margemBruta:parseFloat(margemBruta.toFixed(1)),margemLiq:parseFloat(margemLiq.toFixed(1))};
+    // (-) Despesas Variáveis/Comissões — comissão de vendedores+mecânicos (mês corrente) + frete de entrega
+    let comissoes=0;
+    SELLERS.forEach(s=>{comissoes+=(s.real||0)*(s.comm||0)/100;});
+    MECHS.forEach(m=>{comissoes+=(m.fat||0)*(m.comm||0)/100;});
+    const fretes=despesasPeriodo.filter(d=>d.categoria==='Frete/Entrega').reduce((s,d)=>s+d.valor,0);
+    const despVariaveis=comissoes+fretes;
 
-    const fmt=v=>'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
-    const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-    setTxt('dre-receita-bruta',fmt(receitaBruta));
-    setTxt('dre-devolucoes',devolucoes>0?'R$ ('+devolucoes.toLocaleString('pt-BR',{minimumFractionDigits:2})+')':'R$ 0,00');
-    setTxt('dre-receita-liquida',fmt(receitaLiquida));
-    setTxt('dre-cmv','R$ ('+cmv.toLocaleString('pt-BR',{minimumFractionDigits:2})+')');
-    setTxt('dre-lucro-bruto',fmt(lucroBruto)+' ('+margemBruta.toFixed(1)+'%)');
-    setTxt('dre-salarios','R$ ('+salarios.toLocaleString('pt-BR',{minimumFractionDigits:2})+')');
-    setTxt('dre-aluguel','R$ ('+aluguel.toLocaleString('pt-BR',{minimumFractionDigits:2})+')');
-    setTxt('dre-outras','R$ ('+outras.toLocaleString('pt-BR',{minimumFractionDigits:2})+')');
-    setTxt('dre-resultado',fmt(resultadoOp)+' ('+margemLiq.toFixed(1)+'%)');
-    if(typeof initCharts==='function')setTimeout(initCharts,100);
+    // (-) Despesas de Marketing — anúncios em marketplace, tráfego pago
+    const marketing=despesasPeriodo.filter(d=>d.categoria==='Marketing').reduce((s,d)=>s+d.valor,0);
+
+    // (=) EBITDA — resultado antes de itens não operacionais
+    const ebitda=lucroBruto-despFixas-despVariaveis-marketing;
+
+    // (-) Investimentos / Não Operacional — aporte em maquinário, juros de antecipação de cartão
+    const naoOperacional=despesasPeriodo.filter(d=>d.categoria==='Investimento/Não Operacional').reduce((s,d)=>s+d.valor,0);
+
+    // (=) RESULTADO LÍQUIDO — lucro ou prejuízo real do período
+    const resultadoLiquido=ebitda-naoOperacional;
+
+    window._dreDadosAtuais={faturamentoBruto,devolucoes,impostos,taxasCartao,deducoes,receitaLiquida,cmv,lucroBruto,despFixas,comissoes,fretes,despVariaveis,marketing,ebitda,naoOperacional,resultadoLiquido,canaisSelecionados,dataIni,dataFim};
+    renderDRETable();
   }catch(e){toast('Erro ao carregar DRE: '+e.message,'error');}
 }
+function renderDRETable(){
+  const d=window._dreDadosAtuais;if(!d)return;
+  const base=d.faturamentoBruto||1; // base 100% da análise vertical
+  const av=v=>base>0?((v/base)*100).toFixed(1)+'%':'—';
+  const fmt=v=>(v<0?'-':'')+'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const linha=(label,valor,{bold=false,indent=false,neg=false,note=''}={})=>{
+    const cor=neg?(valor<0?'var(--red)':'var(--text1)'):(bold?(valor<0?'var(--red)':'var(--green)'):'var(--text2)');
+    return`<tr style="${bold?'background:var(--bg2)':''}">
+      <td style="padding:${bold?'10px 14px':'7px 14px 7px 30px'};font-weight:${bold?'700':'400'};font-size:${bold?'13px':'12px'};color:${bold?'var(--text1)':'var(--text2)'}">${label}${note?` <span style="font-size:9px;color:var(--text3)">${note}</span>`:''}</td>
+      <td style="padding:${bold?'10px 14px':'7px 14px'};text-align:right;font-weight:${bold?'700':'500'};font-size:${bold?'13px':'12px'};color:${cor};font-family:var(--font-head)">${valor<0?'('+fmt(Math.abs(valor)).replace('R$ ','R$ ')+')':fmt(valor)}</td>
+      <td style="padding:${bold?'10px 14px':'7px 14px'};text-align:right;font-size:11px;color:var(--text3)">${av(valor)}</td>
+    </tr>`;
+  };
+  const tbody=document.getElementById('dre-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=[
+    linha('(+) FATURAMENTO BRUTO',d.faturamentoBruto,{bold:true}),
+    linha('(-) Devoluções',-d.devolucoes),
+    linha('(-) Impostos (ICMS/ST)',-d.impostos,{note:'config. pendente'}),
+    linha('(-) Taxas de Cartão/Meios de Pagamento',-d.taxasCartao,{note:'config. pendente'}),
+    linha('(=) RECEITA LÍQUIDA',d.receitaLiquida,{bold:true}),
+    linha('(-) CMV — Custo da Mercadoria Vendida',-d.cmv),
+    linha('(=) LUCRO BRUTO',d.lucroBruto,{bold:true,neg:true}),
+    linha('(-) Despesas Operacionais Fixas',-d.despFixas),
+    linha('(-) Despesas Variáveis/Comissões',-d.despVariaveis,{note:'comissões = mês corrente'}),
+    linha('(-) Despesas de Marketing',-d.marketing),
+    linha('(=) EBITDA',d.ebitda,{bold:true,neg:true}),
+    linha('(-) Investimentos / Não Operacional',-d.naoOperacional),
+    linha('(=) RESULTADO LÍQUIDO',d.resultadoLiquido,{bold:true,neg:true}),
+  ].join('');
+}
 function imprimirDRE(){
-  const d=window._dreDadosAtuais||{};
-  const agora=new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
-  const getV=id=>document.getElementById(id)?.textContent||'—';
+  const d=window._dreDadosAtuais;
+  if(!d){toast('Carregue o DRE antes de imprimir','error');return;}
+  const fmt=v=>(v<0?'-':'')+'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const periodo=d.dataIni?`${d.dataIni.toLocaleDateString('pt-BR')} a ${d.dataFim.toLocaleDateString('pt-BR')}`:'';
+  const canaisTxt=(d.canaisSelecionados||[]).map(c=>({balcao:'Balcão',oficina:'Oficina',marketplace:'Marketplace'}[c]||c)).join(', ');
   const win=window.open('','_blank','width=700,height=800');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>DRE Gerencial — ${agora}</title>
-    <style>body{font-family:Arial,sans-serif;padding:30px;color:#000}h1{font-size:20px}table{width:100%;border-collapse:collapse;margin-top:16px}td{padding:8px;border-bottom:1px solid #eee}td:last-child{text-align:right;font-weight:600}</style>
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>DRE Gerencial</title>
+    <style>body{font-family:Arial,sans-serif;padding:30px;color:#000}h1{font-size:20px}table{width:100%;border-collapse:collapse;margin-top:16px}td{padding:8px;border-bottom:1px solid #eee}td:last-child{text-align:right;font-weight:600}.b{font-weight:800;background:#f5f5f5}</style>
     </head><body>
     <h1>${EMPRESA_INFO.nome||'Minha Loja'} — DRE Gerencial</h1>
-    <div style="color:#666;margin-bottom:10px">Referente a ${agora}</div>
+    <div style="color:#666;margin-bottom:10px">Período: ${periodo} · Canais: ${canaisTxt}</div>
     <table>
-      <tr><td><strong>RECEITA BRUTA</strong></td><td>${getV('dre-receita-bruta')}</td></tr>
-      <tr><td>(-) Devoluções</td><td>${getV('dre-devolucoes')}</td></tr>
-      <tr><td><strong>= RECEITA LÍQUIDA</strong></td><td>${getV('dre-receita-liquida')}</td></tr>
-      <tr><td>(-) CMV</td><td>${getV('dre-cmv')}</td></tr>
-      <tr><td><strong>= LUCRO BRUTO</strong></td><td>${getV('dre-lucro-bruto')}</td></tr>
-      <tr><td>(-) Salários</td><td>${getV('dre-salarios')}</td></tr>
-      <tr><td>(-) Aluguel</td><td>${getV('dre-aluguel')}</td></tr>
-      <tr><td>(-) Outras Despesas</td><td>${getV('dre-outras')}</td></tr>
-      <tr><td><strong>= RESULTADO OPERACIONAL</strong></td><td>${getV('dre-resultado')}</td></tr>
+      <tr class="b"><td>(+) FATURAMENTO BRUTO</td><td>${fmt(d.faturamentoBruto)}</td></tr>
+      <tr><td>(-) Devoluções</td><td>${fmt(-d.devolucoes)}</td></tr>
+      <tr><td>(-) Impostos (ICMS/ST)</td><td>${fmt(-d.impostos)}</td></tr>
+      <tr><td>(-) Taxas de Cartão</td><td>${fmt(-d.taxasCartao)}</td></tr>
+      <tr class="b"><td>(=) RECEITA LÍQUIDA</td><td>${fmt(d.receitaLiquida)}</td></tr>
+      <tr><td>(-) CMV</td><td>${fmt(-d.cmv)}</td></tr>
+      <tr class="b"><td>(=) LUCRO BRUTO</td><td>${fmt(d.lucroBruto)}</td></tr>
+      <tr><td>(-) Despesas Operacionais Fixas</td><td>${fmt(-d.despFixas)}</td></tr>
+      <tr><td>(-) Despesas Variáveis/Comissões</td><td>${fmt(-d.despVariaveis)}</td></tr>
+      <tr><td>(-) Despesas de Marketing</td><td>${fmt(-d.marketing)}</td></tr>
+      <tr class="b"><td>(=) EBITDA</td><td>${fmt(d.ebitda)}</td></tr>
+      <tr><td>(-) Investimentos / Não Operacional</td><td>${fmt(-d.naoOperacional)}</td></tr>
+      <tr class="b"><td>(=) RESULTADO LÍQUIDO</td><td>${fmt(d.resultadoLiquido)}</td></tr>
     </table>
-    <div style="margin-top:20px;font-size:11px;color:#999">Impostos não incluídos — regime tributário ainda não configurado. CMV estimado com o custo atual dos produtos.</div>
+    <div style="margin-top:20px;font-size:11px;color:#999">Impostos e taxas de cartão não incluídos — configuração pendente. Comissões refletem o mês corrente do módulo Comissões.</div>
     </body></html>`);
   win.document.close();
   setTimeout(()=>win.print(),300);
@@ -5499,6 +5710,7 @@ function finalizeSale(){
     }
   }
   cart=[];updateCart();
+  const canalSel=document.getElementById('pdv-canal-venda');if(canalSel)canalSel.value='balcao';
   ['pdv-disc','pdv-valor-final','cash-received','split-pix','split-card','split-cash','split-boleto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['pix-qr-box','cash-area','troco-display','pay-misto-box'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.querySelectorAll('.pay-btn').forEach(b=>{b.style.background='var(--bg3)';b.style.borderColor='var(--border)';b.style.borderWidth='1px';b.style.opacity='1';b.style.pointerEvents='auto';});
@@ -5522,7 +5734,7 @@ function finalizeSale(){
   fetch(API_BASE+'/vendas',{method:'POST',headers:authHeaders(),body:JSON.stringify({
     codigo:numVenda,cliente_nome:clienteNomeAtual,operador:operadorVenda,
     forma_pagamento:payLabelFinal,subtotal,desconto:discAmt,total:tot,itens:itensSnapshot,
-    comissao_usuario_id:comissaoUsuarioId
+    comissao_usuario_id:comissaoUsuarioId,canal_venda:document.getElementById('pdv-canal-venda')?.value||'balcao'
   })}).catch(()=>toast('⚠️ Venda registrada localmente, mas falhou ao sincronizar o histórico com o servidor','error'));
   renderCaixa();
   saveData();
@@ -6107,6 +6319,130 @@ function abrirConversaoDoProdutoAtual(){
   if(prodEditId===null){toast('Salve o produto primeiro pra poder configurar a conversão','error');return;}
   abrirModalConversaoEmbalagem();
   setTimeout(()=>selecionarProdutoConversao(prodEditId),150);
+}
+function abrirCurvaAbcAvancada(){
+  const catSel=document.getElementById('abc-categoria');
+  if(catSel&&catSel.options.length<=1){
+    const cats=[...new Set(PRODS.map(p=>p.cat).filter(Boolean))].sort();
+    catSel.innerHTML='<option value="">Todas as categorias</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  }
+  openModal('modal-curva-abc-avancada');
+  carregarCurvaAbcAvancada();
+}
+async function carregarCurvaAbcAvancada(){
+  const tbody=document.getElementById('abc-tbody');
+  if(tbody)tbody.innerHTML='<tr><td colspan="10" class="empty">Carregando…</td></tr>';
+  try{
+    if(!PRODS.length)await carregarProdutos();
+    const dias=parseInt(document.getElementById('abc-periodo')?.value||90);
+    const catFiltro=document.getElementById('abc-categoria')?.value||'';
+
+    // Busca até 500 vendas mais recentes — usadas tanto pro faturamento do
+    // período quanto pra achar a última venda de cada produto (giro)
+    const resp=await fetch(API_BASE+'/vendas',{headers:authHeaders()});
+    const vendas=resp.ok?await resp.json():[];
+
+    const hoje=new Date();
+    const corte=new Date();corte.setDate(corte.getDate()-dias);
+
+    // Agrega por produto: qtd/faturamento SÓ dentro do período selecionado,
+    // mas a "última venda" olha pra todo o histórico buscado (pra medir giro de verdade)
+    const porProduto={};
+    vendas.forEach(v=>{
+      const dataVenda=new Date(v.criado_em);
+      (v.itens||[]).forEach(it=>{
+        if(it.avulso)return;
+        if(!porProduto[it.id])porProduto[it.id]={qtd:0,fat:0,ultimaVenda:null};
+        if(!porProduto[it.id].ultimaVenda||dataVenda>porProduto[it.id].ultimaVenda)porProduto[it.id].ultimaVenda=dataVenda;
+        if(dataVenda>=corte){porProduto[it.id].qtd+=it.qty||0;porProduto[it.id].fat+=(it.qty||0)*(it.preco||0);}
+      });
+    });
+
+    // 1) Ordena TODOS os produtos (do catálogo, filtrados por categoria) pelo faturamento do período, decrescente
+    let base=PRODS.filter(p=>!catFiltro||p.cat===catFiltro);
+    let linhas=base.map(p=>{
+      const agr=porProduto[p.id]||{qtd:0,fat:0,ultimaVenda:null};
+      const margem=p.custo>0?((p.preco-p.custo)/p.custo*100):0; // margem sobre custo, mesma fórmula do resto do sistema
+      const diasSemGiro=agr.ultimaVenda?Math.floor((hoje-agr.ultimaVenda)/86400000):null;
+      return{id:p.id,sku:p.sku,codigoInterno:p.codigoInterno,nome:p.n,cat:p.cat,qtd:agr.qtd,fat:agr.fat,margem,diasSemGiro,est:p.est,min:p.min};
+    });
+    linhas.sort((a,b)=>b.fat-a.fat);
+
+    // 2) Calcula o percentual acumulado e classifica: A (até 80%), B (81–95%), C (96–100%)
+    const totalFat=linhas.reduce((s,l)=>s+l.fat,0);
+    let acumulado=0;
+    linhas.forEach(l=>{
+      const participacao=totalFat>0?(l.fat/totalFat*100):0;
+      acumulado+=participacao;
+      l.participacao=participacao;
+      // GATILHO da classificação ABC — puramente pelo % acumulado de faturamento
+      if(totalFat<=0)l.classe='C';
+      else if(acumulado<=80)l.classe='A';
+      else if(acumulado<=95)l.classe='B';
+      else l.classe='C';
+      // 3) GATILHO do risco de obsolescência: só pra Classe C, parado há mais de 90 dias (ou nunca vendido)
+      l.riscoObsolescencia=l.classe==='C'&&(l.diasSemGiro===null||l.diasSemGiro>90);
+    });
+
+    window._abcDadosAtuais={linhas,totalFat};
+    renderCurvaAbcKpis();
+    renderCurvaAbcTabela();
+  }catch(e){
+    if(tbody)tbody.innerHTML=`<tr><td colspan="10" class="empty">Erro ao carregar: ${e.message}</td></tr>`;
+  }
+}
+function renderCurvaAbcKpis(){
+  const d=window._abcDadosAtuais;if(!d)return;
+  const a=d.linhas.filter(l=>l.classe==='A'),b=d.linhas.filter(l=>l.classe==='B'),c=d.linhas.filter(l=>l.classe==='C');
+  const pctA=a.reduce((s,l)=>s+l.participacao,0),pctB=b.reduce((s,l)=>s+l.participacao,0),pctC=c.reduce((s,l)=>s+l.participacao,0);
+  // GATILHO do alerta crítico: Classe A (os produtos mais importantes) COM estoque zerado ou abaixo do mínimo
+  const criticos=a.filter(l=>l.est===0||l.est<=l.min).length;
+  const wrap=document.getElementById('abc-kpis');if(!wrap)return;
+  wrap.innerHTML=`
+    <div class="kpi cg"><div class="ki"><i class="ti ti-award"></i></div><div class="kl">Classe A</div><div class="kv">${a.length} <span style="font-size:12px;color:var(--text3)">(${pctA.toFixed(1)}% fat.)</span></div></div>
+    <div class="kpi ca"><div class="ki"><i class="ti ti-star-half-filled"></i></div><div class="kl">Classe B</div><div class="kv">${b.length} <span style="font-size:12px;color:var(--text3)">(${pctB.toFixed(1)}% fat.)</span></div></div>
+    <div class="kpi cb"><div class="ki"><i class="ti ti-circle"></i></div><div class="kl">Classe C</div><div class="kv">${c.length} <span style="font-size:12px;color:var(--text3)">(${pctC.toFixed(1)}% fat.)</span></div></div>
+    <div class="kpi cr"><div class="ki"><i class="ti ti-alert-triangle"></i></div><div class="kl">Alerta Crítico (A sem estoque)</div><div class="kv">${criticos}</div></div>
+  `;
+}
+function renderCurvaAbcTabela(){
+  const d=window._abcDadosAtuais;if(!d)return;
+  const busca=normTxt(document.getElementById('abc-busca')?.value||'');
+  let linhas=d.linhas;
+  if(busca)linhas=linhas.filter(l=>normTxt(l.nome).includes(busca)||normTxt(l.sku).includes(busca)||normTxt(l.codigoInterno||'').includes(busca));
+  const tbody=document.getElementById('abc-tbody');if(!tbody)return;
+  if(!linhas.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Nenhum produto encontrado</td></tr>';return;}
+  const classeCor={A:'bg2',B:'ba',C:'br'};
+  tbody.innerHTML=linhas.slice(0,200).map(l=>{
+    const estBaixo=l.est===0||l.est<=l.min;
+    let acao='<span style="color:var(--text3);font-size:11px">—</span>';
+    // Linha de ação rápida: só aparece quando faz sentido pro contexto do item
+    if(l.classe==='A'&&estBaixo)acao=`<button class="btn bs btn-sm" onclick="abcSugerirCompra(${l.id})" title="Item Classe A com estoque baixo"><i class="ti ti-shopping-cart-plus"></i>Sugerir Compra</button>`;
+    else if(l.riscoObsolescencia)acao=`<button class="btn bs btn-sm" onclick="abcCriarPromocao(${l.id})" title="Item Classe C parado há mais de 90 dias"><i class="ti ti-tag"></i>Criar Promoção</button>`;
+    return`<tr>
+      <td style="font-family:monospace;font-size:11px">${l.sku}</td>
+      <td>${l.nome}${l.riscoObsolescencia?' <i class="ti ti-alert-triangle" style="color:var(--red);font-size:11px" title="Risco de obsolescência"></i>':''}</td>
+      <td><span class="badge bb" style="font-size:10px">${l.cat||'—'}</span></td>
+      <td>${l.qtd}</td>
+      <td class="fw6">R$ ${l.fat.toFixed(2)}</td>
+      <td>${l.participacao.toFixed(1)}%</td>
+      <td><span class="badge ${classeCor[l.classe]}" style="font-weight:700">${l.classe}</span></td>
+      <td style="color:${l.margem>=50?'var(--green)':l.margem>=20?'var(--amber)':'var(--red)'}">${l.margem.toFixed(1)}%</td>
+      <td>${l.diasSemGiro===null?'Nunca vendido':l.diasSemGiro+' dias'}</td>
+      <td>${acao}</td>
+    </tr>`;
+  }).join('')+(linhas.length>200?`<tr><td colspan="10" style="text-align:center;font-size:11px;color:var(--text3);padding:8px">+ ${linhas.length-200} produtos não exibidos — use a busca pra filtrar</td></tr>`:'');
+}
+function abcSugerirCompra(produtoId){
+  const p=PRODS.find(x=>x.id===produtoId);if(!p)return;
+  const qtdSugerida=Math.max(Math.ceil((p.min*2)-p.est),p.min);
+  toast(`💡 Sugestão: comprar ${qtdSugerida} unidade(s) de "${p.n}" (estoque atual: ${p.est}, mínimo: ${p.min})`,'info');
+  closeModal('modal-curva-abc-avancada');
+  openProdModal(produtoId);
+}
+function abcCriarPromocao(produtoId){
+  closeModal('modal-curva-abc-avancada');
+  if(typeof openOfertaEditar==='function')openOfertaEditar(produtoId);
 }
 function getCamposFaltantes(p){
   const faltando=[];
@@ -9782,6 +10118,10 @@ const DESPESAS_SUGESTOES={
   'Contador':'Honorários contábeis',
   'Guia de Imposto':'Guia de imposto (DAS/Simples Nacional)',
   'Funcionário/Folha':'Folha de pagamento',
+  'Software/Catálogo':'Assinatura de sistema/catálogo de peças',
+  'Frete/Entrega':'Frete de entrega ao cliente (motoboy/transportadora)',
+  'Marketing':'Anúncios em marketplace, tráfego pago, mídia',
+  'Investimento/Não Operacional':'Aporte em maquinário, juros de antecipação de cartão',
   'Despesas Gerais':'Despesa geral da loja',
   'Outras':''
 };
@@ -11616,7 +11956,14 @@ function nav(id,el){
   if(id==='dashboard')setTimeout(()=>carregarDashboard(),50);
   if(id==='clientes')setTimeout(()=>carregarClientes(),50);
   if(id==='comissoes')setTimeout(()=>{Promise.all([carregarVendedores(),carregarMecanicos()]).then(renderComissoes);},50);
-  if(id==='dre')setTimeout(()=>carregarDRE(),50);
+  if(id==='dre')setTimeout(()=>{
+    Promise.all([
+      (!PRODS.length?carregarProdutos():Promise.resolve()),
+      (!SELLERS.length?carregarVendedores():Promise.resolve()),
+      (!MECHS.length?carregarMecanicos():Promise.resolve()),
+      (!CONTAS_PAGAR.length&&!CONTAS_RECEBER.length?carregarFinanceiro():Promise.resolve())
+    ]).finally(()=>carregarDRE());
+  },50);
   if(id==='financeiro')setTimeout(renderFinanceiro,50);
   if(id==='os')setTimeout(renderOS,50);
   if(id==='config')setTimeout(()=>{
