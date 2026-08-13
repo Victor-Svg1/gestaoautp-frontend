@@ -4542,7 +4542,7 @@ function calcCaixaTotais(){
   const saldoEsperado=caixaSaldoInicial+entradas-saidas;
   return{entradas,saidas,saldoEsperado};
 }
-function fmtBR(v){return v.toLocaleString('pt-BR',{minimumFractionDigits:2});}
+function fmtBR(v){return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function renderCaixaStatus(){
   const{entradas,saidas,saldoEsperado}=calcCaixaTotais();
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
@@ -4870,9 +4870,9 @@ async function carregarDashboard(){
     const despesa=parseFloat(d?.financeiro?.despesa_mes)||0;
     const lucro=receita-despesa;
     const margem=receita>0?((lucro/receita)*100).toFixed(1):'0.0';
-    set('dash-fat','R$ '+receita.toLocaleString('pt-BR',{minimumFractionDigits:2}));
+    set('dash-fat','R$ '+receita.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}));
     setHtml('dash-fat-trend','<i class="ti ti-info-circle"></i>Baseado em lançamentos pagos no mês');
-    set('dash-lucro','R$ '+lucro.toLocaleString('pt-BR',{minimumFractionDigits:2}));
+    set('dash-lucro','R$ '+lucro.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}));
     setHtml('dash-lucro-trend',`<i class="ti ti-percentage"></i>Margem ${margem}%`);
     const osAbertas=parseInt(d?.os?.abertas)||0;
     const osAndamento=parseInt(d?.os?.andamento)||0;
@@ -4897,7 +4897,7 @@ async function carregarDashboard(){
   // Caixa: já é real localmente (sistema de caixa de hoje)
   if(typeof calcCaixaTotais==='function'){
     const{saldoEsperado}=calcCaixaTotais();
-    set('dash-caixa','R$ '+saldoEsperado.toLocaleString('pt-BR',{minimumFractionDigits:2}));
+    set('dash-caixa','R$ '+saldoEsperado.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}));
     setHtml('dash-caixa-trend',(typeof caixaAberto!=='undefined'&&caixaAberto)?'<i class="ti ti-circle-filled" style="font-size:8px;animation:pulse 1.5s infinite;color:var(--green)"></i>Aberto':'<i class="ti ti-lock"></i>Fechado');
   }
   // Garantias: módulo ainda não migrado — mostra estado honesto em vez de número fictício
@@ -4935,9 +4935,9 @@ function renderVendasKpis(itens){
   const ticketMedio=qtdVendas>0?totalVendido/qtdVendas:0;
   const devolvidas=itens.filter(v=>v.devolvida).length;
   wrap.innerHTML=`
-    <div class="kpi cg"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Total Vendido</div><div class="kv">R$ ${totalVendido.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+    <div class="kpi cg"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Total Vendido</div><div class="kv">R$ ${totalVendido.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
     <div class="kpi cb"><div class="ki"><i class="ti ti-receipt"></i></div><div class="kl">Qtd. de Vendas</div><div class="kv">${qtdVendas}</div></div>
-    <div class="kpi ca"><div class="ki"><i class="ti ti-chart-bar"></i></div><div class="kl">Ticket Médio</div><div class="kv">R$ ${ticketMedio.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+    <div class="kpi ca"><div class="ki"><i class="ti ti-chart-bar"></i></div><div class="kl">Ticket Médio</div><div class="kv">R$ ${ticketMedio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
     <div class="kpi cr"><div class="ki"><i class="ti ti-arrow-back-up"></i></div><div class="kl">Devolvidas</div><div class="kv">${devolvidas}</div></div>
   `;
 }
@@ -5386,7 +5386,7 @@ function renderDRETable(){
   const d=window._dreDadosAtuais;if(!d)return;
   const base=d.faturamentoBruto||1; // base 100% da análise vertical
   const av=v=>base>0?((v/base)*100).toFixed(1)+'%':'—';
-  const fmt=v=>(v<0?'-':'')+'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fmt=v=>(v<0?'-':'')+'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const linha=(label,valor,{bold=false,indent=false,neg=false,note=''}={})=>{
     const cor=neg?(valor<0?'var(--red)':'var(--text1)'):(bold?(valor<0?'var(--red)':'var(--green)'):'var(--text2)');
     return`<tr style="${bold?'background:var(--bg2)':''}">
@@ -5416,7 +5416,7 @@ function renderDRETable(){
 function imprimirDRE(){
   const d=window._dreDadosAtuais;
   if(!d){toast('Carregue o DRE antes de imprimir','error');return;}
-  const fmt=v=>(v<0?'-':'')+'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fmt=v=>(v<0?'-':'')+'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const periodo=d.dataIni?`${d.dataIni.toLocaleDateString('pt-BR')} a ${d.dataFim.toLocaleDateString('pt-BR')}`:'';
   const canaisTxt=(d.canaisSelecionados||[]).map(c=>({balcao:'Balcão',oficina:'Oficina',marketplace:'Marketplace'}[c]||c)).join(', ');
   const win=window.open('','_blank','width=700,height=800');
@@ -6961,7 +6961,7 @@ function renderNFePreview(d){
     <div class="nfe-step done"><i class="ti ti-check-circle" style="font-size:20px"></i><div><strong>XML válido</strong> — Estrutura NF-e 4.0 reconhecida e assinatura verificada</div></div>
     <div class="nfe-step done"><i class="ti ti-building-store" style="font-size:20px"></i><div><strong>Emitente identificado</strong> — ${d.emitNome} (CNPJ: ${d.emitCNPJ.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5')})</div></div>
     <div class="nfe-step ${matched===d.items.length?'done':'warn'}"><i class="ti ti-package" style="font-size:20px"></i><div><strong>${matched}/${d.items.length} itens vinculados</strong> ao cadastro de produtos${notMatched>0?` — ${notMatched} não encontrado(s)`:''}</div></div>
-    ${d.dups.length?`<div class="nfe-step done"><i class="ti ti-calendar-due" style="font-size:20px"></i><div><strong>Pagamento: ${d.dups.length} duplicata(s)</strong> — R$ ${d.vNF.toLocaleString('pt-BR',{minimumFractionDigits:2})} vencendo em ${d.dups[0]?.dVenc||'—'}</div></div>`:''}
+    ${d.dups.length?`<div class="nfe-step done"><i class="ti ti-calendar-due" style="font-size:20px"></i><div><strong>Pagamento: ${d.dups.length} duplicata(s)</strong> — R$ ${d.vNF.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} vencendo em ${d.dups[0]?.dVenc||'—'}</div></div>`:''}
   `;
 
   // Info grid
@@ -7064,8 +7064,8 @@ function renderCli(){
     <td>${c.tel}</td>
     <td style="text-align:center">${c.veics||0}</td>
     <td class="tm">${c.u||'—'}</td>
-    <td class="ts">${c.limite?'R$ '+c.limite.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
-    <td class="fw6">R$ ${(c.tot||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+    <td class="ts">${c.limite?'R$ '+c.limite.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</td>
+    <td class="fw6">R$ ${(c.tot||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
     <td><div class="flx g2b">
       <button class="btn bg btn-sm" onclick="event.stopPropagation();openClienteDetail(${idx})"><i class="ti ti-edit"></i></button>
       <button class="btn bg btn-sm" onclick="event.stopPropagation();abrirWhatsAppCliente('${(c.tel||'').replace(/[^0-9]/g,'')}')" title="Chamar no WhatsApp"><i class="ti ti-brand-whatsapp" style="color:#25D366"></i></button>
@@ -7465,7 +7465,7 @@ async function renderRelVendas(container){
     }
     container.innerHTML=`
       <div class="g4 mb14">
-        ${kpiCard('ca','ti-currency-real','Faturamento do Mês','R$ '+faturamentoMes.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('ca','ti-currency-real','Faturamento do Mês','R$ '+faturamentoMes.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}))}
         ${kpiCard('cb','ti-shopping-cart','Vendas no Mês',qtdVendasMes)}
         ${kpiCard('cg','ti-receipt','Ticket Médio','R$ '+ticketMedio.toFixed(2))}
         ${kpiCard('cr','ti-rotate','Devoluções no Mês',devolvidas)}
@@ -7503,7 +7503,7 @@ async function renderRelEstoque(container){
     const criticos=PRODS.filter(p=>p.est===0||p.est<=p.min).sort((a,b)=>a.est-b.est).slice(0,15);
     container.innerHTML=`
       <div class="g4 mb14">
-        ${kpiCard('ca','ti-currency-real','Valor Total em Estoque','R$ '+valorTotal.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('ca','ti-currency-real','Valor Total em Estoque','R$ '+valorTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}))}
         ${kpiCard('cr','ti-x','Produtos Zerados',zerados)}
         ${kpiCard('cb','ti-alert-triangle','Abaixo do Mínimo',abaixoMin)}
         ${kpiCard('cg','ti-package','Total de Produtos',PRODS.length)}
@@ -7539,9 +7539,9 @@ function renderRelFinanceiro(container){
     const cats=Object.entries(porCategoria).sort((a,b)=>b[1]-a[1]);
     container.innerHTML=`
       <div class="g4 mb14">
-        ${kpiCard('cr','ti-arrow-up','Total a Pagar','R$ '+totalPagar.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
-        ${kpiCard('cg','ti-arrow-down','Total a Receber','R$ '+totalReceber.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
-        ${kpiCard('ca','ti-receipt-2','Despesas do Mês','R$ '+despesasMes.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('cr','ti-arrow-up','Total a Pagar','R$ '+totalPagar.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}))}
+        ${kpiCard('cg','ti-arrow-down','Total a Receber','R$ '+totalReceber.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}))}
+        ${kpiCard('ca','ti-receipt-2','Despesas do Mês','R$ '+despesasMes.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}))}
         ${kpiCard('cb','ti-alert-circle','Contas Vencidas',vencidas)}
       </div>
       <div class="g2">
@@ -7571,9 +7571,9 @@ function renderRelComissoes(container){
     const totalPendente=Math.max(0,totalComissao-totalPago);
     container.innerHTML=`
       <div class="g4 mb14">
-        ${kpiCard('ca','ti-currency-real','Total em Comissões','R$ '+totalComissao.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
-        ${kpiCard('cg','ti-check','Já Pago','R$ '+totalPago.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
-        ${kpiCard('cr','ti-clock','Pendente','R$ '+totalPendente.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('ca','ti-currency-real','Total em Comissões','R$ '+totalComissao.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}))}
+        ${kpiCard('cg','ti-check','Já Pago','R$ '+totalPago.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}))}
+        ${kpiCard('cr','ti-clock','Pendente','R$ '+totalPendente.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}))}
         ${kpiCard('cb','ti-users','Colaboradores',pessoas.length)}
       </div>
       <div class="card">
@@ -7632,7 +7632,7 @@ async function renderRelFornecedores(container){
     container.innerHTML=`
       <div class="g4 mb14">
         ${kpiCard('cb','ti-building-store','Fornecedores Cadastrados',FORNECEDORES_DATA.length)}
-        ${kpiCard('ca','ti-currency-real','Volume Total Comprado','R$ '+volumeTotal.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('ca','ti-currency-real','Volume Total Comprado','R$ '+volumeTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}))}
         ${kpiCard('cg','ti-shopping-bag','Pedidos Realizados',PEDIDOS_COMPRA.length)}
         ${kpiCard('cr','ti-trophy','Principal Fornecedor',ranking[0]?ranking[0].nome.substring(0,18):'—')}
       </div>
@@ -9337,7 +9337,7 @@ function renderOrcamentos(){
         <div class="orc-col-title" style="color:${col.color}"><i class="ti ${col.icon}" style="font-size:12px"></i> ${col.label}</div>
         <span class="orc-count">${items.length}</span>
       </div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
       ${items.map(o=>{
         const vencendo=o.val_dt===hoje;
         return`<div class="orc-card" style="${vencendo?'border-color:var(--amber)':''}">
@@ -9348,7 +9348,7 @@ function renderOrcamentos(){
           <div class="orc-cli">${o.cli}</div>
           <div class="orc-vei">${o.vei?'<i class="ti ti-car" style="font-size:11px"></i> '+o.vei:''}</div>
           <div style="font-size:11px;color:var(--text2);margin-top:4px;line-height:1.4">${(o.desc||'').substring(0,60)}${(o.desc||'').length>60?'…':''}</div>
-          <div class="orc-val">R$ ${(o.val||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+          <div class="orc-val">R$ ${(o.val||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           <div class="orc-dt"><i class="ti ti-calendar" style="font-size:10px"></i> ${o.dt} · Válido: ${o.val_dt}</div>
           <div class="orc-card-actions">
             <button class="btn bg btn-sm" onclick="editOrc(${o.id})" title="Editar"><i class="ti ti-edit"></i></button>
@@ -9372,7 +9372,7 @@ function renderOrcamentos(){
   const conv=ORC_DATA.length?Math.round(convertidos.length/ORC_DATA.length*100):0;
   const vencHoje=ORC_DATA.filter(o=>o.val_dt===hoje&&['enviado','aprovado'].includes(o.st)).length;
   const setKpi=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  setKpi('kpi-orc-aberto','R$ '+abertos.reduce((s,o)=>s+o.val,0).toLocaleString('pt-BR',{minimumFractionDigits:2}));
+  setKpi('kpi-orc-aberto','R$ '+abertos.reduce((s,o)=>s+o.val,0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}));
   setKpi('kpi-orc-conv',conv+'%');
   setKpi('kpi-orc-ticket','R$ '+ticket.toFixed(2));
   setKpi('kpi-orc-venc',String(vencHoje));
@@ -9886,7 +9886,7 @@ function finTab(id,el){
 
 function renderFinanceiro(){
   const hoje=new Date().toISOString().slice(0,10);
-  const fmtVal=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fmtVal=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const fmtDate=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
 
   const renderLista=(containerId,data,statusSelId,periodoSelId)=>{
@@ -9971,7 +9971,7 @@ function getContasPagarFiltradas(){
 function imprimirContasPagar(){
   const itens=getContasPagarFiltradas();
   if(!itens.length){toast('Nenhuma conta encontrada com os filtros atuais','error');return;}
-  const fmtVal=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fmtVal=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const fmtDate=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
   const agora=new Date().toLocaleDateString('pt-BR');
   const total=itens.reduce((s,c)=>s+(c.valor||0),0);
@@ -10017,7 +10017,7 @@ function renderContasPagasList(){
   const el=document.getElementById('contas-pagas-list');if(!el)return;
   const periodo=document.getElementById('fin-pagas-periodo')?.value||'';
   const hoje=new Date().toISOString().slice(0,10);
-  const fmtVal=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fmtVal=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const fmtDate=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
   let items=CONTAS_PAGAR.filter(c=>c.status==='pago');
   if(periodo){
@@ -10180,8 +10180,8 @@ function renderDespesasKpis(itens){
   itens.filter(d=>d.status!=='pago').forEach(d=>{porCategoria[d.categoria]=(porCategoria[d.categoria]||0)+d.valor;});
   const maiorCat=Object.entries(porCategoria).sort((a,b)=>b[1]-a[1])[0];
   wrap.innerHTML=`
-    <div class="kpi cr"><div class="ki"><i class="ti ti-calendar-due"></i></div><div class="kl">Despesas do Mês</div><div class="kv">R$ ${totalMes.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
-    <div class="kpi ca"><div class="ki"><i class="ti ti-clock"></i></div><div class="kl">Total Pendente</div><div class="kv">R$ ${pendentes.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+    <div class="kpi cr"><div class="ki"><i class="ti ti-calendar-due"></i></div><div class="kl">Despesas do Mês</div><div class="kv">R$ ${totalMes.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+    <div class="kpi ca"><div class="ki"><i class="ti ti-clock"></i></div><div class="kl">Total Pendente</div><div class="kv">R$ ${pendentes.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
     <div class="kpi cb"><div class="ki"><i class="ti ti-alert-triangle"></i></div><div class="kl">Vencidas</div><div class="kv">${vencidas}</div></div>
     <div class="kpi cg"><div class="ki"><i class="ti ti-chart-pie"></i></div><div class="kl">Maior Categoria</div><div class="kv" style="font-size:15px">${maiorCat?maiorCat[0]:'—'}</div></div>
   `;
@@ -10296,7 +10296,7 @@ function renderCreditoKPIs(){
   const bonsPagadores=stats.filter(x=>x.st.classe==='otimo'||x.st.classe==='bom').length;
   wrap.innerHTML=`
     <div class="kpi cg"><div class="ki"><i class="ti ti-circle-check"></i></div><div class="kl">Adimplentes</div><div class="kv">${adimplentes}</div></div>
-    <div class="kpi cr"><div class="ki"><i class="ti ti-alert-triangle"></i></div><div class="kl">Inadimplentes</div><div class="kv">${inadimplentes}</div><div class="kc dn"><i class="ti ti-currency-real"></i>R$ ${totalAtraso.toLocaleString('pt-BR',{minimumFractionDigits:2})} em atraso</div></div>
+    <div class="kpi cr"><div class="ki"><i class="ti ti-alert-triangle"></i></div><div class="kl">Inadimplentes</div><div class="kv">${inadimplentes}</div><div class="kc dn"><i class="ti ti-currency-real"></i>R$ ${totalAtraso.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} em atraso</div></div>
     <div class="kpi cb"><div class="ki"><i class="ti ti-thumb-up"></i></div><div class="kl">Bons/Ótimos Pagadores</div><div class="kv">${bonsPagadores}</div></div>
     <div class="kpi ca"><div class="ki"><i class="ti ti-users"></i></div><div class="kl">Total de Clientes</div><div class="kv">${CLIENTES_DATA.length}</div></div>
   `;
@@ -10320,7 +10320,7 @@ function renderCreditoTable(){
     <td style="text-align:center">${st.qtdCompras}</td>
     <td class="ts">${st.mediaAtraso===null?'—':st.mediaAtraso<=0?`${Math.abs(Math.round(st.mediaAtraso))}d antes/em dia`:`${Math.round(st.mediaAtraso)}d de atraso`}</td>
     <td class="ts">${st.maiorAtraso===null?'—':st.maiorAtraso<=0?'Nunca atrasou':`${st.maiorAtraso}d`}</td>
-    <td class="fw6" style="color:${st.valorEmAberto>0?'var(--red)':'var(--text3)'}">${st.valorEmAberto>0?'R$ '+st.valorEmAberto.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+    <td class="fw6" style="color:${st.valorEmAberto>0?'var(--red)':'var(--text3)'}">${st.valorEmAberto>0?'R$ '+st.valorEmAberto.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</td>
     <td style="font-size:11px;max-width:220px">${st.recomendacao}</td>
   </tr>`).join('');
 }
@@ -10352,7 +10352,7 @@ function renderReposicaoKpis(){
     <div class="kpi cr"><div class="ki"><i class="ti ti-package-off"></i></div><div class="kl">Sem Estoque</div><div class="kv">${zerados}</div></div>
     <div class="kpi ca"><div class="ki"><i class="ti ti-alert-triangle"></i></div><div class="kl">Abaixo do Mínimo</div><div class="kv">${baixos}</div></div>
     <div class="kpi cb"><div class="ki"><i class="ti ti-clipboard-list"></i></div><div class="kl">Total de Itens</div><div class="kv">${itens.length}</div></div>
-    <div class="kpi cg"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Valor Sugerido de Compra</div><div class="kv">R$ ${valorSugerido.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+    <div class="kpi cg"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Valor Sugerido de Compra</div><div class="kv">R$ ${valorSugerido.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
   `;
   const badge=document.getElementById('repos-badge');
   if(badge)badge.textContent=itens.length;
@@ -10578,8 +10578,8 @@ function openCreditoDetalhe(clienteId){
   const kpis=document.getElementById('credito-detalhe-kpis');
   kpis.innerHTML=`
     <div class="kpi ${st.statusAtual==='Inadimplente'?'cr':'cg'}"><div class="ki"><i class="ti ti-shield-check"></i></div><div class="kl">Status</div><div class="kv" style="font-size:16px">${st.statusAtual}</div></div>
-    <div class="kpi ca"><div class="ki"><i class="ti ti-wallet"></i></div><div class="kl">Limite de Crédito</div><div class="kv" style="font-size:16px">R$ ${(c.limite||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
-    <div class="kpi ${st.valorEmAberto>0?'cr':'cb'}"><div class="ki"><i class="ti ti-file-invoice"></i></div><div class="kl">Em Aberto</div><div class="kv" style="font-size:16px">R$ ${st.valorEmAberto.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+    <div class="kpi ca"><div class="ki"><i class="ti ti-wallet"></i></div><div class="kl">Limite de Crédito</div><div class="kv" style="font-size:16px">R$ ${(c.limite||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+    <div class="kpi ${st.valorEmAberto>0?'cr':'cb'}"><div class="ki"><i class="ti ti-file-invoice"></i></div><div class="kl">Em Aberto</div><div class="kv" style="font-size:16px">R$ ${st.valorEmAberto.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
     <div class="kpi cb"><div class="ki"><i class="ti ti-star"></i></div><div class="kl">Classificação</div><div class="kv" style="font-size:13px;color:${classeCor[st.classe]}">${st.label}</div></div>
   `;
 
@@ -10606,7 +10606,7 @@ function openCreditoDetalhe(clienteId){
       const statusTxt=e.status==='recebido'?'<span class="badge bg2">Recebido</span>':vencida?'<span class="badge br">Vencido</span>':'<span class="badge ba">Pendente</span>';
       const pagoEm=e.dataPagamento?new Date(e.dataPagamento+'T00:00:00').toLocaleDateString('pt-BR'):'—';
       const vencFmt=new Date(e.venc+'T00:00:00').toLocaleDateString('pt-BR');
-      return `<tr><td class="ts">${e.desc}</td><td class="fw6">R$ ${e.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td><td class="ts">${vencFmt}</td><td class="ts">${pagoEm}</td><td>${statusTxt}</td></tr>`;
+      return `<tr><td class="ts">${e.desc}</td><td class="fw6">R$ ${e.valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="ts">${vencFmt}</td><td class="ts">${pagoEm}</td><td>${statusTxt}</td></tr>`;
     }).join('');
   }
 
@@ -10951,7 +10951,7 @@ function openVendedorPainel(idx){
     <div class="kpi ca"><div class="ki"><i class="ti ti-currency-real"></i></div><div class="kl">Realizado</div><div class="kv" style="font-size:16px">R$ ${(s.real||0).toLocaleString('pt-BR')}</div></div>
     <div class="kpi ${pct>=100?'cg':'cb'}"><div class="ki"><i class="ti ti-target"></i></div><div class="kl">Meta (${pct}%)</div><div class="kv" style="font-size:16px">R$ ${(s.meta||0).toLocaleString('pt-BR')}</div></div>
     <div class="kpi cb"><div class="ki"><i class="ti ti-receipt"></i></div><div class="kl">Ticket Médio</div><div class="kv" style="font-size:16px">R$ ${ticketMedio.toFixed(2)}</div></div>
-    <div class="kpi ${pendente>0?'cr':'cg'}"><div class="ki"><i class="ti ti-wallet"></i></div><div class="kl">Comissão Pendente</div><div class="kv" style="font-size:16px">R$ ${pendente.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+    <div class="kpi ${pendente>0?'cr':'cg'}"><div class="ki"><i class="ti ti-wallet"></i></div><div class="kl">Comissão Pendente</div><div class="kv" style="font-size:16px">R$ ${pendente.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
   `;
 
   const valorInput=document.getElementById('painel-vend-baixa-valor');
@@ -10962,7 +10962,7 @@ function openVendedorPainel(idx){
   if(!pagamentos.length){
     tbody.innerHTML=`<tr><td colspan="2" style="text-align:center;padding:16px;color:var(--text3)">Nenhuma baixa de comissão registrada ainda</td></tr>`;
   }else{
-    tbody.innerHTML=pagamentos.slice().reverse().map(p=>`<tr><td class="ts">${p.data}</td><td class="fw6" style="color:var(--green)">R$ ${p.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`).join('');
+    tbody.innerHTML=pagamentos.slice().reverse().map(p=>`<tr><td class="ts">${p.data}</td><td class="fw6" style="color:var(--green)">R$ ${p.valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('');
   }
 
   const editBtn=document.getElementById('painel-vend-editar-btn');
@@ -11168,10 +11168,10 @@ function openMecanicoPainel(idx){
 
   const kpis=document.getElementById('painel-mec-kpis');
   kpis.innerHTML=`
-    <div class="kpi ca"><div class="ki"><i class="ti ti-cash-register"></i></div><div class="kl">Vendido Hoje</div><div class="kv" style="font-size:16px">R$ ${vendasHoje.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
-    <div class="kpi cb"><div class="ki"><i class="ti ti-chart-line"></i></div><div class="kl">Média Diária</div><div class="kv" style="font-size:16px">R$ ${mediaDiaria.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
-    <div class="kpi cg"><div class="ki"><i class="ti ti-calendar-month"></i></div><div class="kl">Vendido no Mês</div><div class="kv" style="font-size:16px">R$ ${vendasMes.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
-    <div class="kpi ${pendente>0?'cr':'cg'}"><div class="ki"><i class="ti ti-wallet"></i></div><div class="kl">Comissão Pendente</div><div class="kv" style="font-size:16px">R$ ${pendente.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+    <div class="kpi ca"><div class="ki"><i class="ti ti-cash-register"></i></div><div class="kl">Vendido Hoje</div><div class="kv" style="font-size:16px">R$ ${vendasHoje.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+    <div class="kpi cb"><div class="ki"><i class="ti ti-chart-line"></i></div><div class="kl">Média Diária</div><div class="kv" style="font-size:16px">R$ ${mediaDiaria.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+    <div class="kpi cg"><div class="ki"><i class="ti ti-calendar-month"></i></div><div class="kl">Vendido no Mês</div><div class="kv" style="font-size:16px">R$ ${vendasMes.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+    <div class="kpi ${pendente>0?'cr':'cg'}"><div class="ki"><i class="ti ti-wallet"></i></div><div class="kl">Comissão Pendente</div><div class="kv" style="font-size:16px">R$ ${pendente.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
   `;
 
   const valorInput=document.getElementById('painel-mec-baixa-valor');
@@ -11182,7 +11182,7 @@ function openMecanicoPainel(idx){
   if(!pagamentos.length){
     tbody.innerHTML=`<tr><td colspan="2" style="text-align:center;padding:16px;color:var(--text3)">Nenhuma baixa de comissão registrada ainda</td></tr>`;
   }else{
-    tbody.innerHTML=pagamentos.slice().reverse().map(p=>`<tr><td class="ts">${p.data}</td><td class="fw6" style="color:var(--green)">R$ ${p.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`).join('');
+    tbody.innerHTML=pagamentos.slice().reverse().map(p=>`<tr><td class="ts">${p.data}</td><td class="fw6" style="color:var(--green)">R$ ${p.valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('');
   }
 
   const editBtn=document.getElementById('painel-mec-editar-btn');
