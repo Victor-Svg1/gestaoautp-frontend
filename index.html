@@ -5724,19 +5724,19 @@ function renderProdTable(items){
     const estLabel=p.est===0?'Zerado':`${p.est} un.`;
     const mgColor=p.mg>=50?'var(--green)':p.mg>=35?'var(--amber)':'var(--red)';
     return`<tr style="cursor:pointer" onclick="openProdDrawer(${p.id})" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
-      <td><div class="prod-name-cell">
+      <td style="vertical-align:top"><div class="prod-name-cell">
         <div class="prod-icon"><i class="ti ti-${p.cat==='Freios'?'circle-half-2':p.cat==='Motor'?'engine':p.cat==='Elétrica'?'bolt':p.cat==='Filtros'?'filter':p.cat==='Suspensão'?'ripple':'package'}"></i></div>
         <div><div class="prod-main-name">${p.n}</div><div class="prod-pop-name">${p.pop}</div></div>
       </div></td>
-      <td><div class="prod-sku-cell">${p.sku}</div><div class="prod-oem-cell" style="color:var(--amber)" title="Código interno (gerado automaticamente)"><i class="ti ti-hash" style="font-size:9px"></i>${p.codigoInterno}</div></td>
-      <td><span class="badge bb" style="font-size:10px">${p.subcat||p.cat}</span></td>
-      <td style="font-size:11px;color:var(--text2);max-width:180px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4">${p.compat}${p.compatLivre?` <i class="ti ti-pencil" style="font-size:10px;color:var(--amber)" title="${p.compatLivre.substring(0,80)}…"></i>`:''}</td>
-      <td style="font-family:monospace;font-size:12px;color:var(--text3)">R$ ${p.custo.toFixed(2)}</td>
-      <td style="font-family:var(--font-head);font-size:13px;font-weight:700">R$ ${p.preco.toFixed(2)}</td>
-      <td><div class="mg-bar"><span class="mg-num" style="color:${mgColor}">${p.mg}%</span><div class="mg-strip"><div class="mg-fill" style="width:${Math.min(p.mg,80)}%;background:${mgColor}"></div></div></div></td>
-      <td><div><span class="stock-badge ${estClass}"><i class="ti ti-${p.est===0?'x':p.est<=p.min?'alert-triangle':'check'}" style="font-size:10px"></i>${estLabel}</span><div style="margin-top:3px"><span class="loc-badge">${p.loc||'—'}</span></div></div></td>
-      <td><span class="badge ${cv[p.curva]}" style="font-weight:700;letter-spacing:.5px">Curva ${p.curva}</span></td>
-      <td onclick="event.stopPropagation()"><div class="flx g2b">
+      <td style="vertical-align:top"><div class="prod-sku-cell">${p.sku}</div><div class="prod-oem-cell" style="color:var(--amber)" title="Código interno (gerado automaticamente)"><i class="ti ti-hash" style="font-size:9px"></i>${p.codigoInterno}</div></td>
+      <td style="vertical-align:top"><span class="badge bb" style="font-size:10px">${p.subcat||p.cat}</span></td>
+      <td style="vertical-align:top"><div style="font-size:11px;color:var(--text2);max-width:180px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4">${p.compat}${p.compatLivre?` <i class="ti ti-pencil" style="font-size:10px;color:var(--amber)" title="${p.compatLivre.substring(0,80)}…"></i>`:''}</div></td>
+      <td style="vertical-align:top;font-family:monospace;font-size:12px;color:var(--text3)">R$ ${p.custo.toFixed(2)}</td>
+      <td style="vertical-align:top;font-family:var(--font-head);font-size:13px;font-weight:700">R$ ${p.preco.toFixed(2)}</td>
+      <td style="vertical-align:top"><div class="mg-bar"><span class="mg-num" style="color:${mgColor}">${p.mg}%</span><div class="mg-strip"><div class="mg-fill" style="width:${Math.min(p.mg,80)}%;background:${mgColor}"></div></div></div></td>
+      <td style="vertical-align:top"><div><span class="stock-badge ${estClass}"><i class="ti ti-${p.est===0?'x':p.est<=p.min?'alert-triangle':'check'}" style="font-size:10px"></i>${estLabel}</span><div style="margin-top:3px"><span class="loc-badge">${p.loc||'—'}</span></div></div></td>
+      <td style="vertical-align:top"><span class="badge ${cv[p.curva]}" style="font-weight:700;letter-spacing:.5px">Curva ${p.curva}</span></td>
+      <td style="vertical-align:top" onclick="event.stopPropagation()"><div class="flx g2b">
         <button class="btn bg btn-sm" title="Ver detalhes" onclick="openProdDrawer(${p.id})"><i class="ti ti-eye"></i></button>
         <button class="btn bg btn-sm" title="Editar" onclick="openProdModal(${p.id})"><i class="ti ti-edit"></i></button>
         <button class="btn bg btn-sm" title="Adicionar ao PDV" onclick="addToCart(${p.id});nav('pdv',null)"><i class="ti ti-shopping-cart"></i></button>
