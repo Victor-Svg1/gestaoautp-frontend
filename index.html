@@ -2071,19 +2071,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
             <div class="rep-title">Fiscal / NF-e</div><div class="rep-desc">Notas emitidas e impostos</div>
           </div>
         </div>
-        <div class="g2">
-          <div class="card">
-            <div class="ch"><div id="rep-chart-title" class="ct">Faturamento por Mês — 2025</div><div class="flx g2b">
-              <button class="btn bs btn-sm" onclick="exportCSV(activeReport)"><i class="ti ti-file-spreadsheet"></i>CSV</button>
-              <button class="btn bs btn-sm" onclick="printRelatorio()"><i class="ti ti-file-type-pdf"></i>PDF</button>
-            </div></div>
-            <div style="position:relative;height:240px"><canvas id="ch-rep-main"></canvas></div>
-          </div>
-          <div class="card">
-            <div class="ch"><div class="ct" id="rep-table-title">Detalhamento</div></div>
-            <div class="tw" style="max-height:280px;overflow-y:auto"><table><thead><tr><th>Período</th><th>Valor</th><th>Qtd</th><th>Var %</th></tr></thead><tbody id="rep-table"></tbody></table></div>
-          </div>
-        </div>
+        <div id="relatorio-detalhado"></div>
       </div>
 
       <!-- ===== ORÇAMENTOS ===== -->
@@ -2263,7 +2251,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
     </div>
     <div class="mft">
       <button class="btn bg" onclick="closeModal('modal-despesa')">Cancelar</button>
-      <button class="btn bp" onclick="salvarDespesa()"><i class="ti ti-check"></i>Salvar Despesa</button>
+      <button class="btn bp" id="desp-salvar-btn" onclick="salvarDespesa()"><i class="ti ti-check"></i>Salvar Despesa</button>
     </div>
   </div>
 </div>
@@ -6932,7 +6920,6 @@ function initCharts(){
   if(ctx('ch-ia-prev')){dc('iap');charts.iap=new Chart(ctx('ch-ia-prev'),{type:'line',data:{labels:['Mar','Abr','Mai','Jun(p)','Jul(p)'],datasets:[{label:'Histórico',data:[162,158,184.7,null,null],borderColor:'#10B981',tension:.4,pointRadius:4,pointBackgroundColor:'#10B981'},{label:'Previsão IA',data:[null,null,184.7,196,209],borderColor:'#8B5CF6',borderDash:[6,3],tension:.4,pointRadius:4,pointBackgroundColor:'#8B5CF6'}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#94A3B8',font:{size:11}}}}}});}
   if(ctx('ch-vend-perf')){dc('vperf');charts.vperf=new Chart(ctx('ch-vend-perf'),{type:'bar',data:{labels:SELLERS.map(s=>s.n.split(' ')[0]),datasets:[{label:'Realizado',data:SELLERS.map(s=>s.real),backgroundColor:SELLERS.map(s=>'rgba(245,158,11,.75)'),borderRadius:6},{label:'Meta',data:SELLERS.map(s=>s.meta),backgroundColor:SELLERS.map(s=>'rgba(59,130,246,.2)'),borderRadius:6}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#94A3B8',font:{size:10}}}},scales:{...CO.scales,y:{...CO.scales.y,stacked:false}}}});}
   if(ctx('ch-mec-os')){dc('mecos');charts.mecos=new Chart(ctx('ch-mec-os'),{type:'bar',data:{labels:MECHS.map(m=>m.n.split(' ')[0]),datasets:[{label:'OS Concluídas',data:MECHS.map(m=>m.os),backgroundColor:['rgba(245,158,11,.8)','rgba(59,130,246,.8)','rgba(16,185,129,.8)'],borderRadius:8}]},options:{...CO,indexAxis:'y',scales:{x:{...CO.scales.x},y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#94A3B8',font:{size:11}}}}}});}
-  if(ctx('ch-rep-main')){dc('repMain');charts.repMain=new Chart(ctx('ch-rep-main'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{data:[138,145,162,158,184.7],backgroundColor:['rgba(245,158,11,.45)','rgba(245,158,11,.45)','rgba(245,158,11,.45)','rgba(245,158,11,.45)','#F59E0B'],borderRadius:6}]},options:CO});}
 }
 
 // ======= FORNECEDORES =======
@@ -7067,11 +7054,6 @@ function renderMecanicos(){
 // ======= WHATSAPP CRM =======
 // ======= RELATÓRIOS =======
 let activeReport='vendas';
-const REP_DATA={
-  vendas:{title:'Faturamento por Mês — 2025',type:'bar',labels:['Jan','Fev','Mar','Abr','Mai'],data:[138,145,162,158,184.7],color:'#F59E0B',tbl:[['Jan','R$ 138.000','328','+4,2%'],['Fev','R$ 145.000','351','+5,1%'],['Mar','R$ 162.000','389','+11,7%'],['Abr','R$ 158.000','374','-2,5%'],['Mai','R$ 184.700','428','+16,9%']]},
-  os:{title:'OS por Status — 2025',type:'doughnut',labels:['Concluída','Em Andamento','Em Aberto','Aguard.'],data:[312,47,28,9],color:'#3B82F6',tbl:[['Concluídas','312','R$ 218.400','Histórico'],['Em Andamento','47','R$ 48.200','Ativas'],['Em Aberto','28','R$ 19.800','Pendentes'],['Aguardando','9','R$ 8.100','Aprovação']]},
-  estoque:{title:'Valor em Estoque por Categoria',type:'bar',labels:['Freios','Motor','Suspensão','Filtros','Elétrica'],data:[84200,72400,65800,42100,28600],color:'#10B981',tbl:[['Freios','R$ 84.200','187 itens','A'],['Motor','R$ 72.400','243 itens','A'],['Suspensão','R$ 65.800','156 itens','B'],['Filtros','R$ 42.100','312 itens','B'],['Elétrica','R$ 28.600','98 itens','C']]},
-};
 let entradaProdutoSelecionadoId=null;
 function openEntradaEstoque(){
   entradaProdutoSelecionadoId=null;
@@ -7113,95 +7095,295 @@ async function salvarEntradaEstoque(){
     closeModal('modal-entrada-estoque');
   }
 }
-function getRepDataDinamico(type){
-  if(type==='estoque'&&Array.isArray(PRODS)&&PRODS.length){
+function kpiCard(cls,icon,label,value){
+  return `<div class="kpi ${cls}"><div class="ki"><i class="ti ${icon}"></i></div><div class="kl">${label}</div><div class="kv">${value}</div></div>`;
+}
+function relLoading(container){container.innerHTML='<div class="empty" style="padding:60px"><i class="ti ti-loader" style="font-size:28px"></i><p>Carregando relatório…</p></div>';}
+function relErro(container,msg){container.innerHTML=`<div class="empty" style="padding:60px"><i class="ti ti-alert-triangle" style="font-size:28px;color:var(--red)"></i><p>Erro ao carregar relatório: ${msg}</p></div>`;}
+
+async function renderRelVendas(container){
+  try{
+    const resp=await fetch(API_BASE+'/vendas',{headers:authHeaders()});
+    const vendas=resp.ok?await resp.json():[];
+    const hoje=new Date(),mesAtualStr=hoje.toISOString().slice(0,7);
+    const vendasMes=vendas.filter(v=>String(v.criado_em).slice(0,7)===mesAtualStr);
+    const faturamentoMes=vendasMes.reduce((s,v)=>s+parseFloat(v.total||0),0);
+    const qtdVendasMes=vendasMes.length;
+    const ticketMedio=qtdVendasMes?faturamentoMes/qtdVendasMes:0;
+    const devolvidas=vendasMes.filter(v=>v.devolvida).length;
+    const porProduto={};
+    vendas.forEach(v=>(v.itens||[]).forEach(it=>{
+      if(it.avulso)return;
+      if(!porProduto[it.id])porProduto[it.id]={nome:it.n,qtd:0,valor:0};
+      porProduto[it.id].qtd+=it.qty;porProduto[it.id].valor+=it.qty*it.preco;
+    }));
+    const topProdutos=Object.values(porProduto).sort((a,b)=>b.qtd-a.qtd).slice(0,10);
+    const porPagamento={};
+    vendasMes.forEach(v=>{const forma=(v.forma_pagamento||'—').split(' (')[0];porPagamento[forma]=(porPagamento[forma]||0)+parseFloat(v.total||0);});
+    const ultimos7=[];
+    for(let i=6;i>=0;i--){
+      const d=new Date();d.setDate(d.getDate()-i);
+      const dStr=d.toISOString().slice(0,10);
+      const total=vendas.filter(v=>String(v.criado_em).slice(0,10)===dStr).reduce((s,v)=>s+parseFloat(v.total||0),0);
+      ultimos7.push({dia:d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),total});
+    }
+    container.innerHTML=`
+      <div class="g4 mb14">
+        ${kpiCard('ca','ti-currency-real','Faturamento do Mês','R$ '+faturamentoMes.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('cb','ti-shopping-cart','Vendas no Mês',qtdVendasMes)}
+        ${kpiCard('cg','ti-receipt','Ticket Médio','R$ '+ticketMedio.toFixed(2))}
+        ${kpiCard('cr','ti-rotate','Devoluções no Mês',devolvidas)}
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ch"><div class="ct">Faturamento — Últimos 7 dias</div></div><div style="position:relative;height:220px"><canvas id="ch-rel-vendas"></canvas></div></div>
+        <div class="card"><div class="ch"><div class="ct">Vendas por Forma de Pagamento (mês)</div></div><div style="position:relative;height:220px"><canvas id="ch-rel-pagamento"></canvas></div></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="ch"><div class="ct">Top 10 Produtos Mais Vendidos</div><button class="btn bs btn-sm" onclick="exportarRelatorioCSV('vendas-produtos')"><i class="ti ti-file-spreadsheet"></i>CSV</button></div>
+        <div class="tw"><table><thead><tr><th>Produto</th><th>Qtd. Vendida</th><th>Valor Total</th></tr></thead><tbody>
+        ${topProdutos.length?topProdutos.map(p=>`<tr><td>${p.nome}</td><td>${p.qtd}</td><td class="fw6 ta">R$ ${p.valor.toFixed(2)}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">Nenhuma venda registrada ainda</td></tr>'}
+        </tbody></table></div>
+      </div>`;
+    window._relVendasData={topProdutos};
+    setTimeout(()=>{
+      dc('relVendas');
+      const ctx1=document.getElementById('ch-rel-vendas');
+      if(ctx1)charts.relVendas=new Chart(ctx1,{type:'bar',data:{labels:ultimos7.map(d=>d.dia),datasets:[{data:ultimos7.map(d=>d.total),backgroundColor:'#F59E0B88',borderRadius:6}]},options:CO});
+      dc('relPagamento');
+      const ctx2=document.getElementById('ch-rel-pagamento');
+      const pagLabels=Object.keys(porPagamento);
+      if(ctx2&&pagLabels.length)charts.relPagamento=new Chart(ctx2,{type:'doughnut',data:{labels:pagLabels,datasets:[{data:Object.values(porPagamento),backgroundColor:['#F59E0B','#3B82F6','#10B981','#8B5CF6','#EF4444'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10}}}}}});
+    },50);
+  }catch(e){relErro(container,e.message);}
+}
+
+async function renderRelEstoque(container){
+  try{
+    if(!PRODS.length)await carregarProdutos();
+    const valorTotal=PRODS.reduce((s,p)=>s+(p.custo*p.est),0);
+    const zerados=PRODS.filter(p=>p.est===0).length;
+    const abaixoMin=PRODS.filter(p=>p.est>0&&p.est<=p.min).length;
+    const curvaA=PRODS.filter(p=>p.curva==='A').length,curvaB=PRODS.filter(p=>p.curva==='B').length,curvaC=PRODS.filter(p=>p.curva==='C').length;
+    const criticos=PRODS.filter(p=>p.est===0||p.est<=p.min).sort((a,b)=>a.est-b.est).slice(0,15);
+    container.innerHTML=`
+      <div class="g4 mb14">
+        ${kpiCard('ca','ti-currency-real','Valor Total em Estoque','R$ '+valorTotal.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('cr','ti-x','Produtos Zerados',zerados)}
+        ${kpiCard('cb','ti-alert-triangle','Abaixo do Mínimo',abaixoMin)}
+        ${kpiCard('cg','ti-package','Total de Produtos',PRODS.length)}
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ch"><div class="ct">Curva ABC (por giro)</div></div><div style="position:relative;height:220px"><canvas id="ch-rel-curva"></canvas></div></div>
+        <div class="card"><div class="ch"><div class="ct">Produtos Críticos</div><button class="btn bs btn-sm" onclick="exportarRelatorioCSV('estoque-criticos')"><i class="ti ti-file-spreadsheet"></i>CSV</button></div>
+        <div class="tw" style="max-height:220px;overflow-y:auto"><table><thead><tr><th>Produto</th><th>Estoque</th><th>Mínimo</th></tr></thead><tbody>
+        ${criticos.length?criticos.map(p=>`<tr><td>${p.n}</td><td style="color:${p.est===0?'var(--red)':'var(--amber)'};font-weight:600">${p.est}</td><td>${p.min}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">Nenhum produto crítico 🎉</td></tr>'}
+        </tbody></table></div></div>
+      </div>`;
+    window._relEstoqueData={criticos};
+    setTimeout(()=>{
+      dc('relCurva');
+      const ctx=document.getElementById('ch-rel-curva');
+      if(ctx)charts.relCurva=new Chart(ctx,{type:'doughnut',data:{labels:['Curva A','Curva B','Curva C'],datasets:[{data:[curvaA,curvaB,curvaC],backgroundColor:['#10B981','#F59E0B','#EF4444'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10}}}}}});
+    },50);
+  }catch(e){relErro(container,e.message);}
+}
+
+function renderRelFinanceiro(container){
+  try{
+    const hoje=new Date().toISOString().slice(0,10),mesAtual=hoje.slice(0,7);
+    const totalPagar=CONTAS_PAGAR.filter(c=>c.status!=='pago').reduce((s,c)=>s+c.valor,0);
+    const totalReceber=CONTAS_RECEBER.filter(c=>c.status!=='recebido').reduce((s,c)=>s+c.valor,0);
+    const despesasMes=CONTAS_PAGAR.filter(c=>c.tipo==='despesa'&&c.venc&&c.venc.slice(0,7)===mesAtual).reduce((s,c)=>s+c.valor,0);
+    const vencidas=CONTAS_PAGAR.filter(c=>c.status!=='pago'&&c.venc<hoje).length;
     const porCategoria={};
-    PRODS.forEach(p=>{
-      const cat=p.cat||'Sem categoria';
-      if(!porCategoria[cat])porCategoria[cat]={valor:0,itens:0};
-      porCategoria[cat].valor+=(p.custo||0)*(p.est||0);
-      porCategoria[cat].itens+=(p.est||0);
-    });
-    const entries=Object.entries(porCategoria).sort((a,b)=>b[1].valor-a[1].valor).slice(0,8);
-    if(!entries.length)return REP_DATA.estoque;
-    return{
-      title:'Valor em Estoque por Categoria',type:'bar',
-      labels:entries.map(e=>e[0]),
-      data:entries.map(e=>parseFloat(e[1].valor.toFixed(2))),
-      color:'#10B981',
-      tbl:entries.map(([cat,v])=>[cat,'R$ '+v.valor.toLocaleString('pt-BR',{minimumFractionDigits:2}),v.itens+' un.','—'])
-    };
-  }
-  if(type==='fornecedores'&&Array.isArray(FORNECEDORES_DATA)&&FORNECEDORES_DATA.length){
-    const entries=FORNECEDORES_DATA.slice(0,8);
-    return{
-      title:'Fornecedores Cadastrados',type:'bar',
-      labels:entries.map(f=>(f.nome||'').substring(0,15)),
-      data:entries.map(f=>f.rating||0),
-      color:'#F59E0B',
-      tbl:entries.map(f=>[f.nome||'—',f.cnpj||'—',f.cat||'—',f.status||'ativo'])
-    };
-  }
-  if(type==='comissoes'&&((Array.isArray(SELLERS)&&SELLERS.length)||(Array.isArray(MECHS)&&MECHS.length))){
+    CONTAS_PAGAR.filter(c=>c.tipo==='despesa').forEach(d=>{porCategoria[d.categoria]=(porCategoria[d.categoria]||0)+d.valor;});
+    const proximos=[...CONTAS_PAGAR.filter(c=>c.status!=='pago').map(c=>({tipo:'Pagar',desc:c.desc,valor:c.valor,venc:c.venc})),
+                     ...CONTAS_RECEBER.filter(c=>c.status!=='recebido').map(c=>({tipo:'Receber',desc:c.desc,valor:c.valor,venc:c.venc}))]
+      .sort((a,b)=>(a.venc||'9999').localeCompare(b.venc||'9999')).slice(0,15);
+    const cats=Object.entries(porCategoria).sort((a,b)=>b[1]-a[1]);
+    container.innerHTML=`
+      <div class="g4 mb14">
+        ${kpiCard('cr','ti-arrow-up','Total a Pagar','R$ '+totalPagar.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('cg','ti-arrow-down','Total a Receber','R$ '+totalReceber.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('ca','ti-receipt-2','Despesas do Mês','R$ '+despesasMes.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('cb','ti-alert-circle','Contas Vencidas',vencidas)}
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ch"><div class="ct">Despesas por Categoria</div></div><div style="position:relative;height:220px"><canvas id="ch-rel-desp"></canvas></div></div>
+        <div class="card"><div class="ch"><div class="ct">Próximos Vencimentos</div><button class="btn bs btn-sm" onclick="exportarRelatorioCSV('financeiro-vencimentos')"><i class="ti ti-file-spreadsheet"></i>CSV</button></div>
+        <div class="tw" style="max-height:220px;overflow-y:auto"><table><thead><tr><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Venc.</th></tr></thead><tbody>
+        ${proximos.length?proximos.map(c=>`<tr><td><span class="badge ${c.tipo==='Pagar'?'br':'bg2'}">${c.tipo}</span></td><td>${c.desc}</td><td class="fw6">R$ ${c.valor.toFixed(2)}</td><td>${c.venc?c.venc.split('-').reverse().join('/'):'—'}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">Nenhum vencimento pendente</td></tr>'}
+        </tbody></table></div></div>
+      </div>`;
+    window._relFinanceiroData={proximos};
+    setTimeout(()=>{
+      dc('relDesp');
+      const ctx=document.getElementById('ch-rel-desp');
+      if(ctx&&cats.length)charts.relDesp=new Chart(ctx,{type:'bar',data:{labels:cats.map(c=>c[0]),datasets:[{data:cats.map(c=>c[1]),backgroundColor:'#8B5CF688',borderRadius:6}]},options:CO});
+    },50);
+  }catch(e){relErro(container,e.message);}
+}
+
+function renderRelComissoes(container){
+  try{
     const pessoas=[
-      ...(SELLERS||[]).map(s=>({nome:s.n,tipo:'Vendedor',base:s.real,pct:s.comm,comm:s.real*s.comm/100,pago:s.pago})),
-      ...(MECHS||[]).map(m=>({nome:m.n,tipo:'Mecânico',base:m.fat,pct:m.comm,comm:m.fat*m.comm/100,pago:m.pago}))
-    ].slice(0,8);
-    return{
-      title:'Comissões por Colaborador',type:'bar',
-      labels:pessoas.map(p=>p.nome.substring(0,15)),
-      data:pessoas.map(p=>parseFloat(p.comm.toFixed(2))),
-      color:'#F97316',
-      tbl:pessoas.map(p=>[p.nome,p.tipo,'R$ '+p.base.toLocaleString('pt-BR'),'R$ '+p.comm.toFixed(2)])
-    };
-  }
-  if(type==='garantias'&&Array.isArray(GARANTIAS)&&GARANTIAS.length){
+      ...SELLERS.map(s=>({nome:s.n,tipo:'Vendedor',base:s.real||0,pct:s.comm||0,comm:(s.real||0)*(s.comm||0)/100,pago:s.pago||0})),
+      ...MECHS.map(m=>({nome:m.n,tipo:'Mecânico',base:m.fat||0,pct:m.comm||0,comm:(m.fat||0)*(m.comm||0)/100,pago:m.pago||0}))
+    ];
+    const totalComissao=pessoas.reduce((s,p)=>s+p.comm,0);
+    const totalPago=pessoas.reduce((s,p)=>s+p.pago,0);
+    const totalPendente=Math.max(0,totalComissao-totalPago);
+    container.innerHTML=`
+      <div class="g4 mb14">
+        ${kpiCard('ca','ti-currency-real','Total em Comissões','R$ '+totalComissao.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('cg','ti-check','Já Pago','R$ '+totalPago.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('cr','ti-clock','Pendente','R$ '+totalPendente.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('cb','ti-users','Colaboradores',pessoas.length)}
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Comissões por Colaborador</div><button class="btn bs btn-sm" onclick="exportarRelatorioCSV('comissoes')"><i class="ti ti-file-spreadsheet"></i>CSV</button></div>
+        <div class="tw"><table><thead><tr><th>Colaborador</th><th>Tipo</th><th>Base</th><th>%</th><th>Comissão</th><th>Status</th></tr></thead><tbody>
+        ${pessoas.length?pessoas.map(p=>`<tr><td>${p.nome}</td><td><span class="badge ${p.tipo==='Vendedor'?'bb':'bt'}">${p.tipo}</span></td><td>R$ ${p.base.toLocaleString('pt-BR')}</td><td>${p.pct}%</td><td class="fw6 ta">R$ ${p.comm.toFixed(2)}</td><td><span class="badge ${p.pago>=p.comm-0.01?'bg2':'ba'}">${p.pago>=p.comm-0.01?'Pago':'Pendente'}</span></td></tr>`).join(''):'<tr><td colspan="6" class="empty">Nenhum colaborador cadastrado</td></tr>'}
+        </tbody></table></div>
+      </div>`;
+    window._relComissoesData={pessoas};
+  }catch(e){relErro(container,e.message);}
+}
+
+async function renderRelClientes(container){
+  try{
+    if(!CLIENTES_DATA.length)await carregarClientes();
+    const resp=await fetch(API_BASE+'/vendas',{headers:authHeaders()});
+    const vendas=resp.ok?await resp.json():[];
+    const porCliente={};
+    vendas.forEach(v=>{
+      const nome=v.cliente_nome||'Consumidor Final';
+      if(!porCliente[nome])porCliente[nome]={qtd:0,total:0,ultima:v.criado_em};
+      porCliente[nome].qtd++;porCliente[nome].total+=parseFloat(v.total||0);
+      if(new Date(v.criado_em)>new Date(porCliente[nome].ultima))porCliente[nome].ultima=v.criado_em;
+    });
+    const ranking=Object.entries(porCliente).map(([nome,d])=>({nome,...d})).sort((a,b)=>b.total-a.total).slice(0,10);
+    const hoje=new Date();
+    const inativos=Object.entries(porCliente).filter(([,d])=>(hoje-new Date(d.ultima))/86400000>90).length;
+    container.innerHTML=`
+      <div class="g4 mb14">
+        ${kpiCard('cb','ti-users','Total de Clientes',CLIENTES_DATA.length)}
+        ${kpiCard('cg','ti-user-check','Já Compraram',Object.keys(porCliente).length)}
+        ${kpiCard('cr','ti-user-x','Inativos (+90 dias)',inativos)}
+        ${kpiCard('ca','ti-crown','Melhor Cliente',ranking[0]?ranking[0].nome.substring(0,18):'—')}
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Top 10 Clientes por Valor Comprado</div><button class="btn bs btn-sm" onclick="exportarRelatorioCSV('clientes')"><i class="ti ti-file-spreadsheet"></i>CSV</button></div>
+        <div class="tw"><table><thead><tr><th>Cliente</th><th>Compras</th><th>Total Gasto</th><th>Última Compra</th></tr></thead><tbody>
+        ${ranking.length?ranking.map(c=>`<tr><td>${c.nome}</td><td>${c.qtd}</td><td class="fw6 ta">R$ ${c.total.toFixed(2)}</td><td>${new Date(c.ultima).toLocaleDateString('pt-BR')}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">Nenhuma venda registrada ainda</td></tr>'}
+        </tbody></table></div>
+      </div>`;
+    window._relClientesData={ranking};
+  }catch(e){relErro(container,e.message);}
+}
+
+async function renderRelFornecedores(container){
+  try{
+    if(!FORNECEDORES_DATA.length)await carregarFornecedores();
+    if(!PEDIDOS_COMPRA.length)await carregarPedidosCompra();
+    const porFornecedor={};
+    PEDIDOS_COMPRA.forEach(pc=>{
+      if(!porFornecedor[pc.sup])porFornecedor[pc.sup]={qtd:0,total:0};
+      porFornecedor[pc.sup].qtd++;porFornecedor[pc.sup].total+=pc.val;
+    });
+    const ranking=Object.entries(porFornecedor).map(([nome,d])=>({nome,...d})).sort((a,b)=>b.total-a.total);
+    const volumeTotal=PEDIDOS_COMPRA.reduce((s,p)=>s+p.val,0);
+    container.innerHTML=`
+      <div class="g4 mb14">
+        ${kpiCard('cb','ti-building-store','Fornecedores Cadastrados',FORNECEDORES_DATA.length)}
+        ${kpiCard('ca','ti-currency-real','Volume Total Comprado','R$ '+volumeTotal.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+        ${kpiCard('cg','ti-shopping-bag','Pedidos Realizados',PEDIDOS_COMPRA.length)}
+        ${kpiCard('cr','ti-trophy','Principal Fornecedor',ranking[0]?ranking[0].nome.substring(0,18):'—')}
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Ranking de Fornecedores por Volume de Compra</div><button class="btn bs btn-sm" onclick="exportarRelatorioCSV('fornecedores')"><i class="ti ti-file-spreadsheet"></i>CSV</button></div>
+        <div class="tw"><table><thead><tr><th>Fornecedor</th><th>Pedidos</th><th>Volume Total</th></tr></thead><tbody>
+        ${ranking.length?ranking.map(f=>`<tr><td>${f.nome}</td><td>${f.qtd}</td><td class="fw6 ta">R$ ${f.total.toFixed(2)}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">Nenhum pedido de compra registrado ainda</td></tr>'}
+        </tbody></table></div>
+      </div>`;
+    window._relFornecedoresData={ranking};
+  }catch(e){relErro(container,e.message);}
+}
+
+async function renderRelGarantias(container){
+  try{
+    if(!GARANTIAS.length)await carregarGarantias();
     const porStatus={ativa:0,vencendo:0,vencida:0,acionada:0};
     GARANTIAS.forEach(g=>{if(porStatus[g.st]!==undefined)porStatus[g.st]++;});
-    return{
-      title:'Garantias por Status',type:'doughnut',
-      labels:['Ativas','Vencendo','Vencidas','Acionadas'],
-      data:[porStatus.ativa,porStatus.vencendo,porStatus.vencida,porStatus.acionada],
-      color:'#EF4444',
-      tbl:GARANTIAS.slice(0,8).map(g=>[g.cli,g.svc,g.venc,g.st])
-    };
-  }
-  if(type==='financeiro'&&Array.isArray(CONTAS_PAGAR)&&CONTAS_PAGAR.length){
-    const despesas=CONTAS_PAGAR.filter(c=>c.tipo==='despesa');
-    const porCategoria={};
-    despesas.forEach(d=>{porCategoria[d.categoria]=(porCategoria[d.categoria]||0)+d.valor;});
-    const entries=Object.entries(porCategoria).sort((a,b)=>b[1]-a[1]).slice(0,8);
-    if(entries.length){
-      return{
-        title:'Despesas por Categoria',type:'bar',
-        labels:entries.map(e=>e[0]),
-        data:entries.map(e=>parseFloat(e[1].toFixed(2))),
-        color:'#8B5CF6',
-        tbl:entries.map(([cat,v])=>[cat,'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2}),despesas.filter(d=>d.categoria===cat).length+' lanç.','—'])
-      };
-    }
-  }
-  return REP_DATA[type];
-}
-function printRelatorio(){
-  const d=getRepDataDinamico(activeReport);
-  if(!d){toast('Esse relatório ainda não tem dados pra imprimir','error');return;}
-  const agora=new Date().toLocaleDateString('pt-BR');
-  const html=`
-    <div style="font-family:Arial,sans-serif;color:#000">
-      <div style="text-align:center;margin-bottom:14px">
-        <div style="font-size:16px;font-weight:800">🔧 ${EMPRESA_INFO.nome||'Minha Loja'}</div>
-        <div style="font-size:11px;color:#666">${d.title} — ${agora}</div>
+    container.innerHTML=`
+      <div class="g4 mb14">
+        ${kpiCard('cg','ti-shield-check','Ativas',porStatus.ativa)}
+        ${kpiCard('ca','ti-clock','Vencendo',porStatus.vencendo)}
+        ${kpiCard('cr','ti-shield-x','Vencidas',porStatus.vencida)}
+        ${kpiCard('cb','ti-refresh','Acionadas',porStatus.acionada)}
       </div>
-      <table style="width:100%;border-collapse:collapse;font-size:11px">
-        <thead><tr style="border-bottom:1px solid #ccc;text-align:left">
-          <th style="padding:4px">Período/Categoria</th><th style="padding:4px">Valor</th><th style="padding:4px">Qtd</th><th style="padding:4px">Var %/Status</th>
-        </tr></thead>
-        <tbody>
-          ${d.tbl.map(r=>`<tr style="border-bottom:1px solid #eee">${r.map(c=>`<td style="padding:4px">${c}</td>`).join('')}</tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`;
+      <div class="g2">
+        <div class="card"><div class="ch"><div class="ct">Garantias por Status</div></div><div style="position:relative;height:220px"><canvas id="ch-rel-gar"></canvas></div></div>
+        <div class="card"><div class="ch"><div class="ct">Detalhamento</div><button class="btn bs btn-sm" onclick="exportarRelatorioCSV('garantias')"><i class="ti ti-file-spreadsheet"></i>CSV</button></div>
+        <div class="tw" style="max-height:220px;overflow-y:auto"><table><thead><tr><th>Cliente</th><th>Item</th><th>Venc.</th><th>Status</th></tr></thead><tbody>
+        ${GARANTIAS.length?GARANTIAS.slice(0,15).map(g=>`<tr><td>${g.cli}</td><td>${g.svc}</td><td>${g.venc}</td><td><span class="badge ${g.st==='ativa'?'bg2':g.st==='vencendo'?'ba':g.st==='acionada'?'bb':'br'}">${g.st}</span></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Nenhuma garantia registrada ainda</td></tr>'}
+        </tbody></table></div></div>
+      </div>`;
+    window._relGarantiasData={lista:GARANTIAS};
+    setTimeout(()=>{
+      dc('relGar');
+      const ctx=document.getElementById('ch-rel-gar');
+      if(ctx)charts.relGar=new Chart(ctx,{type:'doughnut',data:{labels:['Ativas','Vencendo','Vencidas','Acionadas'],datasets:[{data:[porStatus.ativa,porStatus.vencendo,porStatus.vencida,porStatus.acionada],backgroundColor:['#10B981','#F59E0B','#EF4444','#3B82F6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10}}}}}});
+    },50);
+  }catch(e){relErro(container,e.message);}
+}
+
+function renderRelFiscal(container){
+  container.innerHTML=`<div class="empty" style="padding:50px">
+    <i class="ti ti-file-invoice" style="font-size:32px"></i>
+    <p>Relatório fiscal detalhado (impostos, XML emitidos) depende da integração completa com a Receita/SEFAZ, que ainda não está migrada pro banco de dados central.</p>
+    <p style="font-size:11px;margin-top:6px">Consulte a tela "NF-e / Fiscal" pra ver as notas já emitidas.</p>
+  </div>`;
+}
+function renderRelOS(container){
+  container.innerHTML=`<div class="empty" style="padding:50px">
+    <i class="ti ti-clipboard-list" style="font-size:32px"></i>
+    <p>Relatório de Ordens de Serviço ainda não está disponível — o módulo de OS ainda não foi migrado pro banco de dados central.</p>
+    <p style="font-size:11px;margin-top:6px">${OS_DATA.length} OS registrada(s) localmente neste navegador (não sincronizada(s)).</p>
+  </div>`;
+}
+
+function exportarRelatorioCSV(kind){
+  let linhas=[];
+  if(kind==='vendas-produtos'&&window._relVendasData)linhas=[['Produto','Qtd Vendida','Valor Total'],...window._relVendasData.topProdutos.map(p=>[p.nome,p.qtd,p.valor.toFixed(2)])];
+  else if(kind==='estoque-criticos'&&window._relEstoqueData)linhas=[['Produto','Estoque','Mínimo'],...window._relEstoqueData.criticos.map(p=>[p.n,p.est,p.min])];
+  else if(kind==='financeiro-vencimentos'&&window._relFinanceiroData)linhas=[['Tipo','Descrição','Valor','Vencimento'],...window._relFinanceiroData.proximos.map(c=>[c.tipo,c.desc,c.valor.toFixed(2),c.venc])];
+  else if(kind==='comissoes'&&window._relComissoesData)linhas=[['Colaborador','Tipo','Base','%','Comissão'],...window._relComissoesData.pessoas.map(p=>[p.nome,p.tipo,p.base.toFixed(2),p.pct,p.comm.toFixed(2)])];
+  else if(kind==='clientes'&&window._relClientesData)linhas=[['Cliente','Compras','Total Gasto','Última Compra'],...window._relClientesData.ranking.map(c=>[c.nome,c.qtd,c.total.toFixed(2),c.ultima])];
+  else if(kind==='fornecedores'&&window._relFornecedoresData)linhas=[['Fornecedor','Pedidos','Volume Total'],...window._relFornecedoresData.ranking.map(f=>[f.nome,f.qtd,f.total.toFixed(2)])];
+  else if(kind==='garantias'&&window._relGarantiasData)linhas=[['Cliente','Item','Vencimento','Status'],...window._relGarantiasData.lista.map(g=>[g.cli,g.svc,g.venc,g.st])];
+  if(!linhas.length){toast('Nada pra exportar ainda','info');return;}
+  const csv=linhas.map(l=>l.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`relatorio-${kind}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();URL.revokeObjectURL(url);
+  toast('✅ CSV exportado!','success');
+}
+
+function printRelatorio(){
+  const detalhado=document.getElementById('relatorio-detalhado');
+  if(!detalhado||!detalhado.innerHTML.trim()){toast('Nenhum relatório carregado pra imprimir','error');return;}
+  const agora=new Date().toLocaleDateString('pt-BR');
+  const titulos={vendas:'Vendas',estoque:'Estoque',financeiro:'Financeiro',comissoes:'Comissões',clientes:'Clientes',fornecedores:'Fornecedores',garantias:'Garantias',fiscal:'Fiscal',os:'Ordens de Serviço'};
+  const html=`<div style="font-family:Arial,sans-serif;color:#000">
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="font-size:16px;font-weight:800">${EMPRESA_INFO.nome||'Minha Loja'}</div>
+      <div style="font-size:11px;color:#666">Relatório de ${titulos[activeReport]||activeReport} — ${agora}</div>
+    </div>
+    ${detalhado.innerHTML}
+  </div>`;
   const area=document.getElementById('relatorio-print-area');
   if(area)area.innerHTML=html;
   openModal('modal-relatorio-print');
@@ -7213,21 +7395,24 @@ function handleImprimirRelatorio(){
     setTimeout(()=>document.body.classList.remove('printing-rel'),600);
   },150);
 }
-function selectReport(type,el){
+async function selectReport(type,el){
   activeReport=type;
   document.querySelectorAll('.rep-type-card').forEach(c=>c.classList.remove('active'));
   if(el)el.classList.add('active');
-  const d=getRepDataDinamico(type);
-  if(d){
-    document.getElementById('rep-chart-title').textContent=d.title;
-    document.getElementById('rep-table-title').textContent='Detalhamento — '+d.title.split(' ')[0];
-    const tbl=document.getElementById('rep-table');
-    if(tbl)tbl.innerHTML=d.tbl.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
-    dc('repMain');
-    const ctx=document.getElementById('ch-rep-main');
-    if(ctx){charts.repMain=new Chart(ctx,{type:d.type==='doughnut'?'doughnut':'bar',data:{labels:d.labels,datasets:[{data:d.data,backgroundColor:d.type==='doughnut'?['#F59E0B','#3B82F6','#10B981','#8B5CF6']:d.data.map(()=>d.color+'88'),borderRadius:d.type!=='doughnut'?6:0,borderWidth:0}]},options:d.type==='doughnut'?{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{color:'#94A3B8',font:{size:10},boxWidth:10,padding:8}},tooltip:{callbacks:{label:c2=>`${c2.label}: ${c2.raw.toLocaleString('pt-BR')}`}}}}:{...CO,plugins:{...CO.plugins,tooltip:{callbacks:{label:c2=>`R$ ${Number(c2.raw).toLocaleString('pt-BR')}k`}}}}});}
-  }else{toast('Relatório em desenvolvimento!','info');}
+  const container=document.getElementById('relatorio-detalhado');
+  if(!container)return;
+  relLoading(container);
+  if(type==='vendas')await renderRelVendas(container);
+  else if(type==='estoque')await renderRelEstoque(container);
+  else if(type==='financeiro')renderRelFinanceiro(container);
+  else if(type==='comissoes')renderRelComissoes(container);
+  else if(type==='clientes')await renderRelClientes(container);
+  else if(type==='fornecedores')await renderRelFornecedores(container);
+  else if(type==='garantias')await renderRelGarantias(container);
+  else if(type==='fiscal')renderRelFiscal(container);
+  else if(type==='os')renderRelOS(container);
 }
+
 
 // ====== MELHORIA 6 — Impressão de OS ======
 function printOS(osId){
@@ -9575,13 +9760,15 @@ async function carregarEmpresaInfo(){
   const regSel=document.getElementById('cfg-emp-regime');
   if(regSel&&EMPRESA_INFO.regime)regSel.value=EMPRESA_INFO.regime;
 }
-function marcarPago(id,listId){
-  const arr=listId.includes('pagar')?CONTAS_PAGAR:CONTAS_RECEBER;
-  const c=arr.find(x=>x.id===id);
-  if(c){
-    c.status=listId.includes('pagar')?'pago':'recebido';
-    c.dataPagamento=new Date().toISOString().slice(0,10);
-    saveData();renderFinanceiro();toast('Baixado com sucesso!','success');
+async function marcarPago(id,listId){
+  const isPagar=listId.includes('pagar');
+  try{
+    const resp=await fetch(API_BASE+'/financeiro/'+id+'/status',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({status:isPagar?'pago':'recebido'})});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Falha ao dar baixa');}
+    await carregarFinanceiro();
+    toast('Baixado com sucesso!','success');
+  }catch(e){
+    toast('Erro ao dar baixa: '+e.message,'error');
   }
 }
 
@@ -9617,7 +9804,7 @@ function openDespesaNovo(){
   const meses=document.getElementById('desp-meses');if(meses)meses.value=12;
   openModal('modal-despesa');
 }
-function salvarDespesa(){
+async function salvarDespesa(){
   const categoria=document.getElementById('desp-categoria')?.value;
   const desc=(document.getElementById('desp-desc')?.value||'').trim();
   const parte=(document.getElementById('desp-parte')?.value||'').trim()||categoria;
@@ -9630,20 +9817,14 @@ function salvarDespesa(){
   if(!valor||valor<=0){toast('Informe o valor da despesa','error');return;}
   if(!venc){toast('Informe a data de vencimento','error');return;}
   const dataBase=new Date(venc+'T00:00:00');
+  const btn=document.getElementById('desp-salvar-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Salvando…';}
   for(let i=0;i<meses;i++){
     const d=new Date(dataBase);d.setMonth(d.getMonth()+i);
     const vencStr=d.toISOString().slice(0,10);
-    const id='CP-'+String(CONTAS_PAGAR.length+1).padStart(4,'0');
-    CONTAS_PAGAR.push({
-      id,tipo:'despesa',categoria,
-      desc:desc+(meses>1?' ('+(i+1)+'/'+meses+')':''),
-      parte,valor,venc:vencStr,status:'pendente',
-      ref:'DESP-'+categoria.substring(0,4).toUpperCase(),
-      dt:new Date().toLocaleDateString('pt-BR')
-    });
+    await addContaPagar(desc+(meses>1?' ('+(i+1)+'/'+meses+')':''),parte,valor,vencStr,'DESP-'+categoria.substring(0,4).toUpperCase(),categoria);
   }
-  saveData();
-  renderDespesasTable();
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i> Salvar';}
   toast(`✅ Despesa "${desc}" cadastrada${meses>1?` (${meses} meses)`:''}!`,'success');
   closeModal('modal-despesa');
 }
@@ -9686,15 +9867,28 @@ function renderDespesasTable(){
     <td>${d.status!=='pago'?`<button class="btn bsuc btn-sm" onclick="marcarPago('${d.id}','desp-pagar');setTimeout(renderDespesasTable,300)" title="Marcar como paga"><i class="ti ti-check"></i></button>`:'<div style="width:32px"></div>'}</td>
   </tr>`).join('');
 }
-function addContaPagar(desc,parte,valor,venc,ref){
-  const id='CP-'+String(CONTAS_PAGAR.length+1).padStart(3,'0');
-  CONTAS_PAGAR.push({id,tipo:'boleto',desc,parte,valor,venc,status:'pendente',ref,dt:new Date().toLocaleDateString('pt-BR')});
-  saveData();
+async function addContaPagar(desc,parte,valor,venc,ref,categoria){
+  try{
+    const resp=await fetch(API_BASE+'/financeiro',{method:'POST',headers:authHeaders(),body:JSON.stringify({
+      tipo_conta:'pagar',tipo:categoria?'despesa':'boleto',categoria:categoria||null,
+      descricao:desc,parte,valor,vencimento:venc,referencia:ref
+    })});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Falha ao lançar conta a pagar');}
+    await carregarFinanceiro();
+  }catch(e){
+    toast('Erro ao lançar conta a pagar: '+e.message,'error');
+  }
 }
-function addContaReceber(desc,parte,valor,venc,parc,ref){
-  const id='CR-'+String(CONTAS_RECEBER.length+1).padStart(3,'0');
-  CONTAS_RECEBER.push({id,tipo:'crediario',desc,parte,valor,venc,status:'pendente',parc,ref,dt:new Date().toLocaleDateString('pt-BR')});
-  saveData();
+async function addContaReceber(desc,parte,valor,venc,parc,ref){
+  try{
+    const resp=await fetch(API_BASE+'/financeiro',{method:'POST',headers:authHeaders(),body:JSON.stringify({
+      tipo_conta:'receber',tipo:'crediario',descricao:desc,parte,valor,vencimento:venc,parcela:parc,referencia:ref
+    })});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Falha ao lançar conta a receber');}
+    await carregarFinanceiro();
+  }catch(e){
+    toast('Erro ao lançar conta a receber: '+e.message,'error');
+  }
 }
 
 // ======= CONTROLE DE CRÉDITO DE CLIENTES =======
@@ -11402,13 +11596,15 @@ function nav(id,el){
     Promise.all([
       (!SELLERS.length?carregarVendedores():Promise.resolve()),
       (!MECHS.length?carregarMecanicos():Promise.resolve()),
-      (!GARANTIAS.length?carregarGarantias():Promise.resolve())
+      (!GARANTIAS.length?carregarGarantias():Promise.resolve()),
+      (!CONTAS_PAGAR.length&&!CONTAS_RECEBER.length?carregarFinanceiro():Promise.resolve())
     ]).finally(()=>selectReport(activeReport,document.querySelector('.rep-type-card.active')));
   },80);
   if(id==='produtos')setTimeout(()=>carregarProdutos(),50);
   if(id==='vendas')setTimeout(()=>carregarVendas(),50);
   if(id==='ofertas')setTimeout(()=>renderOfertasTable(),50);
-  if(id==='despesas')setTimeout(()=>renderDespesasTable(),50);
+  if(id==='despesas')setTimeout(()=>carregarFinanceiro(),50);
+  if(id==='financeiro')setTimeout(()=>carregarFinanceiro(),50);
   if(id==='veiculos')setTimeout(()=>{VEICULOS.length=0;VEICULOS.push(...getVeiculosReais());renderVeiculos();},50);
   if(id==='garantias')setTimeout(()=>carregarGarantias(),50);
   if(id==='orcamentos')setTimeout(()=>carregarOrcamentos(),50);
@@ -11502,7 +11698,7 @@ function toast(msg,type='info'){
 const STORAGE_KEY_PRODS = 'autoerp_v4_prods';
 const STORAGE_KEY_ORC   = 'autoerp_v4_orcs';
 const STORAGE_KEY_OS    = 'autoerp_v4_os';
-const STORAGE_KEY_FIN   = 'autoerp_v4_fin';
+// STORAGE_KEY_FIN removida — Financeiro agora vem 100% do banco de dados (carregarFinanceiro)
 const STORAGE_KEY_CLI   = 'autoerp_v4_cli';
 const STORAGE_KEY_USR   = 'autoerp_v4_usr';
 const STORAGE_KEY_PERMS = 'autoerp_v4_perms';
@@ -11561,24 +11757,37 @@ let SIDEBAR_PERMS={
 };
 let currentUser=null;
 
-const CONTAS_PAGAR=[
-  {id:'CP-001',tipo:'boleto',desc:'NF-e 003421 — Bosch do Brasil',parte:'Bosch do Brasil',valor:12400,venc:'2025-06-10',status:'pendente',ref:'NF-003421',dt:'10/05/2025'},
-  {id:'CP-002',tipo:'boleto',desc:'NF-e 001892 — Cofap S/A',parte:'Cofap S/A',valor:8720,venc:'2025-06-08',status:'pendente',ref:'NF-001892',dt:'08/05/2025'},
-  {id:'CP-003',tipo:'boleto',desc:'NF-e 000847 — Fras-le S.A.',parte:'Fras-le S.A.',valor:3240,venc:'2025-05-01',status:'pago',ref:'NF-000847',dt:'01/05/2025'},
-];
-
-const CONTAS_RECEBER=[
-  {id:'CR-001',tipo:'crediario',desc:'Crediário — José Alves Santos',parte:'José Alves Santos',valor:420,venc:'2025-06-14',status:'pendente',parc:'1/3',ref:'PDV-2847',dt:'14/05/2025'},
-  {id:'CR-002',tipo:'crediario',desc:'Crediário — Auto Center Top',parte:'Auto Center Top',valor:1240,venc:'2025-05-28',status:'vencido',parc:'2/2',ref:'PDV-2831',dt:'28/04/2025'},
-  {id:'CR-003',tipo:'boleto',desc:'Boleto — Distribuidora Norte',parte:'Distribuidora Norte',valor:3200,venc:'2025-06-20',status:'pendente',parc:'1/1',ref:'PDV-2840',dt:'12/05/2025'},
-];
+// Contas a Pagar e a Receber agora vêm da API (carregarFinanceiro), não mais fictícias/locais
+let CONTAS_PAGAR=[];
+let CONTAS_RECEBER=[];
+async function carregarFinanceiro(){
+  try{
+    const resp=await fetch(API_BASE+'/financeiro',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar financeiro');
+    const rows=await resp.json();
+    CONTAS_PAGAR.length=0;CONTAS_RECEBER.length=0;
+    rows.forEach(r=>{
+      const item={
+        id:r.id,tipo:r.tipo,categoria:r.categoria,desc:r.descricao,parte:r.parte,
+        valor:parseFloat(r.valor),venc:r.vencimento?String(r.vencimento).slice(0,10):null,
+        status:r.status,ref:r.referencia,parc:r.parcela,
+        dt:r.criado_em?new Date(r.criado_em).toLocaleDateString('pt-BR'):''
+      };
+      if(r.tipo_conta==='pagar')CONTAS_PAGAR.push(item);else CONTAS_RECEBER.push(item);
+    });
+    if(typeof renderFinanceiro==='function')renderFinanceiro();
+    if(typeof renderDespesasTable==='function')renderDespesasTable();
+  }catch(e){
+    toast('Erro ao carregar financeiro: '+e.message,'error');
+  }
+}
 
 function saveData(){
   try{
     localStorage.setItem(STORAGE_KEY_PRODS,'[]');
     localStorage.setItem(STORAGE_KEY_ORC,JSON.stringify(ORC_DATA));
     localStorage.setItem(STORAGE_KEY_OS,JSON.stringify(OS_DATA));
-    localStorage.setItem(STORAGE_KEY_FIN,JSON.stringify({cp:CONTAS_PAGAR,cr:CONTAS_RECEBER}));
+    // Financeiro (Contas a Pagar/Receber) agora vem da API (carregarFinanceiro), não mais do localStorage
     localStorage.setItem(STORAGE_KEY_CLI,'[]');
     localStorage.setItem(STORAGE_KEY_USR,'[]');
     localStorage.setItem(STORAGE_KEY_PERMS,JSON.stringify(SIDEBAR_PERMS));
@@ -11606,11 +11815,7 @@ function loadData(){
       if(oLimpo.length!==((o||[]).length)){localStorage.setItem(STORAGE_KEY_OS,JSON.stringify(oLimpo));}
       if(oLimpo.length){OS_DATA.length=0;OS_DATA.push(...oLimpo);}
     }
-    const sf=localStorage.getItem(STORAGE_KEY_FIN);
-    if(sf){const f=JSON.parse(sf);
-      if(f.cp&&f.cp.length){CONTAS_PAGAR.length=0;CONTAS_PAGAR.push(...f.cp);}
-      if(f.cr&&f.cr.length){CONTAS_RECEBER.length=0;CONTAS_RECEBER.push(...f.cr);}
-    }
+    // Financeiro (Contas a Pagar/Receber) agora vem da API (carregarFinanceiro), não mais do localStorage
     // CLIENTES_DATA agora vem da API (carregarClientes), não mais do localStorage
     // FORNECEDORES_DATA agora vem da API (carregarFornecedores), não mais do localStorage
     // MECHS/SELLERS agora vêm da API (carregarMecanicos/carregarVendedores), não mais do localStorage
@@ -11736,8 +11941,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   renderCompras();renderCli();renderNFe();renderNotifs();
   renderCal();renderForns();renderVendedores();renderMecanicos();
   renderOrcamentos();renderFinanceiro();renderReposicaoKpis();
-  const repTbl=document.getElementById('rep-table');
-  if(repTbl)repTbl.innerHTML=REP_DATA.vendas.tbl.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
   const pqb=document.getElementById('pix-qr-box');if(pqb)pqb.style.display='block';
   setTimeout(initCharts,150);
   // Render login screen and show it
