@@ -5965,7 +5965,7 @@ function saveProduto(mode){
   const nome=get('inp-nome-tecnico');
   if(!nome){toast('Informe o nome técnico do produto','error');prodTab('id',document.querySelector('.pmt'));return;}
   const custo=parseFloat(document.getElementById('m-custo')?.value)||0;
-  const mg=parseFloat(document.getElementById('m-margem')?.value)||67;
+  const mg=parseFloat(document.getElementById('m-margem')?.value)||76;
   const precoRaw=parseFloat(document.getElementById('m-preco')?.value)||0;
   const preco=precoRaw>0?precoRaw:parseFloat((custo>0?custo*(1+mg/100):0).toFixed(2));
   const est=parseInt(document.getElementById('inp-est-atual')?.value)||0;
@@ -9032,10 +9032,10 @@ async function confirmNFeEntry(){
 }
 
 
-// ======= PRECIFICAÇÃO AUTOMÁTICA 67% =======
+// ======= PRECIFICAÇÃO AUTOMÁTICA 76% =======
 function calcPreco(){
   const c=parseFloat(document.getElementById('m-custo')?.value||0);
-  const m=parseFloat(document.getElementById('m-margem')?.value||67)||67;
+  const m=parseFloat(document.getElementById('m-margem')?.value||76)||76;
   const p=document.getElementById('m-preco');
   if(c>0&&m>=0&&p)p.value=(c*(1+m/100)).toFixed(2);
 }
