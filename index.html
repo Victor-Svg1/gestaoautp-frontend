@@ -12198,12 +12198,13 @@ async function doLoginReal(){
   }
 }
 
-function aplicarSessaoLogada(usuario){
+async function aplicarSessaoLogada(usuario){
   // Normaliza o formato vindo da API pro que o resto do app espera (currentUser.n)
   currentUser={id:usuario.id,n:usuario.nome,perfil:usuario.perfil,email:usuario.email};
   localStorage.setItem(STORAGE_KEY_USER,JSON.stringify(currentUser));
   document.getElementById('login-overlay').style.display='none';
   const appEl=document.getElementById('app');if(appEl)appEl.style.display='flex';
+  await carregarPermissoesReal(); // busca do banco de dados — vale em qualquer computador/navegador
   applySidebarPerms(currentUser.perfil);
   const initials=currentUser.n.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
   const cores={admin:'linear-gradient(135deg,var(--red),#B91C1C)',vendedor:'linear-gradient(135deg,var(--blue),var(--purple))',mecanico:'linear-gradient(135deg,var(--amber),var(--orange))',financeiro:'linear-gradient(135deg,var(--green),var(--teal))'};
@@ -12284,11 +12285,12 @@ function applySidebarPerms(perfil){
 }
 
 // ======= ADMIN PANEL =======
-function openAdminPanel(){
+async function openAdminPanel(){
   if(!currentUser){toast('Faça login primeiro','error');return;}
   if(currentUser.perfil!=='admin'){toast('Acesso restrito ao Administrador','error');return;}
   document.getElementById('admin-panel').classList.add('open');
   carregarUsuarios();
+  await carregarPermissoesReal();
   renderPermMatrix();
 }
 function closeAdminPanel(){document.getElementById('admin-panel').classList.remove('open');}
@@ -12361,7 +12363,7 @@ function renderPermMatrix(){
   html+='</tbody>';
   table.innerHTML=html;
 }
-function saveAdminSettings(){
+async function saveAdminSettings(){
   // Read permission matrix
   ROLES_LIST.forEach(r=>{
     const checked=[];
@@ -12370,10 +12372,15 @@ function saveAdminSettings(){
     });
     SIDEBAR_PERMS[r.key]=checked;
   });
-  saveData();
-  // Re-apply to current user
-  if(currentUser)applySidebarPerms(currentUser.perfil);
-  toast('✅ Configurações salvas! As permissões serão aplicadas no próximo login de cada usuário.','success');
+  saveData(); // cache local — só pra funcionar offline nesse aparelho especificamente
+  try{
+    const resp=await fetch(API_BASE+'/permissoes',{method:'PUT',headers:authHeaders(),body:JSON.stringify({permissoes:SIDEBAR_PERMS})});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Falha ao salvar permissões');}
+    if(currentUser)applySidebarPerms(currentUser.perfil);
+    toast('✅ Permissões salvas no banco de dados! Já valem pra qualquer computador em que o funcionário logar.','success');
+  }catch(e){
+    toast('⚠️ Salvo só neste navegador — falha ao sincronizar com o servidor: '+e.message,'error');
+  }
 }
 
 function closeNotif(){const np=document.getElementById('np');if(np)np.classList.remove('open');}
@@ -12588,6 +12595,21 @@ let SIDEBAR_PERMS={
   caixa:   ['dashboard','pdv','vendas','caixa','nfe','clientes'],
   estoque: ['dashboard','produtos','ofertas','busca','estoque','inventario','compras','fornecedores'],
 };
+// Busca as permissões salvas de verdade no banco de dados — se a empresa já configurou
+// algo pelo Painel Admin, isso substitui os padrões travados acima. Se ainda não
+// configurou nada, os padrões seguros do código continuam valendo (nada fica liberado à toa).
+async function carregarPermissoesReal(){
+  try{
+    const resp=await fetch(API_BASE+'/permissoes',{headers:authHeaders()});
+    if(!resp.ok)return;
+    const rows=await resp.json();
+    rows.forEach(r=>{
+      if(r.perfil!=='admin'&&Array.isArray(r.modulos))SIDEBAR_PERMS[r.perfil]=r.modulos;
+    });
+  }catch(e){
+    // Sem internet no momento — mantém os padrões seguros já carregados, sem travar o login
+  }
+}
 let currentUser=null;
 
 // Contas a Pagar e a Receber agora vêm da API (carregarFinanceiro), não mais fictícias/locais
