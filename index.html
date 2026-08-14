@@ -3597,7 +3597,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
             <button class="btn bp btn-sm" id="btn-save-subcat" style="display:none;flex-shrink:0" onclick="confirmAddOpt('subcat')"><i class="ti ti-check"></i></button>
           </div>
         </div>
-        <div class="ff"><label>Fornecedor Principal</label>
+        <div class="ff" id="ff-fornecedor-wrap"><label>Fornecedor Principal</label>
           <div class="sel-row">
             <select id="sel-forn"><option value="">Selecione</option></select>
             <input type="text" class="add-opt-inp" id="inp-forn" placeholder="Novo fornecedor…" onkeydown="if(event.key==='Enter')confirmAddOpt('forn')">
@@ -3638,7 +3638,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       </div>
     </div>
     <div class="pmt-content" id="ptab-estoque">
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
+      <div id="calc-margem-wrap" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--amber);margin-bottom:10px">Calculadora de Margem</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
           <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Custo (R$)</label><input type="number" id="m-custo" placeholder="0,00" step="0.01" oninput="calcPreco()" style="width:100%;background:var(--bg1);border:1px solid var(--border);color:var(--text1);padding:8px 10px;border-radius:var(--radius-xs);font-size:15px;font-family:var(--font-head);outline:none"></div>
@@ -6016,6 +6016,9 @@ function renderProdPaginationBtns(totalPages){
   `;
 }
 
+function podeVerCustoMargem(){
+  return !currentUser||!['vendedor','mecanico'].includes(currentUser.perfil);
+}
 function renderProdTable(items){
   const t=document.getElementById('prod-tbl');if(!t)return;
   const cv={'A':'bg2','B':'ba','C':'br'};
@@ -6023,6 +6026,7 @@ function renderProdTable(items){
     const estClass=p.est===0?'sb-out':p.est<=p.min?'sb-low':'sb-ok';
     const estLabel=p.est===0?'Zerado':`${p.est} un.`;
     const mgColor=p.mg>=50?'var(--green)':p.mg>=35?'var(--amber)':'var(--red)';
+    const podeVerCM=podeVerCustoMargem();
     return`<tr style="cursor:pointer" onclick="openProdDrawer(${p.id})" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
       <td style="vertical-align:top"><div class="prod-name-cell">
         <div class="prod-icon"><i class="ti ti-${p.cat==='Freios'?'circle-half-2':p.cat==='Motor'?'engine':p.cat==='Elétrica'?'bolt':p.cat==='Filtros'?'filter':p.cat==='Suspensão'?'ripple':'package'}"></i></div>
@@ -6031,9 +6035,9 @@ function renderProdTable(items){
       <td style="vertical-align:top"><div class="prod-sku-cell">${p.sku}</div><div class="prod-oem-cell" style="color:var(--amber)" title="Código interno (gerado automaticamente)"><i class="ti ti-hash" style="font-size:9px"></i>${p.codigoInterno}</div></td>
       <td style="vertical-align:top"><span class="badge bb" style="font-size:10px">${p.subcat||p.cat}</span></td>
       <td style="vertical-align:top"><div style="font-size:11px;color:var(--text2);max-width:180px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4">${p.compat}${p.compatLivre?` <i class="ti ti-pencil" style="font-size:10px;color:var(--amber)" title="${p.compatLivre.substring(0,80)}…"></i>`:''}</div></td>
-      <td style="vertical-align:top;font-family:monospace;font-size:12px;color:var(--text3)">R$ ${p.custo.toFixed(2)}</td>
+      <td style="vertical-align:top;font-family:monospace;font-size:12px;color:var(--text3)">${podeVerCM?'R$ '+p.custo.toFixed(2):'<i class="ti ti-lock" style="font-size:11px"></i>'}</td>
       <td style="vertical-align:top;font-family:var(--font-head);font-size:13px;font-weight:700">R$ ${p.preco.toFixed(2)}</td>
-      <td style="vertical-align:top"><div class="mg-bar"><span class="mg-num" style="color:${mgColor}">${p.mg}%</span><div class="mg-strip"><div class="mg-fill" style="width:${Math.min(p.mg,80)}%;background:${mgColor}"></div></div></div></td>
+      <td style="vertical-align:top">${podeVerCM?`<div class="mg-bar"><span class="mg-num" style="color:${mgColor}">${p.mg}%</span><div class="mg-strip"><div class="mg-fill" style="width:${Math.min(p.mg,80)}%;background:${mgColor}"></div></div></div>`:'<i class="ti ti-lock" style="font-size:11px;color:var(--text3)"></i>'}</td>
       <td style="vertical-align:top"><div><span class="stock-badge ${estClass}"><i class="ti ti-${p.est===0?'x':p.est<=p.min?'alert-triangle':'check'}" style="font-size:10px"></i>${estLabel}</span><div style="margin-top:3px"><span class="loc-badge">${p.loc||'—'}</span></div></div></td>
       <td style="vertical-align:top"><span class="badge ${cv[p.curva]}" style="font-weight:700;letter-spacing:.5px">Curva ${p.curva}</span></td>
       <td style="vertical-align:top" onclick="event.stopPropagation()"><div class="flx g2b">
@@ -6074,10 +6078,11 @@ function openProdDrawer(id){
   const estClass=p.est===0?'sb-out':p.est<=p.min?'sb-low':'sb-ok';
   document.getElementById('pdd-title').textContent=p.n;
   document.getElementById('pdd-sku').innerHTML=p.sku+' · '+p.marca+' &nbsp;·&nbsp; <span style="color:var(--amber)"><i class="ti ti-hash" style="font-size:10px"></i>'+p.codigoInterno+'</span>';
+  const podeVerCM=podeVerCustoMargem();
   document.getElementById('pdd-body').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;background:var(--bg2);border-radius:var(--radius-sm);margin-bottom:14px">
       <div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:var(--font-head);color:var(--amber)">R$ ${p.preco.toFixed(2)}</div><div style="font-size:10px;color:var(--text3)">Preço de Venda</div></div>
-      <div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:var(--font-head);color:${mgColor}">${p.mg}%</div><div style="font-size:10px;color:var(--text3)">Margem</div></div>
+      <div style="text-align:center">${podeVerCM?`<div style="font-size:20px;font-weight:800;font-family:var(--font-head);color:${mgColor}">${p.mg}%</div>`:'<i class="ti ti-lock" style="font-size:18px;color:var(--text3)"></i>'}<div style="font-size:10px;color:var(--text3)">Margem</div></div>
       <div style="text-align:center"><span class="stock-badge ${estClass}" style="font-size:13px;font-weight:700">${p.est===0?'Zerado':p.est+' un.'}</span><div style="font-size:10px;color:var(--text3);margin-top:2px">Estoque</div></div>
       <div style="text-align:center"><span class="loc-badge" style="font-size:14px;letter-spacing:2px">${p.loc||'—'}</span><div style="font-size:10px;color:var(--text3);margin-top:4px">Localização</div></div>
     </div>
@@ -6100,13 +6105,13 @@ function openProdDrawer(id){
         <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
       </div>
     `).join('')}</div>`:'<div style="font-size:12px;color:var(--text3)">—</div>'}
-    <div class="pdd-section">Radar de Preço <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(compara fornecedores)</span></div>
-    <div id="radar-preco-area"><button class="btn bs btn-sm" style="width:100%" onclick="carregarRadarPreco(${p.id})"><i class="ti ti-radar-2"></i>Ver preços por fornecedor</button></div>
+    ${podeVerCM?`<div class="pdd-section">Radar de Preço <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(compara fornecedores)</span></div>
+    <div id="radar-preco-area"><button class="btn bs btn-sm" style="width:100%" onclick="carregarRadarPreco(${p.id})"><i class="ti ti-radar-2"></i>Ver preços por fornecedor</button></div>`:''}
     <div class="pdd-section">Giro de Estoque <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">(tempo parado e velocidade de venda)</span></div>
     <div id="giro-estoque-area"><button class="btn bs btn-sm" style="width:100%" onclick="carregarGiroEstoque(${p.id})"><i class="ti ti-clock-hour-4"></i>Ver tempo em estoque e giro</button></div>
     <div class="pdd-section">Financeiro</div>
-    <div class="flx ic g2b" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text3)">Custo</span><span style="font-family:monospace;font-size:13px">R$ ${p.custo.toFixed(2)}</span></div>
-    <div class="flx ic g2b" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text3)">Lucro unitário</span><span style="font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--green)">R$ ${(p.preco-p.custo).toFixed(2)}</span></div>
+    ${podeVerCM?`<div class="flx ic g2b" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text3)">Custo</span><span style="font-family:monospace;font-size:13px">R$ ${p.custo.toFixed(2)}</span></div>
+    <div class="flx ic g2b" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text3)">Lucro unitário</span><span style="font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--green)">R$ ${(p.preco-p.custo).toFixed(2)}</span></div>`:'<div style="font-size:11.5px;color:var(--text3);padding:6px 0"><i class="ti ti-lock"></i> Custo e margem restritos ao seu perfil de acesso</div>'}
     <div class="flx ic g2b" style="justify-content:space-between;padding:6px 0"><span style="font-size:12px;color:var(--text3)">Curva ABC</span><span class="badge ${p.curva==='A'?'bg2':p.curva==='B'?'ba':'br'}" style="font-weight:700">Curva ${p.curva}</span></div>
     ${p.obs?`<div class="pdd-section">Observações</div><div style="font-size:12px;color:var(--text2);background:var(--bg2);padding:10px;border-radius:var(--radius-sm);line-height:1.5">${p.obs}</div>`:''}
   `;
@@ -6146,6 +6151,9 @@ let prodEditId=null;
 
 function openProdModal(id){
   prodEditId=id;
+  const podeVerCM=podeVerCustoMargem();
+  const calcWrap=document.getElementById('calc-margem-wrap');if(calcWrap)calcWrap.style.display=podeVerCM?'':'none';
+  const fornWrap=document.getElementById('ff-fornecedor-wrap');if(fornWrap)fornWrap.style.display=podeVerCM?'':'none';
   const title=document.getElementById('modal-prod-title');
   const fornSel=document.getElementById('sel-forn');
   if(fornSel)fornSel.innerHTML='<option value="">Selecione</option>'+FORNECEDORES_DATA.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
@@ -12201,7 +12209,11 @@ function aplicarSessaoLogada(usuario){
   const cores={admin:'linear-gradient(135deg,var(--red),#B91C1C)',vendedor:'linear-gradient(135deg,var(--blue),var(--purple))',mecanico:'linear-gradient(135deg,var(--amber),var(--orange))',financeiro:'linear-gradient(135deg,var(--green),var(--teal))'};
   const topUser=document.getElementById('topbar-user');
   if(topUser)topUser.innerHTML=`<div class="login-user-av" style="width:30px;height:30px;font-size:11px;border-radius:8px;background:${cores[currentUser.perfil]||'linear-gradient(135deg,var(--amber),var(--orange))'};cursor:pointer" onclick="openAdminPanel()" title="Painel Admin">${initials}</div>`;
-  nav('dashboard',document.querySelector('.ni[onclick*="dashboard"]'));
+  // Navega pra primeira tela liberada do perfil (dashboard pode estar bloqueado pra vendedor/mecânico)
+  const telaInicial=(SIDEBAR_PERMS[currentUser.perfil]||['dashboard']).includes('dashboard')
+    ?'dashboard'
+    :(SIDEBAR_PERMS[currentUser.perfil]||[])[0]||'dashboard';
+  nav(telaInicial,document.querySelector(`.ni[onclick*="nav('${telaInicial}'"]`));
   carregarClientes();
   if(typeof carregarFornecedores==='function')carregarFornecedores();
   if(typeof carregarMecanicos==='function')carregarMecanicos();
@@ -12254,7 +12266,7 @@ function logoutUser(){
 function applySidebarPerms(perfil){
   const allowed=SIDEBAR_PERMS[perfil]||SIDEBAR_PERMS.admin;
   document.querySelectorAll('.ni[onclick*="nav("]').forEach(ni=>{
-    const match=ni.getAttribute('onclick')?.match(/nav\(['"](\w+)['"]/);
+    const match=ni.getAttribute('onclick')?.match(/nav\(['"]([\w-]+)['"]/);
     if(!match)return;
     const key=match[1];
     ni.style.display=allowed.includes(key)?'':'none';
@@ -12367,8 +12379,24 @@ function saveAdminSettings(){
 function closeNotif(){const np=document.getElementById('np');if(np)np.classList.remove('open');}
 
 // ======= NAV =======
-const TITLES={dashboard:'Dashboard Executivo',agenda:'Agenda',os:'Ordens de Serviço',veiculos:'Veículos',garantias:'Garantias',pdv:'PDV — Ponto de Venda',orcamentos:'Orçamentos',nfe:'NF-e / Fiscal',produtos:'Produtos',busca:'Busca Inteligente',estoque:'Estoque',reposicao:'Reposição de Estoque',compras:'Pedidos de Compra',caixa:'Controle de Caixa',financeiro:'Financeiro',comissoes:'Comissões',dre:'DRE Gerencial',clientes:'Clientes',credito:'Controle de Crédito',fornecedores:'Fornecedores',vendedores:'Vendedores',mecanicos:'Mecânicos',bi:'Business Intelligence',ia:'Inteligência Artificial',relatorios:'Relatórios',usuarios:'Usuários & Permissões',config:'Configurações'};
+const TITLES={dashboard:'Dashboard Executivo',agenda:'Agenda',os:'Ordens de Serviço',veiculos:'Veículos',garantias:'Garantias',pdv:'PDV — Ponto de Venda',orcamentos:'Orçamentos',nfe:'NF-e / Fiscal',produtos:'Produtos',busca:'Busca Inteligente',estoque:'Estoque',reposicao:'Reposição de Estoque',compras:'Pedidos de Compra',auditoria:'Histórico de Auditoria',caixa:'Controle de Caixa',financeiro:'Financeiro',despesas:'Despesas',comissoes:'Comissões',dre:'DRE Gerencial',clientes:'Clientes',posvenda:'Pós-Venda',credito:'Controle de Crédito',fornecedores:'Fornecedores',vendedores:'Vendedores',mecanicos:'Mecânicos',bi:'Business Intelligence',ia:'Inteligência Artificial',relatorios:'Relatórios','relatorios-livres':'Relatórios Livres',usuarios:'Usuários & Permissões',config:'Configurações'};
 function nav(id,el){
+  // GATILHO da trava de permissão: bloqueia a navegação de verdade (não só esconde o botão),
+  // então nem digitando nav('...') direto no console dá pra pular a restrição
+  if(currentUser&&currentUser.perfil!=='admin'){
+    const telasSempreAdmin=['usuarios']; // nunca liberável, mesmo pelo painel de permissões
+    if(telasSempreAdmin.includes(id)){
+      toast('🔒 Acesso restrito ao Administrador.','error');
+      return;
+    }
+    if(SIDEBAR_MODULES.some(m=>m.key===id)){
+      const permitido=(SIDEBAR_PERMS[currentUser.perfil]||[]).includes(id);
+      if(!permitido){
+        toast('🔒 Acesso restrito. Fale com o administrador se precisar dessa tela.','error');
+        return;
+      }
+    }
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const s=document.getElementById('screen-'+id);if(s)s.classList.add('active');
   document.querySelectorAll('.ni').forEach(i=>i.classList.remove('active'));
@@ -12532,12 +12560,14 @@ const SIDEBAR_MODULES=[
   {key:'reposicao',label:'Reposição de Estoque',sec:'ESTOQUE'},
   {key:'inventario',label:'Inventário',sec:'ESTOQUE'},
   {key:'compras',label:'Pedidos de Compra',sec:'ESTOQUE'},
+  {key:'auditoria',label:'Histórico de Auditoria',sec:'ESTOQUE'},
   {key:'caixa',label:'Caixa',sec:'FINANCEIRO'},
   {key:'financeiro',label:'Financeiro',sec:'FINANCEIRO'},
   {key:'despesas',label:'Despesas',sec:'FINANCEIRO'},
   {key:'comissoes',label:'Comissões',sec:'FINANCEIRO'},
   {key:'dre',label:'DRE Gerencial',sec:'FINANCEIRO'},
   {key:'clientes',label:'Clientes',sec:'CRM'},
+  {key:'posvenda',label:'Pós-Venda',sec:'CRM'},
   {key:'credito',label:'Controle de Crédito',sec:'CRM'},
   {key:'fornecedores',label:'Fornecedores',sec:'CRM'},
   {key:'vendedores',label:'Vendedores',sec:'PESSOAS'},
@@ -12545,14 +12575,15 @@ const SIDEBAR_MODULES=[
   {key:'bi',label:'Business Intelligence',sec:'INTELIGÊNCIA'},
   {key:'ia',label:'Inteligência Artificial',sec:'INTELIGÊNCIA'},
   {key:'relatorios',label:'Relatórios',sec:'INTELIGÊNCIA'},
+  {key:'relatorios-livres',label:'Relatórios Livres',sec:'INTELIGÊNCIA'},
   {key:'config',label:'Configurações',sec:'SISTEMA'},
 ];
 
 const ALL_KEYS=SIDEBAR_MODULES.map(m=>m.key);
 let SIDEBAR_PERMS={
   admin:   [...ALL_KEYS],
-  vendedor:['dashboard','agenda','pdv','orcamentos','vendas','ofertas','produtos','busca','estoque','clientes','caixa','comissoes'],
-  mecanico:['dashboard','agenda','os','veiculos','garantias','produtos','busca','clientes'],
+  vendedor:['agenda','pdv','orcamentos','vendas','ofertas','nfe','produtos','busca'],
+  mecanico:['agenda','os','veiculos','garantias','produtos','busca'],
   financeiro:['dashboard','financeiro','despesas','dre','relatorios','nfe','clientes','fornecedores','caixa','comissoes'],
   caixa:   ['dashboard','pdv','vendas','caixa','nfe','clientes'],
   estoque: ['dashboard','produtos','ofertas','busca','estoque','inventario','compras','fornecedores'],
