@@ -3862,6 +3862,10 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
   <div style="flex:1;overflow-y:auto" id="np-list"></div>
 </div>
 
+<div id="vendas-pendentes-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9800;background:var(--red);color:#fff;padding:10px 16px;text-align:center;font-size:13px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.3)">
+  <i class="ti ti-alert-triangle"></i> <span id="vendas-pendentes-texto"></span>
+  <button onclick="sincronizarVendasPendentes(false)" style="margin-left:12px;background:#fff;color:var(--red);border:none;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer">Tentar sincronizar agora</button>
+</div>
 <div class="snack" id="snack"></div>
 
 <script>
@@ -5729,6 +5733,59 @@ function handleImprimirCupom(){
   },150);
 }
 window.addEventListener('afterprint',()=>{document.body.classList.remove('printing-recibo');});
+// ======= FILA DE VENDAS NÃO SINCRONIZADAS =======
+// Garante que nenhuma venda "suma": se o servidor rejeitar (sessão expirada, sem internet,
+// erro qualquer), a venda fica guardada aqui até sincronizar de verdade — nunca é descartada em silêncio.
+const STORAGE_KEY_VENDAS_PENDENTES='autoerp_v4_vendas_pendentes';
+function getVendasPendentes(){
+  try{return JSON.parse(localStorage.getItem(STORAGE_KEY_VENDAS_PENDENTES)||'[]');}catch(e){return[];}
+}
+function salvarVendaPendente(payload){
+  const pendentes=getVendasPendentes();
+  pendentes.push({payload,tentativas:0,criadoEm:new Date().toISOString()});
+  localStorage.setItem(STORAGE_KEY_VENDAS_PENDENTES,JSON.stringify(pendentes));
+  atualizarBannerVendasPendentes();
+}
+function atualizarBannerVendasPendentes(){
+  const qtd=getVendasPendentes().length;
+  const banner=document.getElementById('vendas-pendentes-banner');
+  const texto=document.getElementById('vendas-pendentes-texto');
+  if(!banner)return;
+  if(qtd>0){
+    if(texto)texto.textContent=`${qtd} venda(s) feita(s) neste aparelho ainda NÃO foram salvas no servidor.`;
+    banner.style.display='block';
+  }else{
+    banner.style.display='none';
+  }
+}
+async function enviarVenda(payload){
+  const resp=await fetch(API_BASE+'/vendas',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+  if(!resp.ok){
+    const err=await resp.json().catch(()=>({}));
+    throw new Error(err.erro||('Falha ao salvar venda (HTTP '+resp.status+')'));
+  }
+  return resp.json();
+}
+async function sincronizarVendasPendentes(silencioso){
+  const pendentes=getVendasPendentes();
+  if(!pendentes.length)return;
+  const restantes=[];
+  let sincronizadas=0;
+  for(const item of pendentes){
+    try{
+      await enviarVenda(item.payload);
+      sincronizadas++;
+    }catch(e){
+      item.tentativas=(item.tentativas||0)+1;
+      restantes.push(item);
+    }
+  }
+  localStorage.setItem(STORAGE_KEY_VENDAS_PENDENTES,JSON.stringify(restantes));
+  atualizarBannerVendasPendentes();
+  if(sincronizadas>0)toast(`✅ ${sincronizadas} venda(s) pendente(s) sincronizada(s) com o servidor!`,'success');
+  if(!silencioso&&restantes.length>0)toast(`⚠️ Ainda há ${restantes.length} venda(s) sem sincronizar. Verifique sua conexão ou faça login de novo.`,'error');
+  if(typeof carregarVendas==='function')carregarVendas();
+}
 function finalizeSale(){
   if(!cart.length)return;
   if(typeof caixaAberto!=='undefined'&&!caixaAberto){toast('Caixa fechado! Abra o caixa antes de vender.','error');return;}
@@ -5831,11 +5888,21 @@ function finalizeSale(){
   }else{
     MOVS_CAIXA.unshift({desc:'Venda PDV'+(clienteNomeAtual?' — '+clienteNomeAtual:''),dt:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),val:tot,tp:'e',pay:payLabelFinal,codigo:numVenda,operador:operadorVenda,cliente:clienteNomeAtual,itens:itensSnapshot,devolvido:false,valorDevolvido:0});
   }
-  fetch(API_BASE+'/vendas',{method:'POST',headers:authHeaders(),body:JSON.stringify({
-    codigo:numVenda,cliente_nome:clienteNomeAtual,operador:operadorVenda,
-    forma_pagamento:payLabelFinal,subtotal,desconto:discAmt,total:tot,itens:itensSnapshot,
-    comissao_usuario_id:comissaoUsuarioId,canal_venda:document.getElementById('pdv-canal-venda')?.value||'balcao'
-  })}).catch(()=>toast('⚠️ Venda registrada localmente, mas falhou ao sincronizar o histórico com o servidor','error'));
+  (async()=>{
+    const payload={
+      codigo:numVenda,cliente_nome:clienteNomeAtual,operador:operadorVenda,
+      forma_pagamento:payLabelFinal,subtotal,desconto:discAmt,total:tot,itens:itensSnapshot,
+      comissao_usuario_id:comissaoUsuarioId,canal_venda:document.getElementById('pdv-canal-venda')?.value||'balcao'
+    };
+    try{
+      await enviarVenda(payload);
+    }catch(e){
+      // NUNCA descarta a venda em silêncio — guarda pra tentar de novo e avisa bem visível
+      salvarVendaPendente(payload);
+      const dicaSessao=/token|sessao|401/i.test(e.message)?' Sua sessão pode ter expirado — faça login de novo pra não perder mais vendas.':'';
+      toast(`⚠️ Venda R$ ${tot.toFixed(2)} NÃO foi salva no servidor ainda.${dicaSessao}`,'error');
+    }
+  })();
   renderCaixa();
   saveData();
   toast(`✅ Venda R$ ${tot.toFixed(2)} — ${payLabelFinal} — NF-e emitida!`,'success');
@@ -6171,7 +6238,9 @@ function openProdModal(id){
     const p=PRODS.find(x=>x.id===id);if(!p)return;
     if(title)title.textContent='Editar — '+p.n.substring(0,30);
     fillProdModal(p);
-    if(delBtn)delBtn.style.display='inline-flex';
+    // Excluir produto é uma ação destrutiva e permanente — só quem pode ver custo/margem
+    // (perfis administrativos) pode excluir. Vendedor e Mecânico nunca veem esse botão.
+    if(delBtn)delBtn.style.display=podeVerCustoMargem()?'inline-flex':'none';
   }
   prodTab('id',document.querySelector('.pmt'));
   openModal('modal-produto');
@@ -6330,10 +6399,18 @@ async function saveProdutoAsync(payload,mode,nome){
 }
 async function excluirProdutoAtual(){
   if(prodEditId===null)return;
+  // GATILHO da trava: exclusão de produto é ação destrutiva e permanente — só perfis
+  // administrativos podem excluir, mesmo que alguém tente chamar essa função direto pelo console
+  if(!podeVerCustoMargem()){
+    toast('🔒 Você não tem permissão pra excluir produtos. Fale com o administrador.','error');
+    return;
+  }
   const p=PRODS.find(x=>x.id===prodEditId);if(!p)return;
-  if(!confirm(`Tem certeza que deseja excluir "${p.n}"? Essa ação não pode ser desfeita.`))return;
+  const motivo=prompt(`Tem certeza que deseja excluir "${p.n}"? Essa ação não pode ser desfeita.\n\nInforme o motivo da exclusão:`);
+  if(motivo===null)return; // cancelou
+  if(!motivo.trim()){toast('Informe um motivo pra excluir o produto','error');return;}
   try{
-    const resp=await fetch(API_BASE+'/produtos/'+p.id,{method:'DELETE',headers:authHeaders()});
+    const resp=await fetch(API_BASE+'/produtos/'+p.id,{method:'DELETE',headers:authHeaders(),body:JSON.stringify({motivo:motivo.trim()})});
     if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Erro ao excluir produto');}
     await carregarProdutos();
     toast(`✅ Produto "${p.n}" excluído!`,'success');
@@ -6613,7 +6690,8 @@ async function carregarHistoricoAuditoria(){
     const tipoInfo={
       Venda:{icon:'ti-shopping-cart',cor:'var(--blue)',label:'Venda'},
       Entrada_Nota:{icon:'ti-file-invoice',cor:'var(--green)',label:'Entrada de NF-e'},
-      Ajuste_Manual:{icon:'ti-hand-stop',cor:'var(--red)',label:'Ajuste Manual'}
+      Ajuste_Manual:{icon:'ti-hand-stop',cor:'var(--red)',label:'Ajuste Manual'},
+      Exclusao_Produto:{icon:'ti-trash',cor:'var(--red)',label:'Produto Excluído'}
     };
     wrap.innerHTML=logs.map(l=>{
       const info=tipoInfo[l.tipo_movimentacao]||{icon:'ti-circle',cor:'var(--text3)',label:l.tipo_movimentacao};
@@ -12206,6 +12284,8 @@ async function aplicarSessaoLogada(usuario){
   const appEl=document.getElementById('app');if(appEl)appEl.style.display='flex';
   await carregarPermissoesReal(); // busca do banco de dados — vale em qualquer computador/navegador
   applySidebarPerms(currentUser.perfil);
+  atualizarBannerVendasPendentes();
+  if(getVendasPendentes().length)sincronizarVendasPendentes(true); // login = token novo, melhor hora pra tentar de novo
   const initials=currentUser.n.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
   const cores={admin:'linear-gradient(135deg,var(--red),#B91C1C)',vendedor:'linear-gradient(135deg,var(--blue),var(--purple))',mecanico:'linear-gradient(135deg,var(--amber),var(--orange))',financeiro:'linear-gradient(135deg,var(--green),var(--teal))'};
   const topUser=document.getElementById('topbar-user');
