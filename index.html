@@ -865,6 +865,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       <div class="ni" onclick="nav('produtos',this)"><div class="nic"><i class="ti ti-package"></i></div><span class="nl">Produtos</span></div>
       <div class="ni" onclick="nav('busca',this)"><div class="nic"><i class="ti ti-search"></i></div><span class="nl">Busca Inteligente</span></div>
       <div class="ni" onclick="nav('inventario',this)"><div class="nic"><i class="ti ti-clipboard-list"></i></div><span class="nl">Inventário</span></div>
+      <div class="ni" onclick="nav('auditoria',this)"><div class="nic"><i class="ti ti-shield-lock"></i></div><span class="nl">Histórico de Auditoria</span></div>
       <div class="ni" onclick="nav('estoque',this)"><div class="nic"><i class="ti ti-building-warehouse"></i></div><span class="nl">Estoque</span></div>
       <div class="ni" onclick="nav('reposicao',this)"><div class="nic"><i class="ti ti-refresh"></i></div><span class="nl">Reposição</span><span class="nb r" id="repos-badge">0</span></div>
       <div class="ni" onclick="nav('compras',this)"><div class="nic"><i class="ti ti-shopping-cart"></i></div><span class="nl">Pedidos de Compra</span><span class="nb r">2</span></div>
@@ -878,6 +879,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 
       <div class="ns">CRM</div>
       <div class="ni" onclick="nav('clientes',this)"><div class="nic"><i class="ti ti-users"></i></div><span class="nl">Clientes</span></div>
+      <div class="ni" onclick="nav('posvenda',this)"><div class="nic"><i class="ti ti-heart-handshake"></i></div><span class="nl">Pós-Venda</span></div>
       <div class="ni" onclick="nav('credito',this)"><div class="nic"><i class="ti ti-credit-card"></i></div><span class="nl">Controle de Crédito</span></div>
       <div class="ni" onclick="nav('fornecedores',this)"><div class="nic"><i class="ti ti-building-store"></i></div><span class="nl">Fornecedores</span></div>
 
@@ -889,6 +891,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       <div class="ni" onclick="nav('bi',this)"><div class="nic"><i class="ti ti-chart-dots-3"></i></div><span class="nl">Business Intelligence</span></div>
       <div class="ni" onclick="nav('ia',this)"><div class="nic"><i class="ti ti-brain"></i></div><span class="nl">Inteligência Artificial</span></div>
       <div class="ni" onclick="nav('relatorios',this)"><div class="nic"><i class="ti ti-report"></i></div><span class="nl">Relatórios</span></div>
+      <div class="ni" onclick="nav('relatorios-livres',this)"><div class="nic"><i class="ti ti-table-export"></i></div><span class="nl">Relatórios Livres</span></div>
 
       <div class="ns">SISTEMA</div>
       <div class="ni" onclick="openAdminPanel()" style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:var(--radius-sm)"><div class="nic" style="background:rgba(245,158,11,.15)"><i class="ti ti-shield-lock" style="color:var(--amber)"></i></div><span class="nl" style="color:var(--amber);font-weight:600">Painel Admin</span></div>
@@ -1958,6 +1961,80 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       </div>
       <div class="screen" id="screen-clientes"><div class="ph"><div class="phl"><h1>Clientes</h1></div><button class="btn bp" onclick="openClienteNovo()"><i class="ti ti-user-plus"></i>Novo</button></div><div class="card"><div class="tw"><table><thead><tr><th>Cliente</th><th>Documento</th><th>Telefone</th><th>Veículos</th><th>Último Serviço</th><th>Limite Crédito</th><th>Total</th><th>Ações</th></tr></thead><tbody id="cli-tbl"></tbody></table></div></div></div>
 
+      <div class="screen" id="screen-relatorios-livres">
+        <div class="ph"><div class="phl"><h1>Relatórios Livres</h1><p>Filtros flexíveis pra Vendas e Produtos, com exportação instantânea</p></div>
+          <button class="btn bp" onclick="exportarRelatorioLivreCSV()"><i class="ti ti-file-download"></i>Exportar Relatório</button>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;gap:8px;margin-bottom:14px">
+            <button class="btn bp btn-sm rl-tipo-btn" data-tipo="vendas" onclick="selecionarTipoRelLivre('vendas',this)"><i class="ti ti-receipt"></i>Vendas</button>
+            <button class="btn bs btn-sm rl-tipo-btn" data-tipo="produtos" onclick="selecionarTipoRelLivre('produtos',this)"><i class="ti ti-box"></i>Produtos</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end">
+            <div id="rl-filtro-periodo">
+              <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Período</label>
+              <div style="display:flex;gap:6px;align-items:center">
+                <input type="date" id="rl-data-ini" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12px;color:var(--text1)">
+                <span style="font-size:11px;color:var(--text3)">até</span>
+                <input type="date" id="rl-data-fim" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12px;color:var(--text1)">
+              </div>
+            </div>
+            <div id="rl-filtro-canal">
+              <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Canal de Venda</label>
+              <select id="rl-canal" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12px;color:var(--text1)">
+                <option value="">Todos os canais</option><option value="balcao">Balcão</option><option value="oficina">Oficina</option><option value="marketplace">Marketplace</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Categoria de Peça</label>
+              <select id="rl-categoria" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12px;color:var(--text1);min-width:150px"><option value="">Todas as categorias</option></select>
+            </div>
+            <div id="rl-filtro-vendedor">
+              <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Vendedor</label>
+              <select id="rl-vendedor" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12px;color:var(--text1);min-width:150px"><option value="">Todos os vendedores</option></select>
+            </div>
+            <div id="rl-filtro-curva" style="display:none">
+              <label style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Curva ABC</label>
+              <select id="rl-curva" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;font-size:12px;color:var(--text1)">
+                <option value="">Todas</option><option value="A">Curva A</option><option value="B">Curva B</option><option value="C">Curva C</option>
+              </select>
+            </div>
+            <button class="btn bp btn-sm" onclick="aplicarFiltrosRelLivre()"><i class="ti ti-filter"></i>Aplicar</button>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="tw"><table><thead id="rl-thead"></thead><tbody id="rl-tbody"></tbody></table></div>
+          <div class="pagination"><span style="font-size:12px;color:var(--text3)" id="rl-pag-info"></span><div class="page-btns" id="rl-page-btns"></div></div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-auditoria">
+        <div class="ph"><div class="phl"><h1>Histórico de Auditoria</h1><p>Toda alteração de estoque, registrada com usuário e motivo — venda, entrada de nota e ajuste manual</p></div><button class="btn bs btn-sm" onclick="carregarHistoricoAuditoria()"><i class="ti ti-refresh"></i>Atualizar</button></div>
+        <div class="card">
+          <div id="auditoria-timeline"></div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-posvenda">
+        <div class="ph"><div class="phl"><h1>Pós-Venda e Retenção</h1><p>Alertas automáticos pra manter contato com o cliente na hora certa</p></div></div>
+
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap" id="posvenda-tabs">
+          <button class="btn bp btn-sm posv-tab" data-tipo="satisfacao" onclick="selecionarAbaPosVenda('satisfacao',this)"><i class="ti ti-mood-smile"></i>Pesquisa de Satisfação <span class="badge bg2" id="posv-count-satisfacao" style="margin-left:4px">0</span></button>
+          <button class="btn bs btn-sm posv-tab" data-tipo="aniversario" onclick="selecionarAbaPosVenda('aniversario',this)"><i class="ti ti-cake"></i>Aniversariantes <span class="badge bg2" id="posv-count-aniversario" style="margin-left:4px">0</span></button>
+          <button class="btn bs btn-sm posv-tab" data-tipo="revisao" onclick="selecionarAbaPosVenda('revisao',this)"><i class="ti ti-tool"></i>Revisão Preventiva <span class="badge bg2" id="posv-count-revisao" style="margin-left:4px">0</span></button>
+          <button class="btn bs btn-sm posv-tab" data-tipo="reativacao" onclick="selecionarAbaPosVenda('reativacao',this)"><i class="ti ti-user-x"></i>Reativação de Cliente <span class="badge bg2" id="posv-count-reativacao" style="margin-left:4px">0</span></button>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="tw"><table>
+            <thead><tr><th>Cliente</th><th>Carro</th><th>Motivo do Alerta</th><th>Ação</th></tr></thead>
+            <tbody id="posvenda-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
       <div class="screen" id="screen-credito">
         <div class="ph"><div class="phl"><h1>Controle de Crédito</h1><p>Pontualidade de pagamento por cliente — quem compensa aumentar limite e quem não compensa mais vender fiado</p></div></div>
         <div class="g4 mb14" id="credito-kpis"></div>
@@ -2357,6 +2434,29 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
           </tr></thead>
           <tbody id="abc-tbody"></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mov" id="modal-motivo-ajuste" onclick="event.stopPropagation()">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="mhd"><span class="mtit"><i class="ti ti-shield-lock" style="color:var(--red)"></i> Motivo do Ajuste Obrigatório</span></div>
+    <div class="mbd">
+      <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);display:flex;gap:8px;align-items:flex-start">
+        <i class="ti ti-alert-triangle" style="color:var(--red);flex-shrink:0;margin-top:1px"></i>
+        <span>Você alterou o estoque manualmente, fora do fluxo automático de venda ou entrada de nota. Por segurança, isso fica registrado com seu usuário e precisa de um motivo.</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:10px;background:var(--bg2);border-radius:var(--radius-xs);padding:8px 10px">
+        <span style="color:var(--text3)">Estoque anterior</span><strong id="motivo-ajuste-qtd-anterior">—</strong>
+        <span style="color:var(--text3)">→</span>
+        <span style="color:var(--text3)">Novo estoque</span><strong id="motivo-ajuste-qtd-nova" style="color:var(--amber)">—</strong>
+      </div>
+      <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Motivo do ajuste *</label>
+      <textarea id="motivo-ajuste-texto" rows="3" placeholder="Ex: Contagem de inventário, avaria, perda, correção de erro de digitação…" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;color:var(--text1);resize:vertical"></textarea>
+      <div class="flx g2b" style="justify-content:flex-end;margin-top:14px">
+        <button class="btn bg" onclick="cancelarAjusteEstoque()"><i class="ti ti-x"></i>Cancelar</button>
+        <button class="btn bp" onclick="confirmarAjusteEstoque()"><i class="ti ti-check"></i>Confirmar Ajuste</button>
       </div>
     </div>
   </div>
@@ -6086,6 +6186,7 @@ function fillProdModal(p){
   set('inp-loc',p.loc||'');
   set('inp-est-min',p.min);
   set('inp-est-atual',p.est);
+  window._prodEstoqueOriginal=p.est;
   const setOpt=(selId,val)=>{
     if(!val)return;
     const sel=document.getElementById(selId);if(!sel)return;
@@ -6161,6 +6262,17 @@ async function movimentarEstoque(produtoId,tipo,quantidade,motivo){
   }
 }
 function saveProduto(mode){
+  const est=parseInt(document.getElementById('inp-est-atual')?.value)||0;
+  // GATILHO da trava de auditoria: se for edição de um produto já existente e o campo
+  // de estoque foi alterado manualmente aqui na tela (fora do fluxo automático de venda
+  // ou entrada de NF-e), a tela SEMPRE exige o Motivo do Ajuste antes de deixar salvar.
+  if(prodEditId!==null&&window._prodEstoqueOriginal!==undefined&&est!==window._prodEstoqueOriginal){
+    abrirModalMotivoAjuste(prodEditId,window._prodEstoqueOriginal,est,mode);
+    return;
+  }
+  continuarSalvarProduto(mode);
+}
+function continuarSalvarProduto(mode){
   const get=id=>(document.getElementById(id)?.value||'').trim();
   const nome=get('inp-nome-tecnico');
   if(!nome){toast('Informe o nome técnico do produto','error');prodTab('id',document.querySelector('.pmt'));return;}
@@ -6319,6 +6431,344 @@ function abrirConversaoDoProdutoAtual(){
   if(prodEditId===null){toast('Salve o produto primeiro pra poder configurar a conversão','error');return;}
   abrirModalConversaoEmbalagem();
   setTimeout(()=>selecionarProdutoConversao(prodEditId),150);
+}
+let pendingAjusteEstoque=null;
+function abrirModalMotivoAjuste(produtoId,qtdAnterior,qtdNova,mode){
+  pendingAjusteEstoque={produtoId,qtdAnterior,qtdNova,mode};
+  const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setTxt('motivo-ajuste-qtd-anterior',qtdAnterior);
+  setTxt('motivo-ajuste-qtd-nova',qtdNova);
+  const txt=document.getElementById('motivo-ajuste-texto');if(txt)txt.value='';
+  openModal('modal-motivo-ajuste');
+}
+function cancelarAjusteEstoque(){
+  // Cancelar devolve o campo de estoque pro valor original — não deixa o ajuste "pendurado"
+  if(pendingAjusteEstoque){
+    const campo=document.getElementById('inp-est-atual');
+    if(campo)campo.value=pendingAjusteEstoque.qtdAnterior;
+  }
+  pendingAjusteEstoque=null;
+  closeModal('modal-motivo-ajuste');
+}
+async function confirmarAjusteEstoque(){
+  if(!pendingAjusteEstoque)return;
+  const motivo=(document.getElementById('motivo-ajuste-texto')?.value||'').trim();
+  // GATILHO da trava no frontend (dobrado pela trava no backend, que é a que realmente protege)
+  if(!motivo){toast('Preencha o motivo do ajuste pra continuar','error');return;}
+  try{
+    const resp=await fetch(API_BASE+'/estoque/ajuste-manual',{method:'POST',headers:authHeaders(),body:JSON.stringify({
+      produto_id:pendingAjusteEstoque.produtoId,quantidade_nova:pendingAjusteEstoque.qtdNova,motivo_ajuste:motivo
+    })});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Falha ao registrar ajuste');}
+    window._prodEstoqueOriginal=pendingAjusteEstoque.qtdNova; // já foi persistido, evita disparar a trava de novo no mesmo save
+    const mode=pendingAjusteEstoque.mode;
+    pendingAjusteEstoque=null;
+    closeModal('modal-motivo-ajuste');
+    toast('✅ Ajuste de estoque registrado com motivo!','success');
+    continuarSalvarProduto(mode);
+  }catch(e){
+    toast('Erro ao registrar ajuste: '+e.message,'error');
+  }
+}
+
+// ======= HISTÓRICO DE AUDITORIA (timeline) =======
+let relLivreTipo='vendas';
+let relLivreDados=[];
+let relLivrePagina=1;
+const REL_LIVRE_PAGE_SIZE=50;
+async function abrirRelatoriosLivres(){
+  const catSel=document.getElementById('rl-categoria');
+  if(catSel&&catSel.options.length<=1){
+    if(!PRODS.length)await carregarProdutos();
+    const cats=[...new Set(PRODS.map(p=>p.cat).filter(Boolean))].sort();
+    catSel.innerHTML='<option value="">Todas as categorias</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  }
+  const vendSel=document.getElementById('rl-vendedor');
+  if(vendSel&&vendSel.options.length<=1){
+    if(!SELLERS.length)await carregarVendedores();
+    vendSel.innerHTML='<option value="">Todos os vendedores</option>'+SELLERS.map(s=>`<option value="${s.n}">${s.n}</option>`).join('');
+  }
+  atualizarFiltrosVisiveisRelLivre();
+  aplicarFiltrosRelLivre();
+}
+function selecionarTipoRelLivre(tipo,el){
+  relLivreTipo=tipo;
+  document.querySelectorAll('.rl-tipo-btn').forEach(b=>{b.classList.remove('bp');b.classList.add('bs');});
+  if(el){el.classList.remove('bs');el.classList.add('bp');}
+  atualizarFiltrosVisiveisRelLivre();
+  aplicarFiltrosRelLivre();
+}
+function atualizarFiltrosVisiveisRelLivre(){
+  const mostrarVendas=relLivreTipo==='vendas';
+  ['rl-filtro-periodo','rl-filtro-canal','rl-filtro-vendedor'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=mostrarVendas?'':'none';});
+  const curvaEl=document.getElementById('rl-filtro-curva');if(curvaEl)curvaEl.style.display=mostrarVendas?'none':'';
+}
+async function aplicarFiltrosRelLivre(){
+  relLivrePagina=1;
+  if(relLivreTipo==='vendas')await carregarRelLivreVendas();
+  else carregarRelLivreProdutos();
+}
+async function carregarRelLivreVendas(){
+  const tbody=document.getElementById('rl-tbody');
+  if(tbody)tbody.innerHTML='<tr><td class="empty">Carregando…</td></tr>';
+  try{
+    if(!PRODS.length)await carregarProdutos();
+    const resp=await fetch(API_BASE+'/vendas',{headers:authHeaders()});
+    let vendas=resp.ok?await resp.json():[];
+    const dataIni=document.getElementById('rl-data-ini')?.value;
+    const dataFim=document.getElementById('rl-data-fim')?.value;
+    const canal=document.getElementById('rl-canal')?.value;
+    const categoria=document.getElementById('rl-categoria')?.value;
+    const vendedor=document.getElementById('rl-vendedor')?.value;
+    if(dataIni)vendas=vendas.filter(v=>new Date(v.criado_em)>=new Date(dataIni+'T00:00:00'));
+    if(dataFim)vendas=vendas.filter(v=>new Date(v.criado_em)<=new Date(dataFim+'T23:59:59'));
+    if(canal)vendas=vendas.filter(v=>(v.canal_venda||'balcao')===canal);
+    if(vendedor)vendas=vendas.filter(v=>v.operador===vendedor);
+    if(categoria)vendas=vendas.filter(v=>(v.itens||[]).some(it=>{if(it.avulso)return false;const p=PRODS.find(x=>x.id===it.id);return p&&p.cat===categoria;}));
+    vendas.sort((a,b)=>new Date(b.criado_em)-new Date(a.criado_em));
+    const canalLabel={balcao:'Balcão',oficina:'Oficina',marketplace:'Marketplace'};
+    relLivreDados=vendas.map(v=>({codigo:v.codigo,cliente:v.cliente_nome||'Consumidor Final',operador:v.operador||'—',canal:canalLabel[v.canal_venda||'balcao']||v.canal_venda,forma:v.forma_pagamento||'—',total:parseFloat(v.total||0),data:new Date(v.criado_em).toLocaleDateString('pt-BR')}));
+    const thead=document.getElementById('rl-thead');
+    if(thead)thead.innerHTML='<tr><th>Código</th><th>Cliente</th><th>Vendedor</th><th>Canal</th><th>Pagamento</th><th>Total</th><th>Data</th></tr>';
+    renderRelLivreTabela();
+  }catch(e){if(tbody)tbody.innerHTML=`<tr><td class="empty">Erro: ${e.message}</td></tr>`;}
+}
+function carregarRelLivreProdutos(){
+  const categoria=document.getElementById('rl-categoria')?.value;
+  const curva=document.getElementById('rl-curva')?.value;
+  let produtos=PRODS.slice();
+  if(categoria)produtos=produtos.filter(p=>p.cat===categoria);
+  if(curva)produtos=produtos.filter(p=>p.curva===curva);
+  produtos.sort((a,b)=>a.n.localeCompare(b.n));
+  relLivreDados=produtos.map(p=>({sku:p.sku,nome:p.n,categoria:p.cat||'—',custo:p.custo,preco:p.preco,estoque:p.est,curva:p.curva,margem:p.mg}));
+  const thead=document.getElementById('rl-thead');
+  if(thead)thead.innerHTML='<tr><th>SKU</th><th>Produto</th><th>Categoria</th><th>Custo</th><th>Preço</th><th>Estoque</th><th>Curva</th><th>Margem</th></tr>';
+  renderRelLivreTabela();
+}
+function renderRelLivreTabela(){
+  const tbody=document.getElementById('rl-tbody');if(!tbody)return;
+  const total=relLivreDados.length;
+  const totalPaginas=Math.max(1,Math.ceil(total/REL_LIVRE_PAGE_SIZE));
+  if(relLivrePagina>totalPaginas)relLivrePagina=totalPaginas;
+  const start=(relLivrePagina-1)*REL_LIVRE_PAGE_SIZE;
+  const pagina=relLivreDados.slice(start,start+REL_LIVRE_PAGE_SIZE);
+  if(!pagina.length){tbody.innerHTML='<tr><td class="empty">Nenhum resultado com esses filtros</td></tr>';}
+  else if(relLivreTipo==='vendas'){
+    tbody.innerHTML=pagina.map(v=>`<tr><td>${v.codigo}</td><td>${v.cliente}</td><td>${v.operador}</td><td><span class="badge bb">${v.canal}</span></td><td>${v.forma}</td><td class="fw6">R$ ${v.total.toFixed(2)}</td><td>${v.data}</td></tr>`).join('');
+  }else{
+    const cv={A:'bg2',B:'ba',C:'br'};
+    tbody.innerHTML=pagina.map(p=>`<tr><td style="font-family:monospace;font-size:11px">${p.sku}</td><td>${p.nome}</td><td><span class="badge bb">${p.categoria}</span></td><td>R$ ${p.custo.toFixed(2)}</td><td>R$ ${p.preco.toFixed(2)}</td><td>${p.estoque}</td><td><span class="badge ${cv[p.curva]||'bb'}">${p.curva}</span></td><td>${p.margem}%</td></tr>`).join('');
+  }
+  const info=document.getElementById('rl-pag-info');
+  if(info)info.textContent=total?`Exibindo ${start+1}–${Math.min(start+REL_LIVRE_PAGE_SIZE,total)} de ${total}`:'Nenhum resultado';
+  renderRelLivrePaginacao(totalPaginas);
+}
+function renderRelLivrePaginacao(totalPaginas){
+  const wrap=document.getElementById('rl-page-btns');if(!wrap)return;
+  if(totalPaginas<=1){wrap.innerHTML='';return;}
+  const p=relLivrePagina;
+  let pages=totalPaginas<=7?Array.from({length:totalPaginas},(_,i)=>i+1):[1,'…',p,'…',totalPaginas].filter((v,i,a)=>a.indexOf(v)===i);
+  wrap.innerHTML=`
+    <div class="page-btn${p<=1?' disabled':''}" onclick="${p>1?`irParaPaginaRelLivre(${p-1})`:''}"><i class="ti ti-chevron-left" style="font-size:12px"></i></div>
+    ${pages.map(n=>n==='…'?'<div class="page-btn disabled">…</div>':`<div class="page-btn${n===p?' active':''}" onclick="irParaPaginaRelLivre(${n})">${n}</div>`).join('')}
+    <div class="page-btn${p>=totalPaginas?' disabled':''}" onclick="${p<totalPaginas?`irParaPaginaRelLivre(${p+1})`:''}"><i class="ti ti-chevron-right" style="font-size:12px"></i></div>
+  `;
+}
+function irParaPaginaRelLivre(n){relLivrePagina=n;renderRelLivreTabela();}
+// GATILHO da exportação: converte TODOS os registros filtrados (não só a página visível na tela) pra CSV,
+// que abre direto no Excel/Google Sheets pra manipulação livre
+function exportarRelatorioLivreCSV(){
+  if(!relLivreDados.length){toast('Nada pra exportar com esses filtros','info');return;}
+  let linhas;
+  if(relLivreTipo==='vendas'){
+    linhas=[['Código','Cliente','Vendedor','Canal','Pagamento','Total','Data'],...relLivreDados.map(v=>[v.codigo,v.cliente,v.operador,v.canal,v.forma,v.total.toFixed(2),v.data])];
+  }else{
+    linhas=[['SKU','Produto','Categoria','Custo','Preço','Estoque','Curva','Margem'],...relLivreDados.map(p=>[p.sku,p.nome,p.categoria,p.custo.toFixed(2),p.preco.toFixed(2),p.estoque,p.curva,p.margem+'%'])];
+  }
+  const csv=linhas.map(l=>l.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`relatorio-${relLivreTipo}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();URL.revokeObjectURL(url);
+  toast(`✅ ${relLivreDados.length} registro(s) exportado(s)!`,'success');
+}
+async function carregarHistoricoAuditoria(){
+  const wrap=document.getElementById('auditoria-timeline');
+  if(wrap)wrap.innerHTML='<div class="empty" style="padding:40px"><i class="ti ti-loader"></i><p>Carregando…</p></div>';
+  try{
+    const resp=await fetch(API_BASE+'/estoque/logs',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar histórico');
+    const logs=await resp.json();
+    if(!wrap)return;
+    if(!logs.length){wrap.innerHTML='<div class="empty" style="padding:40px"><i class="ti ti-history"></i><p>Nenhuma movimentação de estoque registrada ainda.</p></div>';return;}
+    const tipoInfo={
+      Venda:{icon:'ti-shopping-cart',cor:'var(--blue)',label:'Venda'},
+      Entrada_Nota:{icon:'ti-file-invoice',cor:'var(--green)',label:'Entrada de NF-e'},
+      Ajuste_Manual:{icon:'ti-hand-stop',cor:'var(--red)',label:'Ajuste Manual'}
+    };
+    wrap.innerHTML=logs.map(l=>{
+      const info=tipoInfo[l.tipo_movimentacao]||{icon:'ti-circle',cor:'var(--text3)',label:l.tipo_movimentacao};
+      const diff=l.quantidade_nova-l.quantidade_anterior;
+      const data=new Date(l.criado_em).toLocaleString('pt-BR');
+      return`<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="width:34px;height:34px;border-radius:50%;background:${info.cor}22;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ${info.icon}" style="color:${info.cor};font-size:16px"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
+            <span style="font-size:13px;font-weight:600">${l.produto_nome||'Produto #'+l.produto_id} <span class="badge" style="background:${info.cor}22;color:${info.cor};font-size:9px;margin-left:4px">${info.label}</span></span>
+            <span style="font-size:11px;color:var(--text3)">${data}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">
+            Estoque: <strong>${l.quantidade_anterior}</strong> → <strong style="color:${diff>=0?'var(--green)':'var(--red)'}">${l.quantidade_nova}</strong>
+            (${diff>=0?'+':''}${diff}) · por <strong>${l.usuario_nome||'—'}</strong>
+          </div>
+          ${l.motivo_ajuste?`<div style="font-size:11.5px;color:var(--text2);background:var(--bg2);border-radius:var(--radius-xs);padding:6px 9px;margin-top:6px"><i class="ti ti-message-circle" style="font-size:11px;color:var(--text3)"></i> ${l.motivo_ajuste}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    if(wrap)wrap.innerHTML=`<div class="empty" style="padding:40px"><p>Erro: ${e.message}</p></div>`;
+  }
+}
+
+let POSVENDA_DATA={satisfacao:[],aniversario:[],revisao:[],reativacao:[]};
+let posvendaAbaAtiva='satisfacao';
+let posvendaAlertasContatados=[];
+async function carregarPosVenda(){
+  try{
+    if(!CLIENTES_DATA.length)await carregarClientes();
+    if(!PRODS.length)await carregarProdutos();
+    const[respVendas,respStatus]=await Promise.all([
+      fetch(API_BASE+'/vendas',{headers:authHeaders()}),
+      fetch(API_BASE+'/crm/alertas-status',{headers:authHeaders()})
+    ]);
+    const vendas=respVendas.ok?await respVendas.json():[];
+    posvendaAlertasContatados=respStatus.ok?await respStatus.json():[];
+    const jaContatado=(tipo,chave)=>posvendaAlertasContatados.some(a=>a.tipo===tipo&&a.chave===String(chave));
+    const hoje=new Date();
+    const clientePorNome={};
+    CLIENTES_DATA.forEach(c=>{clientePorNome[normTxt(c.n)]=c;});
+    const getCliente=nome=>clientePorNome[normTxt(nome||'')];
+
+    // 1) PESQUISA DE SATISFAÇÃO — vendas fechadas entre 2 e 6 dias atrás (janela pra não perder o gatilho), não devolvidas
+    const satisfacao=[];
+    vendas.forEach(v=>{
+      if(v.devolvida)return;
+      const dias=Math.floor((hoje-new Date(v.criado_em))/86400000);
+      if(dias<2||dias>6)return;
+      if(jaContatado('satisfacao',v.id))return;
+      const cli=getCliente(v.cliente_nome);
+      satisfacao.push({clienteNome:v.cliente_nome||'Cliente',carro:cli?[cli.montadora,cli.modelo].filter(Boolean).join(' '):'—',telefone:cli?.tel||'',motivo:`Compra de ${dias} dia(s) atrás — pedir feedback`,chave:String(v.id)});
+    });
+
+    // 2) ANIVERSARIANTES DO DIA — compara dia/mês da data de nascimento com hoje
+    const aniversario=[];
+    const diaHoje=hoje.getDate(),mesHoje=hoje.getMonth()+1;
+    CLIENTES_DATA.forEach(c=>{
+      if(!c.nasc)return;
+      const partes=c.nasc.split('-').map(Number);
+      if(partes[2]===diaHoje&&partes[1]===mesHoje){
+        aniversario.push({clienteNome:c.n,carro:[c.montadora,c.modelo].filter(Boolean).join(' ')||'—',telefone:c.tel,motivo:'Aniversário hoje 🎉',chave:c.id+'-'+hoje.getFullYear()});
+      }
+    });
+
+    // Última venda por cliente (usado nas regras 3 e 4)
+    const ultimaVendaPorCliente={};
+    vendas.forEach(v=>{
+      const nome=normTxt(v.cliente_nome||'');if(!nome)return;
+      const d=new Date(v.criado_em);
+      if(!ultimaVendaPorCliente[nome]||d>ultimaVendaPorCliente[nome])ultimaVendaPorCliente[nome]=d;
+    });
+
+    // 3) REVISÃO PREVENTIVA — venda de item de desgaste (Motor/Freios/Filtros) há ~6 meses, sem compra depois disso
+    const CATEGORIAS_DESGASTE=['Motor','Freios','Filtros'];
+    const revisao=[];
+    vendas.forEach(v=>{
+      const dias=Math.floor((hoje-new Date(v.criado_em))/86400000);
+      if(dias<170||dias>210)return; // janela em torno de 6 meses (180 dias)
+      const itensDesgaste=(v.itens||[]).filter(it=>{
+        if(it.avulso)return false;
+        const p=PRODS.find(x=>x.id===it.id);
+        return p&&CATEGORIAS_DESGASTE.includes(p.cat);
+      });
+      if(!itensDesgaste.length)return;
+      const nome=normTxt(v.cliente_nome||'');
+      const ultimaCompra=ultimaVendaPorCliente[nome];
+      if(ultimaCompra&&ultimaCompra>new Date(v.criado_em))return; // já voltou depois — não precisa alertar
+      if(jaContatado('revisao',v.id))return;
+      const cli=getCliente(v.cliente_nome);
+      revisao.push({clienteNome:v.cliente_nome||'Cliente',carro:cli?[cli.montadora,cli.modelo].filter(Boolean).join(' '):'—',telefone:cli?.tel||'',motivo:`${itensDesgaste.map(it=>it.n).join(', ').substring(0,40)} — comprado há ${dias} dias`,chave:String(v.id)});
+    });
+
+    // 4) REATIVAÇÃO DE CLIENTE — última compra há mais de 120 dias
+    const reativacao=[];
+    Object.entries(ultimaVendaPorCliente).forEach(([nomeNorm,dataUltima])=>{
+      const dias=Math.floor((hoje-dataUltima)/86400000);
+      if(dias<120)return;
+      const cli=CLIENTES_DATA.find(c=>normTxt(c.n)===nomeNorm);
+      if(!cli)return;
+      const trimestre=Math.floor(hoje.getMonth()/3);
+      const chave=cli.id+'-'+hoje.getFullYear()+'-'+trimestre;
+      if(jaContatado('reativacao',chave))return;
+      reativacao.push({clienteNome:cli.n,carro:[cli.montadora,cli.modelo].filter(Boolean).join(' ')||'—',telefone:cli.tel,motivo:`${dias} dias sem comprar`,chave});
+    });
+
+    POSVENDA_DATA={satisfacao,aniversario,revisao,reativacao};
+    ['satisfacao','aniversario','revisao','reativacao'].forEach(t=>{
+      const badge=document.getElementById('posv-count-'+t);if(badge)badge.textContent=POSVENDA_DATA[t].length;
+    });
+    renderPosVendaTabela();
+  }catch(e){toast('Erro ao carregar Pós-Venda: '+e.message,'error');}
+}
+function selecionarAbaPosVenda(tipo,el){
+  posvendaAbaAtiva=tipo;
+  document.querySelectorAll('.posv-tab').forEach(b=>{b.classList.remove('bp');b.classList.add('bs');});
+  if(el){el.classList.remove('bs');el.classList.add('bp');}
+  renderPosVendaTabela();
+}
+function renderPosVendaTabela(){
+  const lista=POSVENDA_DATA[posvendaAbaAtiva]||[];
+  const tbody=document.getElementById('posvenda-tbody');if(!tbody)return;
+  if(!lista.length){
+    tbody.innerHTML='<tr><td colspan="4" class="empty"><i class="ti ti-circle-check" style="font-size:28px;color:var(--green)"></i><p>Nenhum alerta pendente nessa categoria.</p></td></tr>';
+    return;
+  }
+  // GATILHO da mensagem personalizada — usa [Nome_Cliente]/[Modelo_Carro] já preenchidos por tipo de alerta
+  const mensagens={
+    satisfacao:(nome,carro)=>`Olá ${nome}! Aqui é da ${EMPRESA_INFO.nome||'nossa loja'} 😊 Como foi sua experiência com a compra/serviço no seu ${carro||'veículo'}? Sua opinião é muito importante pra gente!`,
+    aniversario:(nome)=>`Olá ${nome}! 🎉 A equipe da ${EMPRESA_INFO.nome||'nossa loja'} deseja um Feliz Aniversário! Passa aqui que temos uma condição especial esperando por você hoje.`,
+    revisao:(nome,carro)=>`Olá ${nome}! Faz uns 6 meses da sua última manutenção no ${carro||'veículo'}. Que tal agendar uma revisão preventiva pra garantir que está tudo certo?`,
+    reativacao:(nome,carro)=>`Olá ${nome}! Sentimos sua falta por aqui 🙂 Temos novidades e condições especiais esperando por você e pelo seu ${carro||'veículo'}. Bora dar uma passada?`,
+  };
+  tbody.innerHTML=lista.map(item=>{
+    const msg=mensagens[posvendaAbaAtiva](item.clienteNome,item.carro);
+    const link=gerarLinkWhatsApp(item.telefone,msg);
+    return`<tr>
+      <td class="fw6">${item.clienteNome}</td>
+      <td>${item.carro||'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${item.motivo}</td>
+      <td><div class="flx g2b">
+        ${link?`<a class="btn bg btn-sm" href="${link}" target="_blank" style="color:#25D366"><i class="ti ti-brand-whatsapp"></i>Enviar</a>`:'<span style="font-size:11px;color:var(--text3)">Sem WhatsApp cadastrado</span>'}
+        <button class="btn bs btn-sm" onclick="marcarAlertaContatado('${posvendaAbaAtiva}','${item.chave}')" title="Marcar como contatado"><i class="ti ti-check"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function gerarLinkWhatsApp(telefone,mensagem){
+  const digitos=(telefone||'').replace(/\D/g,'');
+  if(!digitos)return null;
+  const comDDI=digitos.length<=11?'55'+digitos:digitos; // adiciona DDI Brasil se não tiver
+  return `https://wa.me/${comDDI}?text=${encodeURIComponent(mensagem)}`;
+}
+async function marcarAlertaContatado(tipo,chave){
+  try{
+    const resp=await fetch(API_BASE+'/crm/alertas-status',{method:'POST',headers:authHeaders(),body:JSON.stringify({tipo,chave})});
+    if(!resp.ok)throw new Error('Falha ao marcar como contatado');
+    POSVENDA_DATA[tipo]=POSVENDA_DATA[tipo].filter(i=>i.chave!==chave);
+    const badge=document.getElementById('posv-count-'+tipo);if(badge)badge.textContent=POSVENDA_DATA[tipo].length;
+    renderPosVendaTabela();
+    toast('✅ Marcado como contatado!','success');
+  }catch(e){toast('Erro: '+e.message,'error');}
 }
 function abrirCurvaAbcAvancada(){
   const catSel=document.getElementById('abc-categoria');
@@ -10617,7 +11067,7 @@ function openCreditoDetalhe(clienteId){
 }
 
 // ======= CLIENTE — SAVE + UTILITÁRIOS =======
-const CLI_FIELD_IDS=['cli-nome','cli-apelido','cli-doc','cli-whats','cli-email','cli-cep','cli-rua','cli-num','cli-comp','cli-bairro','cli-cidade','cli-placa','cli-modelo','cli-ano','cli-motor','cli-cor','cli-limite','cli-obs'];
+const CLI_FIELD_IDS=['cli-nome','cli-apelido','cli-doc','cli-nasc','cli-whats','cli-email','cli-cep','cli-rua','cli-num','cli-comp','cli-bairro','cli-cidade','cli-placa','cli-modelo','cli-ano','cli-motor','cli-cor','cli-limite','cli-obs'];
 let editingClienteIdx=null;
 async function excluirClienteAtual(){
   if(editingClienteIdx===null||!CLIENTES_DATA[editingClienteIdx])return;
@@ -10640,6 +11090,7 @@ function mapClienteFromApi(row){
     email:row.email||'',cep:row.cep||'',rua:row.rua||'',num:row.numero||'',comp:row.complemento||'',
     bairro:row.bairro||'',cidade:row.cidade||'',uf:row.uf||'',placa:row.placa||'',montadora:row.montadora||'',
     modelo:row.modelo||'',ano:row.ano_veiculo||'',motor:row.motor||'',cor:row.cor||'',
+    nasc:row.data_nascimento?String(row.data_nascimento).slice(0,10):'',
     limite:parseFloat(row.limite_credito)||0,prazo:row.prazo_pagamento||'À vista',obs:row.observacoes||'',
     tot:0,veics:0,u:row.criado_em?new Date(row.criado_em).toLocaleDateString('pt-BR'):'—'
   };
@@ -10674,7 +11125,7 @@ function openClienteDetail(idx){
   editingClienteIdx=idx;
   const title=document.getElementById('modal-cli-title');if(title)title.textContent='Editar Cliente';
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
-  set('cli-nome',c.n);set('cli-apelido',c.apelido);set('cli-doc',c.d);set('cli-whats',c.tel);set('cli-email',c.email);
+  set('cli-nome',c.n);set('cli-apelido',c.apelido);set('cli-doc',c.d);set('cli-nasc',c.nasc);set('cli-whats',c.tel);set('cli-email',c.email);
   set('cli-cep',c.cep);set('cli-rua',c.rua);set('cli-num',c.num);set('cli-comp',c.comp);set('cli-bairro',c.bairro);set('cli-cidade',c.cidade);
   set('cli-placa',c.placa);set('cli-modelo',c.modelo);set('cli-ano',c.ano);set('cli-motor',c.motor);set('cli-cor',c.cor);
   set('cli-limite',c.limite??0);set('cli-obs',c.obs);
@@ -10692,6 +11143,7 @@ async function saveCliente(){
     nome,
     apelido:(document.getElementById('cli-apelido')?.value||'').trim(),
     cpf_cnpj:(document.getElementById('cli-doc')?.value||'').trim(),
+    data_nascimento:document.getElementById('cli-nasc')?.value||null,
     telefone:(document.getElementById('cli-whats')?.value||'').trim(),
     email:(document.getElementById('cli-email')?.value||'').trim(),
     cep:(document.getElementById('cli-cep')?.value||'').trim(),
@@ -11956,6 +12408,9 @@ function nav(id,el){
   if(id==='dashboard')setTimeout(()=>carregarDashboard(),50);
   if(id==='clientes')setTimeout(()=>carregarClientes(),50);
   if(id==='comissoes')setTimeout(()=>{Promise.all([carregarVendedores(),carregarMecanicos()]).then(renderComissoes);},50);
+  if(id==='posvenda')setTimeout(()=>carregarPosVenda(),50);
+  if(id==='auditoria')setTimeout(()=>carregarHistoricoAuditoria(),50);
+  if(id==='relatorios-livres')setTimeout(()=>abrirRelatoriosLivres(),50);
   if(id==='dre')setTimeout(()=>{
     Promise.all([
       (!PRODS.length?carregarProdutos():Promise.resolve()),
