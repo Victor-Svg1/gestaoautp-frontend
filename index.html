@@ -6303,7 +6303,7 @@ function mapProdutoFromApi(row){
   const precoSugerido=row.preco_sugerido!=null?parseFloat(row.preco_sugerido):null;
   const qtdEmbalagem=parseInt(row.qtd_embalagem)||1;
   return{
-    id:row.id,n:row.nome||'',pop:row.nome||'',sku:row.sku||'',ean:row.codigo_barras||'',ncm:row.ncm||'',oem:'',refcross:'',
+    id:row.id,n:row.nome||'',pop:row.nome||'',sku:row.sku||'',ean:row.codigo_barras||'',ncm:row.ncm||'',oem:row.oem||'',refcross:row.referencia_cruzada||'',
     precoSugerido,unidadeCompra:row.unidade_compra||'',unidadeVenda:row.unidade_venda||'Unidade',qtdEmbalagem,
     codigoInterno:'AP'+String(row.id).padStart(6,'0'),
     obs:'',loc:row.loc||'',compatLivre:row.compat||'',compatEstruturada,compat:row.compat||'A cadastrar',
@@ -6371,7 +6371,8 @@ function continuarSalvarProduto(mode){
     categoria:cat,subcategoria:document.getElementById('modal-subcat')?.value||'',
     fornecedor_id:fornId,custo:parseFloat(custo.toFixed(2)),preco:parseFloat(preco.toFixed(2)),
     estoque:est,estoque_minimo:min,compat:compatFull,loc:get('inp-loc').toUpperCase(),
-    codigo_barras:get('inp-ean'),compatibilidade:compatRows,ncm:get('inp-ncm')
+    codigo_barras:get('inp-ean'),compatibilidade:compatRows,ncm:get('inp-ncm'),
+    oem:get('inp-oem'),referencia_cruzada:get('inp-refcross')
   };
   saveProdutoAsync(payload,mode,nome);
 }
@@ -6682,35 +6683,63 @@ async function carregarHistoricoAuditoria(){
   const wrap=document.getElementById('auditoria-timeline');
   if(wrap)wrap.innerHTML='<div class="empty" style="padding:40px"><i class="ti ti-loader"></i><p>Carregando…</p></div>';
   try{
-    const resp=await fetch(API_BASE+'/estoque/logs',{headers:authHeaders()});
-    if(!resp.ok)throw new Error('Falha ao carregar histórico');
-    const logs=await resp.json();
+    const[respEstoque,respCampos]=await Promise.all([
+      fetch(API_BASE+'/estoque/logs',{headers:authHeaders()}),
+      fetch(API_BASE+'/produtos/auditoria/historico',{headers:authHeaders()})
+    ]);
+    const logsEstoque=respEstoque.ok?await respEstoque.json():[];
+    const logsCampos=respCampos.ok?await respCampos.json():[];
     if(!wrap)return;
-    if(!logs.length){wrap.innerHTML='<div class="empty" style="padding:40px"><i class="ti ti-history"></i><p>Nenhuma movimentação de estoque registrada ainda.</p></div>';return;}
-    const tipoInfo={
+    // Junta os dois tipos de registro (movimentação de estoque + alteração de campo) numa timeline só, por data
+    const eventos=[
+      ...logsEstoque.map(l=>({tipo:'estoque',data:l.criado_em,dados:l})),
+      ...logsCampos.map(l=>({tipo:'campo',data:l.criado_em,dados:l}))
+    ].sort((a,b)=>new Date(b.data)-new Date(a.data));
+    if(!eventos.length){wrap.innerHTML='<div class="empty" style="padding:40px"><i class="ti ti-history"></i><p>Nenhuma alteração registrada ainda.</p></div>';return;}
+    const tipoInfoEstoque={
       Venda:{icon:'ti-shopping-cart',cor:'var(--blue)',label:'Venda'},
       Entrada_Nota:{icon:'ti-file-invoice',cor:'var(--green)',label:'Entrada de NF-e'},
       Ajuste_Manual:{icon:'ti-hand-stop',cor:'var(--red)',label:'Ajuste Manual'},
       Exclusao_Produto:{icon:'ti-trash',cor:'var(--red)',label:'Produto Excluído'}
     };
-    wrap.innerHTML=logs.map(l=>{
-      const info=tipoInfo[l.tipo_movimentacao]||{icon:'ti-circle',cor:'var(--text3)',label:l.tipo_movimentacao};
-      const diff=l.quantidade_nova-l.quantidade_anterior;
-      const data=new Date(l.criado_em).toLocaleString('pt-BR');
-      return`<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
-        <div style="width:34px;height:34px;border-radius:50%;background:${info.cor}22;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ${info.icon}" style="color:${info.cor};font-size:16px"></i></div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
-            <span style="font-size:13px;font-weight:600">${l.produto_nome||'Produto #'+l.produto_id} <span class="badge" style="background:${info.cor}22;color:${info.cor};font-size:9px;margin-left:4px">${info.label}</span></span>
-            <span style="font-size:11px;color:var(--text3)">${data}</span>
+    wrap.innerHTML=eventos.map(ev=>{
+      const data=new Date(ev.data).toLocaleString('pt-BR');
+      if(ev.tipo==='estoque'){
+        const l=ev.dados;
+        const info=tipoInfoEstoque[l.tipo_movimentacao]||{icon:'ti-circle',cor:'var(--text3)',label:l.tipo_movimentacao};
+        const diff=l.quantidade_nova-l.quantidade_anterior;
+        return`<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="width:34px;height:34px;border-radius:50%;background:${info.cor}22;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ${info.icon}" style="color:${info.cor};font-size:16px"></i></div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
+              <span style="font-size:13px;font-weight:600">${l.produto_nome||'Produto #'+l.produto_id} <span class="badge" style="background:${info.cor}22;color:${info.cor};font-size:9px;margin-left:4px">${info.label}</span></span>
+              <span style="font-size:11px;color:var(--text3)">${data}</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">
+              Estoque: <strong>${l.quantidade_anterior}</strong> → <strong style="color:${diff>=0?'var(--green)':'var(--red)'}">${l.quantidade_nova}</strong>
+              (${diff>=0?'+':''}${diff}) · por <strong>${l.usuario_nome||'—'}</strong>
+            </div>
+            ${l.motivo_ajuste?`<div style="font-size:11.5px;color:var(--text2);background:var(--bg2);border-radius:var(--radius-xs);padding:6px 9px;margin-top:6px"><i class="ti ti-message-circle" style="font-size:11px;color:var(--text3)"></i> ${l.motivo_ajuste}</div>`:''}
           </div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">
-            Estoque: <strong>${l.quantidade_anterior}</strong> → <strong style="color:${diff>=0?'var(--green)':'var(--red)'}">${l.quantidade_nova}</strong>
-            (${diff>=0?'+':''}${diff}) · por <strong>${l.usuario_nome||'—'}</strong>
+        </div>`;
+      }else{
+        // Alteração de campo (nome, SKU, compatibilidade, localização, etc.)
+        const l=ev.dados;
+        const antesTxt=(l.valor_anterior||'').trim()||'(vazio)';
+        const depoisTxt=(l.valor_novo||'').trim()||'(vazio)';
+        return`<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="width:34px;height:34px;border-radius:50%;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-edit" style="color:#8B5CF6;font-size:16px"></i></div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
+              <span style="font-size:13px;font-weight:600">${l.produto_nome||'Produto #'+l.produto_id} <span class="badge" style="background:rgba(139,92,246,.15);color:#8B5CF6;font-size:9px;margin-left:4px">${l.campo}</span></span>
+              <span style="font-size:11px;color:var(--text3)">${data}</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">
+              "<span style="color:var(--text3)">${antesTxt.substring(0,60)}</span>" → "<strong>${depoisTxt.substring(0,60)}</strong>" · por <strong>${l.usuario_nome||'—'}</strong>
+            </div>
           </div>
-          ${l.motivo_ajuste?`<div style="font-size:11.5px;color:var(--text2);background:var(--bg2);border-radius:var(--radius-xs);padding:6px 9px;margin-top:6px"><i class="ti ti-message-circle" style="font-size:11px;color:var(--text3)"></i> ${l.motivo_ajuste}</div>`:''}
-        </div>
-      </div>`;
+        </div>`;
+      }
     }).join('');
   }catch(e){
     if(wrap)wrap.innerHTML=`<div class="empty" style="padding:40px"><p>Erro: ${e.message}</p></div>`;
