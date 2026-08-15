@@ -3882,10 +3882,10 @@ async function carregarOS(){
     const rows=await resp.json();
     OS_DATA.length=0;
     OS_DATA.push(...rows.map(r=>({
-      backendId:r.id,id:r.numero,cli:r.cliente_nome,tel:r.telefone||'',cpfCnpj:r.cpf_cnpj||'',
+      backendId:r.id,id:r.numero||('#'+(2999+r.id)),cli:r.cliente,tel:r.telefone||'',cpfCnpj:r.cpf_cnpj||'',
       endereco:r.endereco||'',cidade:r.cidade||'',placa:r.placa||'',vei:r.veiculo||'',
       km:parseInt(r.km)||0,box:r.box||'',mec:r.mecanico||'A definir',st:r.status||'aberta',
-      val:parseFloat(r.valor_total)||0,def:r.defeito||'—',diag:r.diagnostico||'Diagnóstico pendente',
+      val:parseFloat(r.valor)||0,def:r.defeito||'—',diag:r.diagnostico||'Diagnóstico pendente',
       prev:r.previsao||'A definir',svcs:[],pcs:r.pecas||[],srvs:r.servicos||[]
     })));
     renderOS();
