@@ -5862,7 +5862,8 @@ function finalizeSale(){
   if(typeof currentUser!=='undefined'&&currentUser&&currentUser.perfil==='vendedor'&&currentUser.id){
     comissaoUsuarioId=currentUser.id;
     fetch(API_BASE+'/usuarios/'+currentUser.id+'/registrar-venda',{method:'POST',headers:authHeaders(),body:JSON.stringify({valor:tot,referencia:'PDV '+numVenda})})
-      .catch(()=>toast('⚠️ Venda registrada, mas houve falha ao sincronizar a comissão do vendedor','error'));
+      .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);})
+      .catch(e=>toast('⚠️ Venda registrada, mas a comissão do vendedor NÃO foi sincronizada: '+e.message,'error'));
   }
   // Registra a compra no histórico do cliente ou do mecânico (se comprou como mecânico)
   if(pdvSelectedCliente){
@@ -5878,7 +5879,8 @@ function finalizeSale(){
         // Soma ao faturamento do mecânico de verdade, no banco — é esse valor que gera a comissão dele
         m.fat=parseFloat(((m.fat||0)+tot).toFixed(2));
         fetch(API_BASE+'/usuarios/'+m.id+'/registrar-venda',{method:'POST',headers:authHeaders(),body:JSON.stringify({valor:tot,referencia:'PDV '+numVenda})})
-          .catch(()=>toast('⚠️ Venda registrada, mas houve falha ao sincronizar a comissão do mecânico','error'));
+          .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);})
+          .catch(e=>toast('⚠️ Venda registrada, mas a comissão do mecânico NÃO foi sincronizada: '+e.message,'error'));
       }
     }
   }
@@ -6320,10 +6322,10 @@ function mapProdutoFromApi(row){
   const precoSugerido=row.preco_sugerido!=null?parseFloat(row.preco_sugerido):null;
   const qtdEmbalagem=parseInt(row.qtd_embalagem)||1;
   return{
-    id:row.id,n:row.nome||'',pop:row.nome||'',sku:row.sku||'',ean:row.codigo_barras||'',ncm:row.ncm||'',oem:row.oem||'',refcross:row.referencia_cruzada||'',
+    id:row.id,n:row.nome||'',pop:row.nome_popular||row.nome||'',sku:row.sku||'',ean:row.codigo_barras||'',ncm:row.ncm||'',oem:row.oem||'',refcross:row.referencia_cruzada||'',
     precoSugerido,unidadeCompra:row.unidade_compra||'',unidadeVenda:row.unidade_venda||'Unidade',qtdEmbalagem,
     codigoInterno:'AP'+String(row.id).padStart(6,'0'),
-    obs:'',loc:row.loc||'',compatLivre:row.compat||'',compatEstruturada,compat:row.compat||'A cadastrar',
+    obs:row.observacoes||'',loc:row.loc||'',compatLivre:row.compat||'',compatEstruturada,compat:row.compat||'A cadastrar',
     marca:row.marca||'',cat:row.categoria||'',subcat:row.subcategoria||'',
     fornecedor_id:row.fornecedor_id||null,forn:(FORNECEDORES_DATA.find(f=>f.id===row.fornecedor_id)||{}).nome||'',
     custo,preco,mg:custo>0?parseFloat((((preco-custo)/custo)*100).toFixed(1)):0,
@@ -6389,7 +6391,8 @@ function continuarSalvarProduto(mode){
     fornecedor_id:fornId,custo:parseFloat(custo.toFixed(2)),preco:parseFloat(preco.toFixed(2)),
     estoque:est,estoque_minimo:min,compat:compatFull,loc:get('inp-loc').toUpperCase(),
     codigo_barras:get('inp-ean'),compatibilidade:compatRows,ncm:get('inp-ncm'),
-    oem:get('inp-oem'),referencia_cruzada:get('inp-refcross')
+    oem:get('inp-oem'),referencia_cruzada:get('inp-refcross'),
+    observacoes:get('inp-obs'),nome_popular:get('inp-nome-popular')
   };
   saveProdutoAsync(payload,mode,nome);
 }
