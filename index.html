@@ -3874,6 +3874,50 @@ let FORNECEDORES_DATA=[];
 let ORC_DATA=[];
 let PRODS=[];
 let OS_DATA=[];
+// ======= ORDENS DE SERVIÇO — agora sincronizadas de verdade com o banco de dados =======
+async function carregarOS(){
+  try{
+    const resp=await fetch(API_BASE+'/os',{headers:authHeaders()});
+    if(!resp.ok)throw new Error('Falha ao carregar Ordens de Serviço');
+    const rows=await resp.json();
+    OS_DATA.length=0;
+    OS_DATA.push(...rows.map(r=>({
+      backendId:r.id,id:r.numero,cli:r.cliente_nome,tel:r.telefone||'',cpfCnpj:r.cpf_cnpj||'',
+      endereco:r.endereco||'',cidade:r.cidade||'',placa:r.placa||'',vei:r.veiculo||'',
+      km:parseInt(r.km)||0,box:r.box||'',mec:r.mecanico||'A definir',st:r.status||'aberta',
+      val:parseFloat(r.valor_total)||0,def:r.defeito||'—',diag:r.diagnostico||'Diagnóstico pendente',
+      prev:r.previsao||'A definir',svcs:[],pcs:r.pecas||[],srvs:r.servicos||[]
+    })));
+    renderOS();
+  }catch(e){
+    toast('Erro ao carregar Ordens de Serviço: '+e.message,'error');
+  }
+}
+// Salva o estado atual de uma OS no banco — usado toda vez que algo muda (criar, add peça/serviço, status)
+async function salvarOSAsync(o){
+  try{
+    const payload={
+      numero:o.id,cliente_nome:o.cli,telefone:o.tel,cpf_cnpj:o.cpfCnpj,
+      endereco:o.endereco,cidade:o.cidade,placa:o.placa,veiculo:o.vei,
+      km:o.km||0,box:o.box,mecanico:o.mec,status:o.st,valor_total:o.val||0,
+      defeito:o.def,diagnostico:o.diag,previsao:o.prev,
+      servicos:o.srvs||[],pecas:o.pcs||[]
+    };
+    let resp;
+    if(o.backendId){
+      resp=await fetch(API_BASE+'/os/'+o.backendId,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    }else{
+      resp=await fetch(API_BASE+'/os',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+    }
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.erro||'Falha ao salvar OS');}
+    const data=await resp.json();
+    o.backendId=data.id;
+    return true;
+  }catch(e){
+    toast('⚠️ OS atualizada na tela, mas falhou ao sincronizar com o servidor: '+e.message,'error');
+    return false;
+  }
+}
 let VEICULOS=[];
 let GARANTIAS=[];
 const NOTIFS=[
@@ -4159,22 +4203,24 @@ function lerFormNovaOS(){
     origem:document.getElementById('os-new-origem')?.value||''
   };
 }
-function criarNovaOS(){
+async function criarNovaOS(){
   const f=lerFormNovaOS();
   if(!f.cli){toast('Informe o nome do cliente','error');return;}
   if(!f.vei){toast('Informe o veículo (placa)','error');return;}
   const maxNum=OS_DATA.reduce((mx,o)=>{const n=parseInt((o.id||'').replace('#',''));return isNaN(n)?mx:Math.max(mx,n);},2999);
   const novoId='#'+(maxNum+1);
   const prev=f.previsao?new Date(f.previsao).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'A definir';
-  OS_DATA.unshift({
+  const novaOS={
     id:novoId,cli:f.cli,tel:f.tel,cpfCnpj:f.cpfCnpj,endereco:f.endereco,cidade:f.cidade,
     placa:f.vei.toUpperCase(),vei:f.vei,km:f.km,box:f.box,mec:f.mec||'A definir',
     st:'aberta',val:0,def:f.def||'—',diag:f.diag||'Diagnóstico pendente',prev,svcs:[],pcs:[],srvs:[]
-  });
-  saveData();
+  };
+  OS_DATA.unshift(novaOS);
   renderOS();
   closeModal('modal-os-new');
   toast(`✅ OS ${novoId} aberta para ${f.cli}!`,'success');
+  await salvarOSAsync(novaOS);
+  renderOS();
 }
 function salvarOSComoOrcamento(){
   const f=lerFormNovaOS();
@@ -4195,7 +4241,7 @@ function salvarOSComoOrcamento(){
   closeModal('modal-os-new');
   toast(`✅ Orçamento ${newId} criado a partir dos dados informados!`,'success');
 }
-function excluirOS(id){
+async function excluirOS(id){
   const o=OS_DATA.find(x=>x.id===id);if(!o)return;
   if(!confirm(`Tem certeza que deseja excluir a OS ${id} (${o.cli})? Essa ação não pode ser desfeita.`))return;
   const idx=OS_DATA.findIndex(x=>x.id===id);
@@ -4207,6 +4253,14 @@ function excluirOS(id){
   }
   renderOS(document.querySelector('.sfield input')?.value||'');
   toast(`✅ OS ${id} excluída!`,'success');
+  if(o.backendId){
+    try{
+      const resp=await fetch(API_BASE+'/os/'+o.backendId,{method:'DELETE',headers:authHeaders()});
+      if(!resp.ok)throw new Error('HTTP '+resp.status);
+    }catch(e){
+      toast('⚠️ OS removida da tela, mas falhou ao excluir no servidor: '+e.message,'error');
+    }
+  }
 }
 function filterOS(v){renderOS(v);}
 function filterOSStatus(s){renderOS('',s);}
@@ -4348,7 +4402,7 @@ function recalcularTotalOS(o){
   const totalServicos=(o.srvs||[]).reduce((s,x)=>s+x.val,0);
   o.val=parseFloat((totalPecas+totalServicos).toFixed(2));
 }
-function adicionarServicoOS(osId){
+async function adicionarServicoOS(osId){
   const o=OS_DATA.find(x=>x.id===osId);if(!o)return;
   const desc=(document.getElementById('os-add-servico-desc')?.value||'').trim();
   const val=parseFloat(document.getElementById('os-add-servico-valor')?.value||0);
@@ -4357,18 +4411,18 @@ function adicionarServicoOS(osId){
   if(!Array.isArray(o.srvs))o.srvs=[];
   o.srvs.push({desc,val});
   recalcularTotalOS(o);
-  saveData();
   toast(`✅ Serviço "${desc.substring(0,30)}" adicionado à OS!`,'success');
   selectOS(osId);
   setTimeout(reabrirAbaPecasOS,50);
+  await salvarOSAsync(o);
 }
-function removerServicoOS(osId,idx){
+async function removerServicoOS(osId,idx){
   const o=OS_DATA.find(x=>x.id===osId);if(!o||!o.srvs)return;
   o.srvs.splice(idx,1);
   recalcularTotalOS(o);
-  saveData();
   selectOS(osId);
   setTimeout(reabrirAbaPecasOS,50);
+  await salvarOSAsync(o);
 }
 function toggleBuscaPecaOS(){
   const wrap=document.getElementById('os-add-peca-busca-wrap');if(!wrap)return;
@@ -4392,19 +4446,19 @@ function reabrirAbaPecasOS(){
   ['info','pcs','ck','fotos','sig'].forEach(t=>{const e=document.getElementById('os-tab-'+t);if(e)e.style.display=t==='pcs'?'block':'none';});
   document.querySelectorAll('#os-detail-content .tab').forEach((t,i)=>{t.classList.toggle('active',i===1);});
 }
-function adicionarPecaOS(osId,produtoId){
+async function adicionarPecaOS(osId,produtoId){
   const o=OS_DATA.find(x=>x.id===osId);if(!o)return;
   const p=PRODS.find(x=>x.id===produtoId);if(!p)return;
   const existente=o.pcs.find(it=>it.produtoId===produtoId);
   if(existente){existente.q+=1;existente.val=parseFloat((existente.q*p.preco).toFixed(2));}
   else{o.pcs.push({produtoId,n:p.n,q:1,val:p.preco});}
   recalcularTotalOS(o);
-  saveData();
   toast(`"${p.n.substring(0,30)}" adicionada à OS!`,'success');
   selectOS(osId);
   setTimeout(reabrirAbaPecasOS,50);
+  await salvarOSAsync(o);
 }
-function alterarQtdPecaOS(osId,idx,delta){
+async function alterarQtdPecaOS(osId,idx,delta){
   const o=OS_DATA.find(x=>x.id===osId);if(!o)return;
   const it=o.pcs[idx];if(!it)return;
   const unit=it.val/it.q;
@@ -4412,9 +4466,9 @@ function alterarQtdPecaOS(osId,idx,delta){
   if(it.q<=0){o.pcs.splice(idx,1);}
   else{it.val=parseFloat((it.q*unit).toFixed(2));}
   recalcularTotalOS(o);
-  saveData();
   selectOS(osId);
   setTimeout(reabrirAbaPecasOS,50);
+  await salvarOSAsync(o);
 }
 function osTab(id,el){
   ['info','pcs','ck','fotos','sig'].forEach(t=>{const e=document.getElementById('os-tab-'+t);if(e)e.style.display=t===id?'block':'none';});
@@ -8267,11 +8321,29 @@ function renderRelFiscal(container){
   </div>`;
 }
 function renderRelOS(container){
-  container.innerHTML=`<div class="empty" style="padding:50px">
-    <i class="ti ti-clipboard-list" style="font-size:32px"></i>
-    <p>Relatório de Ordens de Serviço ainda não está disponível — o módulo de OS ainda não foi migrado pro banco de dados central.</p>
-    <p style="font-size:11px;margin-top:6px">${OS_DATA.length} OS registrada(s) localmente neste navegador (não sincronizada(s)).</p>
-  </div>`;
+  if(!OS_DATA.length){
+    container.innerHTML=`<div class="empty" style="padding:50px"><i class="ti ti-clipboard-list" style="font-size:32px"></i><p>Nenhuma Ordem de Serviço registrada ainda.</p></div>`;
+    return;
+  }
+  const porStatus={aberta:0,andamento:0,concluida:0,aguardando:0};
+  OS_DATA.forEach(o=>{if(porStatus[o.st]!==undefined)porStatus[o.st]++;});
+  const faturamentoTotal=OS_DATA.reduce((s,o)=>s+(o.val||0),0);
+  const sc={andamento:'bb',concluida:'bg2',aberta:'ba',aguardando:'br'};
+  const sl={andamento:'Em andamento',concluida:'Concluída',aberta:'Em aberto',aguardando:'Aguard. aprovação'};
+  container.innerHTML=`
+    <div class="g4 mb14">
+      ${kpiCard('cg','ti-clipboard-check','Concluídas',porStatus.concluida)}
+      ${kpiCard('cb','ti-tool','Em Andamento',porStatus.andamento)}
+      ${kpiCard('ca','ti-clock','Em Aberto',porStatus.aberta)}
+      ${kpiCard('cr','ti-currency-real','Faturamento em OS','R$ '+faturamentoTotal.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Ordens de Serviço</div><button class="btn bs btn-sm" onclick="exportarRelatorioCSV('os')"><i class="ti ti-file-spreadsheet"></i>CSV</button></div>
+      <div class="tw" style="max-height:400px;overflow-y:auto"><table><thead><tr><th>OS</th><th>Cliente</th><th>Veículo</th><th>Mecânico</th><th>Status</th><th>Valor</th></tr></thead><tbody>
+      ${OS_DATA.map(o=>`<tr><td class="fw6 ta">${o.id}</td><td>${o.cli}</td><td>${o.vei}</td><td>${o.mec}</td><td><span class="badge ${sc[o.st]||'bb'}">${sl[o.st]||o.st}</span></td><td class="fw6">R$ ${(o.val||0).toFixed(2)}</td></tr>`).join('')}
+      </tbody></table></div>
+    </div>`;
+  window._relOSData={lista:OS_DATA};
 }
 
 function exportarRelatorioCSV(kind){
@@ -8283,6 +8355,7 @@ function exportarRelatorioCSV(kind){
   else if(kind==='clientes'&&window._relClientesData)linhas=[['Cliente','Compras','Total Gasto','Última Compra'],...window._relClientesData.ranking.map(c=>[c.nome,c.qtd,c.total.toFixed(2),c.ultima])];
   else if(kind==='fornecedores'&&window._relFornecedoresData)linhas=[['Fornecedor','Pedidos','Volume Total'],...window._relFornecedoresData.ranking.map(f=>[f.nome,f.qtd,f.total.toFixed(2)])];
   else if(kind==='garantias'&&window._relGarantiasData)linhas=[['Cliente','Item','Vencimento','Status'],...window._relGarantiasData.lista.map(g=>[g.cli,g.svc,g.venc,g.st])];
+  else if(kind==='os'&&window._relOSData)linhas=[['OS','Cliente','Veículo','Mecânico','Status','Valor'],...window._relOSData.lista.map(o=>[o.id,o.cli,o.vei,o.mec,o.st,(o.val||0).toFixed(2)])];
   if(!linhas.length){toast('Nada pra exportar ainda','info');return;}
   const csv=linhas.map(l=>l.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
   const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
@@ -8331,7 +8404,7 @@ async function selectReport(type,el){
   else if(type==='fornecedores')await renderRelFornecedores(container);
   else if(type==='garantias')await renderRelGarantias(container);
   else if(type==='fiscal')renderRelFiscal(container);
-  else if(type==='os')renderRelOS(container);
+  else if(type==='os'){if(!OS_DATA.length)await carregarOS();renderRelOS(container);}
 }
 
 
@@ -12584,7 +12657,7 @@ function nav(id,el){
     ]).finally(()=>carregarDRE());
   },50);
   if(id==='financeiro')setTimeout(renderFinanceiro,50);
-  if(id==='os')setTimeout(renderOS,50);
+  if(id==='os')setTimeout(()=>carregarOS(),50);
   if(id==='config')setTimeout(()=>{
     const info=document.getElementById('storage-info');
     if(!info)return;
@@ -12770,7 +12843,7 @@ function saveData(){
   try{
     localStorage.setItem(STORAGE_KEY_PRODS,'[]');
     localStorage.setItem(STORAGE_KEY_ORC,JSON.stringify(ORC_DATA));
-    localStorage.setItem(STORAGE_KEY_OS,JSON.stringify(OS_DATA));
+    // Ordens de Serviço agora vêm da API (carregarOS), não mais do localStorage
     // Financeiro (Contas a Pagar/Receber) agora vem da API (carregarFinanceiro), não mais do localStorage
     localStorage.setItem(STORAGE_KEY_CLI,'[]');
     localStorage.setItem(STORAGE_KEY_USR,'[]');
@@ -12790,15 +12863,7 @@ function loadData(){
     // PRODS agora vem da API (carregarProdutos), não mais do localStorage
     const so=localStorage.getItem(STORAGE_KEY_ORC);
     if(so){const o=JSON.parse(so);if(Array.isArray(o)&&o.length){ORC_DATA.length=0;ORC_DATA.push(...o);}}
-    const ss=localStorage.getItem(STORAGE_KEY_OS);
-    if(ss){
-      const o=JSON.parse(ss);
-      // Limpeza automática: remove as ordens de serviço fictícias de demonstração que ficaram salvas de antes
-      const idsFicticios=['#2847','#2846','#2845','#2844','#2843','#2842'];
-      const oLimpo=Array.isArray(o)?o.filter(x=>!idsFicticios.includes(x.id)):[];
-      if(oLimpo.length!==((o||[]).length)){localStorage.setItem(STORAGE_KEY_OS,JSON.stringify(oLimpo));}
-      if(oLimpo.length){OS_DATA.length=0;OS_DATA.push(...oLimpo);}
-    }
+    // Ordens de Serviço agora vêm da API (carregarOS), não mais do localStorage
     // Financeiro (Contas a Pagar/Receber) agora vem da API (carregarFinanceiro), não mais do localStorage
     // CLIENTES_DATA agora vem da API (carregarClientes), não mais do localStorage
     // FORNECEDORES_DATA agora vem da API (carregarFornecedores), não mais do localStorage
@@ -12920,7 +12985,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     }catch(e){}
   },2500);
 
-  renderDash();renderOS();renderVeiculos();renderGarantias();
+  renderDash();carregarOS();renderVeiculos();renderGarantias();
   renderCaixa();renderComissoes();renderProd();renderMov();
   renderCompras();renderCli();renderNFe();renderNotifs();
   renderCal();renderForns();renderVendedores();renderMecanicos();
