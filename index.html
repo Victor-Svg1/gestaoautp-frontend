@@ -5917,7 +5917,11 @@ function finalizeSale(){
       movimentarEstoque(prod.id,'saida',it.qty,'Venda PDV '+numVenda);
     }
   });
-  const clienteNomeAtual=pdvSelectedCliente?pdvSelectedCliente.nome:'';
+  // Se tiver cliente cadastrado, usa o nome dele. Senão, usa o nome que foi dado ao carrinho
+  // (ex: "Box 3") — assim essa informação chega no cupom e na tela de Vendas mesmo sem cadastro
+  const sessaoAtual=PDV_SESSIONS.find(s=>s.id===sessaoAtivaId);
+  const nomeCarrinhoPersonalizado=(sessaoAtual&&sessaoAtual.nome!==('Venda '+sessaoAtivaId))?sessaoAtual.nome:'';
+  const clienteNomeAtual=pdvSelectedCliente?pdvSelectedCliente.nome:nomeCarrinhoPersonalizado;
   const operadorVenda=(typeof currentUser!=='undefined'&&currentUser&&currentUser.n)?currentUser.n:'Administrador';
   let comissaoUsuarioId=null;
   // Contabiliza a venda pro vendedor logado (comissão) — automático, direto pelo login real
