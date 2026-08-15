@@ -5766,25 +5766,41 @@ async function enviarVenda(payload){
   }
   return resp.json();
 }
+let sincronizandoVendas=false;
 async function sincronizarVendasPendentes(silencioso){
+  // Trava contra sincronizações simultâneas — evita duplicar venda se o usuário clicar
+  // "Tentar sincronizar agora" várias vezes ou se o login e um clique manual coincidirem
+  if(sincronizandoVendas)return;
   const pendentes=getVendasPendentes();
   if(!pendentes.length)return;
-  const restantes=[];
-  let sincronizadas=0;
-  for(const item of pendentes){
-    try{
-      await enviarVenda(item.payload);
-      sincronizadas++;
-    }catch(e){
-      item.tentativas=(item.tentativas||0)+1;
-      restantes.push(item);
+  sincronizandoVendas=true;
+  try{
+    const restantes=[];
+    let sincronizadas=0;
+    const motivos=new Set();
+    for(const item of pendentes){
+      try{
+        await enviarVenda(item.payload);
+        sincronizadas++;
+      }catch(e){
+        item.tentativas=(item.tentativas||0)+1;
+        motivos.add(e.message);
+        restantes.push(item);
+      }
     }
+    localStorage.setItem(STORAGE_KEY_VENDAS_PENDENTES,JSON.stringify(restantes));
+    atualizarBannerVendasPendentes();
+    if(sincronizadas>0)toast(`✅ ${sincronizadas} venda(s) pendente(s) sincronizada(s) com o servidor!`,'success');
+    // Mostra o MOTIVO real do servidor, não uma mensagem genérica — assim dá pra saber
+    // exatamente por que travou, sem precisar abrir o console do navegador
+    if(!silencioso&&restantes.length>0){
+      const motivo=[...motivos][0]||'motivo desconhecido';
+      toast(`⚠️ ${restantes.length} venda(s) sem sincronizar. Motivo: ${motivo}`,'error');
+    }
+    if(typeof carregarVendas==='function')carregarVendas();
+  }finally{
+    sincronizandoVendas=false;
   }
-  localStorage.setItem(STORAGE_KEY_VENDAS_PENDENTES,JSON.stringify(restantes));
-  atualizarBannerVendasPendentes();
-  if(sincronizadas>0)toast(`✅ ${sincronizadas} venda(s) pendente(s) sincronizada(s) com o servidor!`,'success');
-  if(!silencioso&&restantes.length>0)toast(`⚠️ Ainda há ${restantes.length} venda(s) sem sincronizar. Verifique sua conexão ou faça login de novo.`,'error');
-  if(typeof carregarVendas==='function')carregarVendas();
 }
 function finalizeSale(){
   if(!cart.length)return;
