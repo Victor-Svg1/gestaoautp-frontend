@@ -5991,6 +5991,19 @@ function finalizeSale(){
   saveData();
   toast(`✅ Venda R$ ${tot.toFixed(2)} — ${payLabelFinal} — NF-e emitida!`,'success');
   printReceipt(itensSnapshot,subtotal,disc,discAmt,tot,payLabelFinal,clienteNomeAtual,recebidoVal,trocoVal,numVenda);
+  fecharCarrinhoAposVenda(); // fecha o carrinho que acabou de vender e já abre um novo em branco
+}
+// Fecha automaticamente o carrinho recém-vendido e abre um novo em branco no lugar —
+// sem confirmação, já que os itens foram vendidos de verdade, não descartados
+function fecharCarrinhoAposVenda(){
+  const idFinalizado=sessaoAtivaId;
+  PDV_SESSIONS=PDV_SESSIONS.filter(s=>s.id!==idFinalizado);
+  if(!PDV_SESSIONS.length){
+    const novoId=idFinalizado+1;
+    PDV_SESSIONS.push({id:novoId,nome:'Venda '+novoId,cart:[],pdvSelectedCliente:null,disc:0});
+  }
+  carregarEstadoSessao(PDV_SESSIONS[0].id);
+  renderPDVSessionTabs();
 }
 let pdvSelectedCliente=null; // {tipo:'cliente'|'mecanico', id ou idx, nome}
 function buildPDVClientList(){
