@@ -3548,7 +3548,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 <div class="mov" id="modal-pdv-client" onclick="closeModal('modal-pdv-client')"><div class="modal" onclick="event.stopPropagation()" style="max-width:440px">
   <div class="mhd"><span class="mtit">Selecionar Cliente</span><button class="mcl" onclick="closeModal('modal-pdv-client')"><i class="ti ti-x"></i></button></div>
   <div class="mbd">
-    <div class="sfield mb14"><i class="ti ti-search"></i><input type="text" id="pdv-cli-search" placeholder="Nome, CPF, telefone…" oninput="filterPDVClients(this.value)"></div>
+    <div class="sfield mb14"><i class="ti ti-search"></i><input type="text" id="pdv-cli-search" placeholder="Nome, apelido, CPF, telefone…" oninput="filterPDVClients(this.value)"></div>
     <div id="pdv-cli-list"></div>
   </div>
   <div class="mft"><button class="btn bg" onclick="pdvSelectedCliente=null;document.getElementById('cart-cli').textContent='Selecionar cliente';closeModal('modal-pdv-client')"><i class="ti ti-user-off"></i>Venda sem CPF</button></div>
@@ -5926,8 +5926,8 @@ function finalizeSale(){
 }
 let pdvSelectedCliente=null; // {tipo:'cliente'|'mecanico', id ou idx, nome}
 function buildPDVClientList(){
-  const clientes=CLIENTES_DATA.map(c=>({tipo:'cliente',id:c.id,nome:c.n,doc:c.d||'—',sub:c.apelido?`(${c.apelido})`:''}));
-  const mecanicos=MECHS.map((m,idx)=>({tipo:'mecanico',id:idx,nome:m.n,doc:m.cpf||'—',sub:'Mecânico'}));
+  const clientes=CLIENTES_DATA.map(c=>({tipo:'cliente',id:c.id,nome:c.n,doc:c.d||'—',apelido:c.apelido||'',sub:c.apelido?`(${c.apelido})`:''}));
+  const mecanicos=MECHS.map((m,idx)=>({tipo:'mecanico',id:idx,nome:m.n,doc:m.cpf||'—',apelido:m.apelido||'',sub:m.apelido?`Mecânico · (${m.apelido})`:'Mecânico'}));
   return[...clientes,...mecanicos];
 }
 function renderPDVClients(filtro){
@@ -5939,9 +5939,10 @@ function renderPDVClients(filtro){
   if(q||qDigits){
     lista=lista.filter(cl=>{
       const nameMatch=q&&normTxt(cl.nome).includes(q);
+      const apelidoMatch=q&&cl.apelido&&normTxt(cl.apelido).includes(q);
       const docMatch=q&&normTxt(cl.doc).includes(q);
       const docDigitsMatch=qDigits&&cl.doc.replace(/\D/g,'').includes(qDigits);
-      return nameMatch||docMatch||docDigitsMatch;
+      return nameMatch||apelidoMatch||docMatch||docDigitsMatch;
     });
   }
   if(!lista.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">Nenhum resultado encontrado</div>';return;}
