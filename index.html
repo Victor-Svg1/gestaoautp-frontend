@@ -1203,6 +1203,10 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
               <div style="display:flex;align-items:center;gap:8px;margin-top:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer" onclick="openPDVClientModal()">
                 <i class="ti ti-user-circle" style="color:var(--text3)"></i><span style="font-size:12px;color:var(--text2);flex:1" id="cart-cli">Selecionar cliente</span><i class="ti ti-chevron-right" style="font-size:13px;color:var(--text3)"></i>
               </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px">
+                <i class="ti ti-tag" style="color:var(--text3);font-size:14px"></i>
+                <input type="text" id="pdv-nome-carrinho" placeholder="Nomear este carrinho (ex: Box 3, Cliente da oficina...)" style="flex:1;background:transparent;border:none;font-size:12px;color:var(--text2);outline:none" onchange="renomearCarrinhoAtivo(this.value)">
+              </div>
               <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
                 <i class="ti ti-building-store" style="color:var(--text3);font-size:14px"></i>
                 <select id="pdv-canal-venda" style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;font-size:11.5px;color:var(--text2);outline:none">
@@ -5341,6 +5345,8 @@ function carregarEstadoSessao(id){
   sessaoAtivaId=id;
   const discInput=document.getElementById('pdv-disc');
   if(discInput)discInput.value=s.disc||'';
+  const nomeInput=document.getElementById('pdv-nome-carrinho');
+  if(nomeInput)nomeInput.value=(s.nome===('Venda '+id))?'':(s.nome||'');
   const cli=document.getElementById('cart-cli');
   if(cli)cli.textContent=pdvSelectedCliente?pdvSelectedCliente.nome:'Selecionar cliente';
   updateCart();
@@ -6022,8 +6028,20 @@ function selectPDVCliente(tipo,id){
   if(!cl)return;
   pdvSelectedCliente={tipo,id:tipo==='mecanico'?parseInt(id):id,nome:cl.nome};
   document.getElementById('cart-cli').textContent=cl.nome+(tipo==='mecanico'?' (Mecânico)':'');
+  // Se for cliente cadastrado, o nome dele já vira o nome do carrinho automaticamente
+  renomearCarrinhoAtivo(cl.nome);
   closeModal('modal-pdv-client');
   toast('Cliente vinculado!','success');
+}
+// Nomeia o carrinho/venda ativa — seja digitado manualmente ou preenchido ao vincular um cliente cadastrado
+function renomearCarrinhoAtivo(novoNome){
+  const nome=(novoNome||'').trim();
+  const sessao=PDV_SESSIONS.find(s=>s.id===sessaoAtivaId);
+  if(!sessao)return;
+  sessao.nome=nome||('Venda '+sessaoAtivaId); // se apagar tudo, volta pro nome padrão
+  const nomeInput=document.getElementById('pdv-nome-carrinho');
+  if(nomeInput)nomeInput.value=sessao.nome==='Venda '+sessaoAtivaId&&!nome?'':sessao.nome;
+  renderPDVSessionTabs();
 }
 
 // ======= OUTROS MÓDULOS =======
