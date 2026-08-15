@@ -1576,7 +1576,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
       </div>
 
       <div class="screen" id="screen-vendas">
-        <div class="ph"><div class="phl"><h1>Vendas</h1><p>Histórico de vendas finalizadas do PDV</p></div>
+        <div class="ph"><div class="phl"><h1>Vendas</h1><p id="vendas-subtitulo">Histórico de vendas finalizadas do PDV</p></div>
           <div class="flx g2b"><button class="btn bs btn-sm" onclick="exportarVendasCSV()"><i class="ti ti-file-spreadsheet"></i>Exportar CSV</button></div>
         </div>
         <div class="card" style="margin-bottom:16px">
@@ -5066,6 +5066,8 @@ let VENDAS_DATA=[];
 let vendasPeriodoAtivo='dia';
 async function carregarVendas(periodo){
   try{
+    const sub=document.getElementById('vendas-subtitulo');
+    if(sub)sub.textContent=(currentUser&&currentUser.perfil==='vendedor')?'Suas vendas finalizadas no PDV':'Histórico de vendas finalizadas do PDV';
     const p=periodo||vendasPeriodoAtivo;
     const resp=await fetch(API_BASE+'/vendas?periodo='+p,{headers:authHeaders()});
     if(!resp.ok)throw new Error('Falha ao carregar vendas');
@@ -12408,6 +12410,7 @@ async function aplicarSessaoLogada(usuario){
   applySidebarPerms(currentUser.perfil);
   atualizarBannerVendasPendentes();
   if(getVendasPendentes().length)sincronizarVendasPendentes(true); // login = token novo, melhor hora pra tentar de novo
+  carregarOS(); // só carrega OS depois que já temos sessão válida — antes disso a chamada dava erro de autenticação
   const initials=currentUser.n.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
   const cores={admin:'linear-gradient(135deg,var(--red),#B91C1C)',vendedor:'linear-gradient(135deg,var(--blue),var(--purple))',mecanico:'linear-gradient(135deg,var(--amber),var(--orange))',financeiro:'linear-gradient(135deg,var(--green),var(--teal))'};
   const topUser=document.getElementById('topbar-user');
@@ -12985,7 +12988,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     }catch(e){}
   },2500);
 
-  renderDash();carregarOS();renderVeiculos();renderGarantias();
+  renderDash();renderOS();renderVeiculos();renderGarantias();
   renderCaixa();renderComissoes();renderProd();renderMov();
   renderCompras();renderCli();renderNFe();renderNotifs();
   renderCal();renderForns();renderVendedores();renderMecanicos();
